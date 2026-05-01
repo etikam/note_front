@@ -21,7 +21,7 @@ services:
       - "traefik.http.routers.notes-web.rule=Host(`${PUBLIC_WEB_HOST:-notes.ci.edu.gn}`)"
       - traefik.http.routers.notes-web.entrypoints=websecure
       - traefik.http.routers.notes-web.tls=true
-      - traefik.http.routers.notes-web.tls.certresolver=letsencrypt
+      - traefik.http.routers.notes-web.tls.certresolver=citls
       - traefik.http.services.notes-web.loadbalancer.server.port=80
 
 networks:
