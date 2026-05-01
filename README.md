@@ -2,6 +2,8 @@
 
 Application **React + Vite** pour `https://notes.ci.edu.gn`. Elle consomme l’API sur **`https://api.notes.ci.edu.gn`** (URL configurable au build).
 
+En production Docker, le dossier **`dist`** est servi par **nginx** (port **80** dans le conteneur) ; **Traefik** termine le TLS et fait proxy vers ce service. Le nom d’hôte public du front est défini par **`PUBLIC_WEB_HOST`** dans `.env` (interpolation Compose pour la règle `Host(...)`), défaut **`notes.ci.edu.gn`**.
+
 ## Dépôt
 
 Ce dossier est prévu pour vivre dans un **dépôt Git séparé** du backend (`notes-api`).

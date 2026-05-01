@@ -1,5 +1,6 @@
 # Déploiement VPS derrière Traefik (réseau externe traefik-public).
 # Les variables VITE_* sont injectées au moment du build Docker (voir Dockerfile).
+# `PUBLIC_WEB_HOST` : FQDN du front (règle Host Traefik), défaut dans la ligne label — surcharger via `.env` à la racine de ce projet.
 
 services:
   web:
@@ -17,7 +18,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
-      - traefik.http.routers.notes-web.rule=Host(`notes.ci.edu.gn`)
+      - "traefik.http.routers.notes-web.rule=Host(`${PUBLIC_WEB_HOST:-notes.ci.edu.gn}`)"
       - traefik.http.routers.notes-web.entrypoints=websecure
       - traefik.http.routers.notes-web.tls=true
       - traefik.http.routers.notes-web.tls.certresolver=letsencrypt
