@@ -1,0 +1,28 @@
+# Déploiement VPS derrière Traefik (réseau externe traefik-public).
+# Les variables VITE_* sont injectées au moment du build Docker (voir Dockerfile).
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api.notes.ci.edu.gn}
+        VITE_API_TIMEOUT_MS: ${VITE_API_TIMEOUT_MS:-15000}
+        VITE_THEME_MODE: ${VITE_THEME_MODE:-light}
+    image: notes-frontend:local
+    restart: unless-stopped
+    networks:
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.http.routers.notes-web.rule=Host(`notes.ci.edu.gn`)
+      - traefik.http.routers.notes-web.entrypoints=websecure
+      - traefik.http.routers.notes-web.tls=true
+      - traefik.http.routers.notes-web.tls.certresolver=letsencrypt
+      - traefik.http.services.notes-web.loadbalancer.server.port=80
+
+networks:
+  traefik-public:
+    external: true

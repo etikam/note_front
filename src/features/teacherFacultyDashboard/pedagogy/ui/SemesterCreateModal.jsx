@@ -1,0 +1,96 @@
+import { useEffect, useState } from 'react'
+import { CalendarDays } from 'lucide-react'
+
+import { postSemester } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
+import { Button } from '@/shared/ui/Button'
+import { Field, Input } from '@/shared/ui/Field'
+import { dispatchToast } from '@/shared/notifications/toastBridge'
+
+import { PedagogyModalFrame } from '@/features/teacherFacultyDashboard/pedagogy/ui/PedagogyModalFrame'
+
+const inputCls =
+  'w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]'
+
+const empty = { number: 1, start_date: '', end_date: '' }
+
+/**
+ * @param {{ open: boolean; onClose: () => void; academicYearId: number | null; yearLabel?: string; onCreated: () => Promise<void> | void }} props
+ */
+export function SemesterCreateModal({ open, onClose, academicYearId, yearLabel, onCreated }) {
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState(empty)
+
+  useEffect(() => {
+    if (open) setForm(empty)
+  }, [open])
+
+  const submit = async (e) => {
+    e.preventDefault()
+    if (!academicYearId) return
+    setSaving(true)
+    try {
+      await postSemester(academicYearId, {
+        number: Number(form.number),
+        start_date: form.start_date,
+        end_date: form.end_date,
+      })
+      dispatchToast({ type: 'success', message: 'Semestre créé.' })
+      await onCreated?.()
+      onClose()
+    } catch (err) {
+      dispatchToast({ type: 'error', message: err?.response?.data?.detail ?? err?.message ?? 'Erreur.' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const disabled = !academicYearId
+
+  return (
+    <PedagogyModalFrame
+      open={open}
+      onClose={onClose}
+      title="Nouveau semestre"
+      subtitle={
+        academicYearId
+          ? yearLabel
+            ? `Rattaché à l’année « ${yearLabel} ».`
+            : 'Rattaché à l’année sélectionnée dans le calendrier.'
+          : 'Sélectionnez d’abord une année dans la liste à gauche.'
+      }
+      icon={CalendarDays}
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>
+            Annuler
+          </Button>
+          <Button type="submit" form="form-semester" variant="primary" disabled={saving || disabled}>
+            {saving ? 'Création…' : 'Créer le semestre'}
+          </Button>
+        </div>
+      }
+    >
+      <form id="form-semester" className="space-y-4" onSubmit={submit}>
+        <Field label="Numéro">
+          <select
+            className={inputCls}
+            value={form.number}
+            disabled={disabled}
+            onChange={(e) => setForm((x) => ({ ...x, number: Number(e.target.value) }))}
+          >
+            <option value={1}>Semestre 1</option>
+            <option value={2}>Semestre 2</option>
+          </select>
+        </Field>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Date de début">
+            <Input type="date" className={inputCls} value={form.start_date} disabled={disabled} onChange={(e) => setForm((x) => ({ ...x, start_date: e.target.value }))} required />
+          </Field>
+          <Field label="Date de fin">
+            <Input type="date" className={inputCls} value={form.end_date} disabled={disabled} onChange={(e) => setForm((x) => ({ ...x, end_date: e.target.value }))} required />
+          </Field>
+        </div>
+      </form>
+    </PedagogyModalFrame>
+  )
+}
