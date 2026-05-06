@@ -11,6 +11,9 @@ import { GuestRoute, ProtectedRoute } from '@/features/auth/ui/RouteGuards'
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { StudentDashboardPage } from '@/features/student/pages/StudentDashboardPage'
 import { StudentGradesPage } from '@/features/student/pages/StudentGradesPage'
+import { StudentCoursesPage } from '@/features/student/pages/StudentCoursesPage'
+import { StudentStatsPage } from '@/features/student/pages/StudentStatsPage'
+import { StudentExportsPage } from '@/features/student/pages/StudentExportsPage'
 import { TeacherGradesPage } from '@/features/teacher/pages/TeacherGradesPage'
 import { TeacherReportsPage } from '@/features/teacher/pages/TeacherReportsPage'
 import { TeacherMyCoursesPage } from '@/features/teacher/courses/TeacherMyCoursesPage'
@@ -28,6 +31,7 @@ import { TeacherFacultyDetailPage } from '@/features/teacher/faculty/TeacherFacu
 import { TeacherFacultyImportPage } from '@/features/teacher/faculty/TeacherFacultyImportPage'
 import { TeacherFacultyLayout } from '@/features/teacher/faculty/TeacherFacultyLayout'
 import { TeacherFacultyListPage } from '@/features/teacher/faculty/TeacherFacultyListPage'
+
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 /** Ancienne URL `/teacher/pedagogy` → `/teacher/academie` (conserve la query `?tab=`). */
@@ -63,9 +67,10 @@ function SettingsEntry() {
 export function AppRouter() {
   return (
     <Routes>
+      <Route path="/" element={<Navigate to="/auth/login" replace />} />
+
       <Route element={<PublicLayout />}>
         <Route element={<GuestRoute />}>
-          <Route path="/" element={<LoginPage />} />
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/activate" element={<ActivationPage />} />
           <Route path="/auth/activate/*" element={<Navigate to="/auth/activate" replace />} />
@@ -102,6 +107,9 @@ export function AppRouter() {
           <Route path="/teacher/grades" element={<TeacherGradesPage />} />
           <Route path="/student/dashboard" element={<StudentDashboardPage />} />
           <Route path="/student/grades" element={<StudentGradesPage />} />
+          <Route path="/student/courses" element={<StudentCoursesPage />} />
+          <Route path="/student/stats" element={<StudentStatsPage />} />
+          <Route path="/student/exports" element={<StudentExportsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<SettingsEntry />} />
         </Route>

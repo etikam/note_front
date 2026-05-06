@@ -1,6 +1,14 @@
+import { useEffect, useRef } from 'react'
 import { BookOpen, GraduationCap, LineChart, ListChecks } from 'lucide-react'
 
-function StudentKpi({ label, value, icon: Icon }) {
+import { useAuth } from '@/features/auth/model/AuthContext'
+import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
+import { useGrades } from '@/features/grades/hooks/useGrades'
+import { useEnrollments } from '@/features/enrollment/hooks/useEnrollments'
+import { Button } from '@/shared/ui/Button'
+import { PageLoading } from '@/shared/ui/Spinner'
+
+function KpiCard({ label, valeur, icon: Icon }) {
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-5 shadow-sm transition-shadow duration-200 hover:shadow-md">
       <div
@@ -13,12 +21,59 @@ function StudentKpi({ label, value, icon: Icon }) {
           <Icon size={17} strokeWidth={2} aria-hidden />
         </span>
       </div>
-      <p className="mt-3 font-heading text-3xl font-bold tabular-nums tracking-tight text-[var(--app-fg)]">{value}</p>
+      <p className="mt-3 font-heading text-3xl font-bold tabular-nums tracking-tight text-[var(--app-fg)]">{valeur}</p>
     </div>
   )
 }
 
 export function StudentDashboardPage() {
+  const { user } = useAuth()
+  const { academicYearId, academicYearLabel } = useAcademicYear()
+
+  const inscriptionsHook = useEnrollments(
+    academicYearId ? { academic_year: academicYearId } : {}
+  )
+  const notesHook = useGrades(
+    academicYearId ? { academic_year: academicYearId } : {}
+  )
+
+  const prevAnnee = useRef(academicYearId)
+  useEffect(() => {
+    if (academicYearId && academicYearId !== prevAnnee.current) {
+      const filtres = { academic_year: academicYearId }
+      inscriptionsHook.setParams(filtres)
+      notesHook.setParams(filtres)
+    }
+    prevAnnee.current = academicYearId
+  }, [academicYearId])
+
+  if (inscriptionsHook.loading || notesHook.loading) return <PageLoading />
+
+  if (inscriptionsHook.error || notesHook.error) {
+    const retenter = () => {
+      inscriptionsHook.reload()
+      notesHook.reload()
+    }
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+        <p className="text-sm text-[var(--app-muted)]">Impossible de charger vos données.</p>
+        <Button variant="soft" size="sm" onClick={retenter}>Réessayer</Button>
+      </div>
+    )
+  }
+
+  const listeInscriptions = inscriptionsHook.data?.results ?? inscriptionsHook.data ?? []
+  const listeNotes = notesHook.data?.results ?? notesHook.data ?? []
+
+  const approuvees = listeInscriptions.filter(i => i.status === 'approved').length
+  const enAttente = listeInscriptions.filter(i => i.status === 'pending').length
+
+  const notesPubliees = listeNotes.filter(n => n.published)
+  const nbPubliees = notesPubliees.length
+  const moyenneCalc = nbPubliees > 0
+    ? (notesPubliees.reduce((acc, n) => acc + n.score, 0) / nbPubliees).toFixed(2)
+    : '0.00'
+
   return (
     <div className="flex flex-col gap-8">
       <div className="relative overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-sm">
@@ -27,20 +82,25 @@ export function StudentDashboardPage() {
           aria-hidden
         />
         <div className="relative p-6">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--app-muted)]">Espace étudiant</p>
-          <h1 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[var(--app-fg)] sm:text-3xl">Dashboard</h1>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--app-muted)]">
+            Espace étudiant{academicYearLabel ? ` · ${academicYearLabel}` : ''}
+          </p>
+          <h1 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[var(--app-fg)] sm:text-3xl">
+            Bienvenue, {user?.full_name ?? 'Étudiant'}
+          </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--app-muted)]">
-            Vue personnelle : progression, inscriptions et notes publiées. Les indicateurs seront branchés sur l’API
-            lorsque les données seront disponibles.
+            Matricule{' '}
+            <span className="font-medium text-[var(--app-fg)]">{user?.matricule ?? '—'}</span>
+            {' — '}Retrouvez ici vos inscriptions et vos notes publiées.
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StudentKpi label="Inscriptions approuvées" value="—" icon={ListChecks} />
-        <StudentKpi label="Inscriptions en attente" value="—" icon={GraduationCap} />
-        <StudentKpi label="Notes publiées" value="—" icon={BookOpen} />
-        <StudentKpi label="Moyenne globale" value="—" icon={LineChart} />
+        <KpiCard label="Inscriptions approuvées" valeur={approuvees} icon={ListChecks} />
+        <KpiCard label="Inscriptions en attente" valeur={enAttente} icon={GraduationCap} />
+        <KpiCard label="Notes publiées" valeur={nbPubliees} icon={BookOpen} />
+        <KpiCard label="Moyenne générale" valeur={`${moyenneCalc} /10`} icon={LineChart} />
       </div>
     </div>
   )
