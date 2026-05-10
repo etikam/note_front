@@ -14,7 +14,7 @@ function formatFileSize(bytes) {
 /**
  * @param {{
  *   pendingFile: File | null
- *   preview: { headers: string[]; totalDataRows: number; headerIssues: string[] } | null
+ *   preview: { headers: string[]; totalDataRows: number; headerIssues: string[]; rowValidation?: { totalIssueCount?: number } } | null
  *   busy: boolean
  *   uploadProgress: number | null
  *   result: {
@@ -25,14 +25,29 @@ function formatFileSize(bytes) {
  *     skipped?: unknown[]
  *   } | null
  *   globalError: string | null
+ *   requiredColumnKeys?: string[]
+ *   columnLabels?: Record<string, string>
  * }} props
  */
-export function ImportSidebar({ pendingFile, preview, busy, uploadProgress, result, globalError }) {
+export function ImportSidebar({
+  pendingFile,
+  preview,
+  busy,
+  uploadProgress,
+  result,
+  globalError,
+  requiredColumnKeys,
+  columnLabels,
+}) {
   const hasFile = Boolean(pendingFile)
   const statsReady = Boolean(pendingFile && preview)
   const headersOk = statsReady && preview.headerIssues.length === 0
-  const canImportRow = statsReady && headersOk && preview.totalDataRows > 0
-  const columnMatch = statsReady ? getRequiredColumnMatchState(preview.headers) : null
+  const rowDataIssues = preview?.rowValidation?.totalIssueCount ?? 0
+  const canImportRow =
+    statsReady && headersOk && preview.totalDataRows > 0 && rowDataIssues === 0
+  const columnMatch = statsReady
+    ? getRequiredColumnMatchState(preview.headers, { requiredKeys: requiredColumnKeys, labels: columnLabels })
+    : null
 
   return (
     <div className="flex flex-col gap-4">
@@ -103,6 +118,14 @@ export function ImportSidebar({ pendingFile, preview, busy, uploadProgress, resu
                 )}
               </dd>
             </div>
+            {headersOk && rowDataIssues > 0 ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <dt className="text-zinc-500 dark:text-zinc-400">Données lignes</dt>
+                <dd>
+                  <Badge tone="warning">{rowDataIssues} erreur(s)</Badge>
+                </dd>
+              </div>
+            ) : null}
           </dl>
         )}
       </Card>
@@ -146,7 +169,11 @@ export function ImportSidebar({ pendingFile, preview, busy, uploadProgress, resu
           <div className="mt-3 space-y-2 text-xs">
             <p className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
               <Gauge size={14} className="shrink-0 text-zinc-400" aria-hidden />
-              {canImportRow ? 'Prêt à lancer l’import serveur.' : 'Corrigez le fichier ou les en-têtes avant import.'}
+              {canImportRow
+                ? 'Prêt à lancer l’import serveur.'
+                : headersOk && preview.totalDataRows > 0 && rowDataIssues > 0
+                  ? 'Corrigez les erreurs du rapport (lignes de données) avant l’import.'
+                  : 'Corrigez le fichier ou les en-têtes avant import.'}
             </p>
             {canImportRow ? <Badge tone="info">En attente</Badge> : <Badge tone="neutral">Bloqué</Badge>}
           </div>
