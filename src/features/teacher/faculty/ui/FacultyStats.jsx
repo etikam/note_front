@@ -53,12 +53,6 @@ export function FacultyStats({ stats }) {
       value: a.on_leave ?? 0,
       hint: 'Absence programmée (congé).',
     },
-    {
-      key: 'pending_activation',
-      label: 'À activer',
-      value: a.pending_activation ?? 0,
-      hint: 'Fiche sans utilisateur lié (OTP / première connexion).',
-    },
   ]
 
   const cardShell =
@@ -296,8 +290,7 @@ export function FacultyStats({ stats }) {
                 </p>
               </header>
               <p className="border-b border-[var(--app-border)] bg-[var(--app-canvas)]/40 px-5 py-2 text-xs text-[var(--app-muted)]">
-                Les statuts actif / inactif / suspendu / congé sont exclusifs. « À activer » compte les fiches sans
-                utilisateur lié et peut se cumuler avec un autre statut.
+                Les statuts actif, inactif, suspendu et congé sont mutuellement exclusifs pour une même fiche.
               </p>
               <div className="grid gap-3 p-5 sm:grid-cols-2">
                 {accountItems.map((item) => (
@@ -313,9 +306,7 @@ export function FacultyStats({ stats }) {
                     </div>
                     <p className="mt-1 text-xs leading-relaxed text-[var(--app-muted)]">{item.hint}</p>
                     <p className="mt-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                      {item.key === 'pending_activation'
-                        ? 'Indicateur transversal (sans User lié)'
-                        : `${pct(item.value, total)} de l’effectif filtré`}
+                      {`${pct(item.value, total)} de l’effectif filtré`}
                     </p>
                   </div>
                 ))}

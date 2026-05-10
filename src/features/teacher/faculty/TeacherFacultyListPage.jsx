@@ -12,6 +12,7 @@ import { Card } from '@/shared/ui/Card'
 import { Field, Input } from '@/shared/ui/Field'
 import { Spinner } from '@/shared/ui/Spinner'
 import { cn } from '@/shared/lib/cn'
+import { DateInputFr } from '@/shared/ui/DateInputFr'
 
 const TEACHER_ROLE_OPTIONS = [
   { value: 'teacher', label: 'Enseignant' },
@@ -51,13 +52,13 @@ function buildCreatePayload(form) {
   if (form.gender) payload.gender = form.gender
   const phone = form.phone.trim()
   if (phone) payload.phone = phone
-  if (form.birth_date) payload.birth_date = form.birth_date
+  if (form.birth_date?.trim()) payload.birth_date = form.birth_date.trim()
   if (form.grade) payload.grade = form.grade
   if (form.years_of_experience !== '' && form.years_of_experience != null) {
     const n = Number(form.years_of_experience)
     if (!Number.isNaN(n)) payload.years_of_experience = n
   }
-  if (form.hire_date) payload.hire_date = form.hire_date
+  if (form.hire_date?.trim()) payload.hire_date = form.hire_date.trim()
   const bio = form.bio.trim()
   if (bio) payload.bio = bio
   return payload
@@ -316,11 +317,10 @@ export function TeacherFacultyListPage() {
                     />
                   </Field>
                   <Field label="Date de naissance" error={createFieldErrors.birth_date}>
-                    <Input
-                      type="date"
+                    <DateInputFr
                       name="birth_date"
                       value={createForm.birth_date}
-                      onChange={(e) => handleCreateChange('birth_date', e.target.value)}
+                      onChange={(v) => handleCreateChange('birth_date', v)}
                       aria-invalid={Boolean(createFieldErrors.birth_date)}
                       className={inputErrClass('birth_date')}
                     />
@@ -391,11 +391,10 @@ export function TeacherFacultyListPage() {
                     </label>
                   </Field>
                   <Field label="Date d’embauche" error={createFieldErrors.hire_date}>
-                    <Input
-                      type="date"
+                    <DateInputFr
                       name="hire_date"
                       value={createForm.hire_date}
-                      onChange={(e) => handleCreateChange('hire_date', e.target.value)}
+                      onChange={(v) => handleCreateChange('hire_date', v)}
                       aria-invalid={Boolean(createFieldErrors.hire_date)}
                       className={inputErrClass('hire_date')}
                     />

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, LayoutGrid, ListOrdered, PanelRight, Search } from 'lucide-react'
 
 import { fetchCoursesList, fetchTeachingUnits } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
+import { useAuth } from '@/features/auth/model/AuthContext'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { Field, Input } from '@/shared/ui/Field'
@@ -44,6 +45,7 @@ function groupCoursesByTeachingUnit(rows) {
  *   departments: Array<{ id: number; code: string; name: string }>
  *   unitsForUeFilter: Array<{ id: number; code: string; name: string }>
  *   managedDeptId: number | null
+ *   institutionWide?: boolean
  *   canStructure: boolean
  *   reloadKey: number
  * }} props
@@ -54,15 +56,20 @@ export function PedagogyCoursesSection({
   departments,
   unitsForUeFilter,
   managedDeptId,
+  institutionWide = false,
   canStructure,
   reloadKey,
 }) {
+  const { user } = useAuth()
+  const deptScoped = managedDeptId != null && !institutionWide
   const [viewMode, setViewMode] = useState(/** @type {'byUe' | 'flat'} */ ('byUe'))
   const [flatSort, setFlatSort] = useState(/** @type {'asc' | 'desc'} */ ('asc'))
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filterSemester, setFilterSemester] = useState('')
-  const [filterDepartment, setFilterDepartment] = useState(() => (managedDeptId != null ? String(managedDeptId) : ''))
+  const [filterDepartment, setFilterDepartment] = useState(() =>
+    managedDeptId != null && !institutionWide ? String(managedDeptId) : '',
+  )
   const [filterUe, setFilterUe] = useState('')
   const [page, setPage] = useState(1)
   const pageSizeFlat = 20
@@ -78,8 +85,14 @@ export function PedagogyCoursesSection({
   }, [search])
 
   useEffect(() => {
-    if (managedDeptId != null) setFilterDepartment(String(managedDeptId))
-  }, [managedDeptId])
+    if (deptScoped) setFilterDepartment(String(managedDeptId))
+  }, [deptScoped, managedDeptId])
+
+  /** Changement de compte (ex. chef → DG) : ne pas garder le filtre département imposé. */
+  useEffect(() => {
+    if (user?.id == null) return
+    if (institutionWide) setFilterDepartment('')
+  }, [user?.id, institutionWide])
 
   useEffect(() => {
     if (!yearFocusId) return
@@ -243,7 +256,7 @@ export function PedagogyCoursesSection({
               className={inputCls}
               value={filterDepartment}
               onChange={(e) => setFilterDepartment(e.target.value)}
-              disabled={managedDeptId != null}
+              disabled={deptScoped}
             >
               <option value="">Tous</option>
               {departments.map((d) => (

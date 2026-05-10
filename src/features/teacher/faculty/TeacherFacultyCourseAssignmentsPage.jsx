@@ -26,6 +26,7 @@ const selectClass =
 
 export function TeacherFacultyCourseAssignmentsPage() {
   const { user } = useAuth()
+  const institutionWide = Boolean(user?.scope?.institution_wide)
   const canManageCourses = Boolean(user?.capabilities?.can_manage_courses)
   const { academicYearId, academicYearLabel, refreshAcademicYears } = useAcademicYear()
 
@@ -53,7 +54,7 @@ export function TeacherFacultyCourseAssignmentsPage() {
       try {
         const params = { academic_year_id: academicYearId }
         const managed = user?.scope?.managed_department_id
-        if (managed) params.department_id = managed
+        if (managed && !institutionWide) params.department_id = managed
         const rows = await fetchCourseAssignmentSemesters(params)
         if (!cancelled) setSemesterOptions(Array.isArray(rows) ? rows : [])
       } catch {
@@ -63,7 +64,7 @@ export function TeacherFacultyCourseAssignmentsPage() {
     return () => {
       cancelled = true
     }
-  }, [academicYearId, user?.scope?.managed_department_id])
+  }, [academicYearId, user?.scope?.managed_department_id, institutionWide])
 
   useEffect(() => {
     setPage(1)

@@ -42,7 +42,10 @@ function SectionTitle({ step, label, done, titleId }) {
 
 export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) {
   const { user } = useAuth()
-  const lockedDeptId = user?.scope?.managed_department_id ?? null
+  const managedDeptId = user?.scope?.managed_department_id ?? null
+  const institutionWide = Boolean(user?.scope?.institution_wide)
+  /** Cantonné à un département (chef, etc.) ; DG / DE choisissent le département dans le flux. */
+  const lockedDeptId = managedDeptId != null && !institutionWide ? managedDeptId : null
 
   const [departmentId, setDepartmentId] = useState('')
   const [semesterId, setSemesterId] = useState('')

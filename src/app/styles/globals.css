@@ -937,3 +937,15 @@ html[data-theme="dark"] .sd-detail__mini-badge--muted {
   font-weight: 700;
   color: var(--app-fg);
 }
+
+/* react-day-picker — variables https://daypicker.dev/docs/styling (thème dark aligné app) */
+html[data-theme='dark'] .rdp-root {
+  --rdp-accent-color: var(--color-brand-500);
+  --rdp-accent-background-color: color-mix(in srgb, var(--color-brand-600) 28%, transparent);
+  --rdp-today-color: var(--color-brand-400);
+  color: var(--app-fg);
+}
+html[data-theme='dark'] .rdp-weekday,
+html[data-theme='dark'] .rdp-caption_label {
+  color: var(--app-muted);
+}

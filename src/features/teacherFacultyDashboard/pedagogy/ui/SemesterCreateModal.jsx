@@ -3,7 +3,8 @@ import { CalendarDays } from 'lucide-react'
 
 import { postSemester } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
 import { Button } from '@/shared/ui/Button'
-import { Field, Input } from '@/shared/ui/Field'
+import { Field } from '@/shared/ui/Field'
+import { DateInputFr } from '@/shared/ui/DateInputFr'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
 
 import { PedagogyModalFrame } from '@/features/teacherFacultyDashboard/pedagogy/ui/PedagogyModalFrame'
@@ -27,12 +28,19 @@ export function SemesterCreateModal({ open, onClose, academicYearId, yearLabel, 
   const submit = async (e) => {
     e.preventDefault()
     if (!academicYearId) return
+    if (!form.start_date?.trim() || !form.end_date?.trim()) {
+      dispatchToast({
+        type: 'error',
+        message: 'Renseignez la date de début et la date de fin.',
+      })
+      return
+    }
     setSaving(true)
     try {
       await postSemester(academicYearId, {
         number: Number(form.number),
-        start_date: form.start_date,
-        end_date: form.end_date,
+        start_date: form.start_date.trim(),
+        end_date: form.end_date.trim(),
       })
       dispatchToast({ type: 'success', message: 'Semestre créé.' })
       await onCreated?.()
@@ -84,10 +92,22 @@ export function SemesterCreateModal({ open, onClose, academicYearId, yearLabel, 
         </Field>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Date de début">
-            <Input type="date" className={inputCls} value={form.start_date} disabled={disabled} onChange={(e) => setForm((x) => ({ ...x, start_date: e.target.value }))} required />
+            <DateInputFr
+              className={inputCls}
+              value={form.start_date}
+              disabled={disabled}
+              onChange={(v) => setForm((x) => ({ ...x, start_date: v }))}
+              required
+            />
           </Field>
           <Field label="Date de fin">
-            <Input type="date" className={inputCls} value={form.end_date} disabled={disabled} onChange={(e) => setForm((x) => ({ ...x, end_date: e.target.value }))} required />
+            <DateInputFr
+              className={inputCls}
+              value={form.end_date}
+              disabled={disabled}
+              onChange={(v) => setForm((x) => ({ ...x, end_date: v }))}
+              required
+            />
           </Field>
         </div>
       </form>

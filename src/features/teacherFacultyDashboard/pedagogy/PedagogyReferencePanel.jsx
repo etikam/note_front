@@ -39,6 +39,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
   const canStructure = Boolean(user?.capabilities?.can_manage_academic_structure)
   const canViewStudents = Boolean(user?.capabilities?.can_view_students)
   const managedDeptId = user?.scope?.managed_department_id ?? null
+  const institutionWide = Boolean(user?.scope?.institution_wide)
 
   const sections = useMemo(() => filterPedagogyTabsForUser(user), [user])
 
@@ -511,6 +512,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
               departments={departments}
               unitsForUeFilter={unitsForOfferSelect}
               managedDeptId={managedDeptId}
+              institutionWide={institutionWide}
               canStructure={canStructure}
               reloadKey={coursesReloadKey}
             />

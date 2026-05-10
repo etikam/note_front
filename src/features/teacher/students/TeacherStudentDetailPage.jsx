@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import {
@@ -15,7 +15,10 @@ import {
   User,
 } from 'lucide-react'
 
+import { canEditStudentDossier } from '@/core/accessControl'
+import { useAuth } from '@/features/auth/model/AuthContext'
 import { useStudentDetail } from '@/features/teacher/students/hooks/useStudentDetail'
+import { StudentEditModal } from '@/features/teacher/students/ui/StudentEditModal'
 import { StudentNotifyModal } from '@/features/teacher/students/ui/StudentNotifyModal'
 import { StudentSuspendModal } from '@/features/teacher/students/ui/StudentSuspendModal'
 import { formatCohortDisplay } from '@/shared/lib/formatCohortDisplay'
@@ -99,11 +102,20 @@ function groupGradesByUe(rows) {
 export function TeacherStudentDetailPage() {
   const { studentId } = useParams()
   const navigate = useNavigate()
-  const { validId, loading, error, student } = useStudentDetail(studentId)
+  const { user, refreshMe } = useAuth()
+  const { validId, loading, error, student, reload } = useStudentDetail(studentId)
+
+  /** Recharge `/me` à l’ouverture pour éviter un objet `user` obsolète (nouvelles capabilities après déploiement). */
+  useEffect(() => {
+    void refreshMe()
+  }, [refreshMe])
+
+  const showEditStudentButton = canEditStudentDossier(user)
 
   const [mainTab, setMainTab] = useState('history')
   const [suspendModalOpen, setSuspendModalOpen] = useState(false)
   const [notifyModalOpen, setNotifyModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
 
   const gradesRows = student?.grades_courses ?? []
   const ueGroups = useMemo(() => groupGradesByUe(gradesRows), [gradesRows])
@@ -193,10 +205,17 @@ export function TeacherStudentDetailPage() {
           </div>
         </div>
         <div className="sd-detail__hero-actions">
-          <Button type="button" variant="primary" className="sd-detail__btn-primary" title="Bientôt disponible">
-            <Pencil size={18} aria-hidden />
-            Modifier le profil
-          </Button>
+          {showEditStudentButton ? (
+            <Button
+              type="button"
+              variant="primary"
+              className="sd-detail__btn-primary"
+              onClick={() => setEditModalOpen(true)}
+            >
+              <Pencil size={18} aria-hidden />
+              Modifier le profil
+            </Button>
+          ) : null}
           <Button type="button" variant="ghost" className="sd-btn-outline" onClick={() => setSuspendModalOpen(true)}>
             <Ban size={18} aria-hidden />
             Suspendre
@@ -211,6 +230,12 @@ export function TeacherStudentDetailPage() {
             Informations personnelles
           </h2>
           <dl className="sd-dl">
+            <div>
+              <dt>Matricule</dt>
+              <dd>
+                <code className="sd-code">{student.matricule}</code>
+              </dd>
+            </div>
             <div>
               <dt>Adresse e-mail</dt>
               <dd>{student.email ?? '—'}</dd>
@@ -530,6 +555,12 @@ export function TeacherStudentDetailPage() {
         open={suspendModalOpen}
         onClose={() => setSuspendModalOpen(false)}
         studentLabel={`${student.first_name} ${student.last_name} · ${student.matricule}`}
+      />
+      <StudentEditModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        student={student}
+        onSaved={reload}
       />
       <StudentNotifyModal
         open={notifyModalOpen}

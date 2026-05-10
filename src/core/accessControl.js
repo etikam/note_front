@@ -17,6 +17,14 @@ export function hasAllCapabilities(user, keys = []) {
   return keys.every((key) => Boolean(caps[key]))
 }
 
+/** Édition du dossier étudiant (PATCH fiche) : aligné backend DE / DG + `can_edit_student_dossier`. */
+export function canEditStudentDossier(user) {
+  if (!user) return false
+  if (Boolean(user.capabilities?.can_edit_student_dossier)) return true
+  if (user.role !== 'teacher') return false
+  return hasTeacherRole(user, 'study_director') || hasTeacherRole(user, 'general_director')
+}
+
 export function isSimpleTeacherProfile(user) {
   if (!user || user.role !== 'teacher') return false
   const codes = roleCodesOf(user)

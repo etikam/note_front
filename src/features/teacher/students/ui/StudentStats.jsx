@@ -99,7 +99,7 @@ export function StudentStats({ stats }) {
           </div>
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <KpiMini label="Actifs" value={fmt(a.active ?? 0)} />
-            <KpiMini label="À activer" value={fmt(a.pending_activation ?? 0)} />
+            <KpiMini label="Inactifs" value={fmt(a.inactive ?? 0)} />
             <KpiMini label="Suspendus" value={fmt(a.suspended ?? 0)} />
           </div>
         </div>
@@ -180,7 +180,6 @@ export function StudentStats({ stats }) {
               <AccountCell label="Actifs" value={fmt(a.active ?? 0)} hint={`${pct(a.active ?? 0, total)} de l'effectif`} />
               <AccountCell label="Inactifs" value={fmt(a.inactive ?? 0)} hint={`${pct(a.inactive ?? 0, total)} de l'effectif`} />
               <AccountCell label="Suspendus · gelés" value={fmt(a.suspended ?? 0)} hint="Compte utilisateur suspendu" />
-              <AccountCell label="À activer" value={fmt(a.pending_activation ?? 0)} hint="Fiche sans user lié" />
               <AccountCell label="Exclus" value={fmt(a.excluded ?? 0)} hint={`${pct(a.excluded ?? 0, total)} de l'effectif`} />
               <AccountCell label="Parcours terminés" value={fmt(a.completed ?? 0)} hint={`${pct(a.completed ?? 0, total)} de l'effectif`} />
             </div>

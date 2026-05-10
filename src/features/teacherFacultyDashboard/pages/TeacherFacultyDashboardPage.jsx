@@ -245,13 +245,15 @@ export function TeacherFacultyDashboardPage() {
   const canViewStudents = Boolean(caps.can_view_students)
   const canViewGrades = Boolean(caps.can_view_all_grades)
   const managedDeptId = user?.scope?.managed_department_id ?? null
+  const institutionWide = Boolean(user?.scope?.institution_wide)
   /** KPI dashboard + stats annuaires : directeur des études ou directeur général (cumulable avec chef de département). */
   const canViewAggregatedStats = Boolean(caps.can_view_directory_aggregated_stats)
 
+  /** Onglet « Opérations » : masqué seulement pour un périmètre strictement cantonné à un département. */
   const dashboardTabs = useMemo(() => {
-    if (managedDeptId != null) return DASHBOARD_TABS.filter((t) => t.id !== 'operations')
+    if (managedDeptId != null && !institutionWide) return DASHBOARD_TABS.filter((t) => t.id !== 'operations')
     return DASHBOARD_TABS
-  }, [managedDeptId])
+  }, [managedDeptId, institutionWide])
 
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window === 'undefined') return 'overview'
@@ -313,7 +315,9 @@ export function TeacherFacultyDashboardPage() {
                   Indicateurs pour l’année <strong className="font-semibold text-[var(--app-fg)]">{yearLabel}</strong>
                   {' · '}
                   <span className="text-[var(--app-muted)]">
-                    {managedDeptId ? `Département #${managedDeptId}` : 'Périmètre global (faculté)'}
+                    {managedDeptId != null && !institutionWide
+                      ? `Département #${managedDeptId}`
+                      : 'Périmètre global (faculté)'}
                   </span>
                 </>
               ) : (
