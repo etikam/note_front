@@ -2,82 +2,6 @@ import { useState, useEffect, useRef } from "react";
 
 const LOGO_B64 = "data:image/jpeg;base64,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";
 
-const STATS = [
-  { num: "1989", label: "Année de fondation", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
-  { num: "2", label: "Départements", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-  { num: "LMD", label: "Système académique", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> },
-  { num: "6", label: "Semestres (Licence)", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> },
-];
-
-const DEPARTEMENTS = [
-  {
-    code: "NTIC",
-    accentColor: "#1D4ED8",
-    lightBg: "#EFF6FF",
-    title: "Nouvelles Technologies de l'Information et de la Communication",
-    desc: "Formation complète en systèmes d'information, réseaux, sécurité, administration système et cloud computing. Couvre l'algorithmique, l'architecture des ordinateurs, les SGBD, la cybersécurité et l'IA.",
-    encadrement: "Mr Mouctar Sory, Dr Mamary Mansaré",
-    niveaux: "Licence · Master · Doctorat",
-    tags: ["Réseaux", "Sécurité", "Cloud", "IA", "SGBD", "Systèmes"],
-    link: "https://ci.edu.gn/nouvelles-technologies-de-l-information-et-de-la-communication",
-  },
-  {
-    code: "DEV",
-    accentColor: "#0369A1",
-    lightBg: "#F0F9FF",
-    title: "Développement et Formation",
-    desc: "Spécialisation en génie logiciel, développement web et mobile, frameworks modernes (Laravel, Django, Symfony), bases de données avancées (Oracle, MySQL) et gestion de projets agile.",
-    encadrement: "Mr Moustapha Kaba, Dr Aramaty Traoré",
-    niveaux: "Licence · Master · Doctorat",
-    tags: ["Java", "Python", "PHP", "Laravel", "UML", "Agile"],
-    link: "https://ci.edu.gn/developpement-et-formation",
-  },
-];
-
-const ADMISSION_STEPS = [
-  {
-    n: "01", title: "Prérequis",
-    desc: "Baccalauréat complet ou diplôme équivalent. Bonne maîtrise du français requise.",
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-  },
-  {
-    n: "02", title: "Dépôt du dossier",
-    desc: "Remise du dossier au service de scolarité selon le calendrier d'inscription officiel.",
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-  },
-  {
-    n: "03", title: "Évaluation",
-    desc: "Examen du dossier par les comités de programmes et sélection des candidats retenus.",
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-  },
-  {
-    n: "04", title: "Diplôme LMD",
-    desc: "Diplôme décerné après validation de tous les crédits. 6 à 8 semestres selon la filière.",
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-  },
-];
-
-const DIRECTION = [
-  { name: "Dr Ibrahima Kalil Touré", role: "Directeur Général", since: "Depuis 2021" },
-  { name: "Mr Mohamed Conté", role: "Directeur Adjoint — Études" },
-  { name: "Dr I. S. Kokouma Diallo", role: "Directeur Adjoint — Recherche" },
-  { name: "Mr Mahamadou Diallo", role: "Secrétaire Général" },
-];
-
-const HISTORIQUE = [
-  { p: "1989 – 1995", n: "Pr Mohamed Lamine Kaba" },
-  { p: "1992 – 1995", n: "Dr Fodé Soumah" },
-  { p: "1995 – 2008", n: "Pr Binko Mamady Touré" },
-  { p: "2008 – 2017", n: "Dr Abdoul Gadiri Savané" },
-  { p: "2017 – 2021", n: "Dr Mamadou Lamarana Bah" },
-  { p: "Depuis 2021", n: "Dr Ibrahima Kalil Touré" },
-];
-
-const DEBOUCHES = [
-  "Chef de projet", "Ingénieur système et réseaux", "Ingénieur d'études",
-  "Développeur d'applications", "Concepteur de base de données", "Web Master",
-  "Gestionnaire de parc informatique", "Administrateur réseau", "Consultant", "Créateur d'entreprise",
-];
 
 function Counter({ target, suffix }) {
   const [count, setCount] = useState(isNaN(parseInt(target)) ? target : 0);
@@ -107,12 +31,93 @@ function Counter({ target, suffix }) {
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
+  const [stats, setStats] = useState([]);
+  const [departements, setDepartements] = useState([]);
+  const [debouches, setDebouches] = useState([]);
+  const [admission, setAdmission] = useState([]);
+  const [direction, setDirection] = useState([]);
+  const [historique, setHistorique] = useState([]);
+
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => setScrolled(window.scrollY > 50);  
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+ useEffect(() => {
+
+  // ===== STATS =====
+  fetch("http://localhost:8000/api/home/stats")
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Erreur API stats");
+      }
+      return res.json();
+    })
+    .then(data => {
+      console.log("Stats :", data);
+
+      if (data.data && data.data.length > 0) {
+        setStats(data.data);
+      } else {
+        console.warn("Stats vides");
+      }
+    })
+    .catch(err => {
+      console.error("Erreur stats :", err);
+    });
+
+
+  // ===== DEPARTEMENTS =====
+  fetch("http://localhost:8000/api/departements")
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Erreur API départements");
+      }
+      return res.json();
+    })
+    .then(data => {
+      console.log("Départements :", data);
+
+      if (data.data && data.data.length > 0) {
+        setDepartements(data.data);
+      } else {
+        console.warn("Départements vides");
+      }
+    })
+    .catch(err => {
+      console.error("Erreur départements :", err);
+    });
+
+
+  // ===== DEBOUCHES =====
+  fetch("http://localhost:8000/api/debouches")
+    .then(res => res.json())
+    .then(data => setDebouches(data.data))
+    .catch(err => console.error(err));
+
+
+  // ===== ADMISSION =====
+  fetch("http://localhost:8000/api/admission")
+    .then(res => res.json())
+    .then(data => setAdmission(data.data))
+    .catch(err => console.error(err));
+
+
+  // ===== DIRECTION =====
+  fetch("http://localhost:8000/api/direction")
+    .then(res => res.json())
+    .then(data => setDirection(data.data))
+    .catch(err => console.error(err));
+
+
+  // ===== HISTORIQUE =====
+  fetch("http://localhost:8000/api/historique-directeurs")
+    .then(res => res.json())
+    .then(data => setHistorique(data.data))
+    .catch(err => console.error(err));
+
+}, []);
 
   return (
     <div style={{ fontFamily: "'Segoe UI', sans-serif", background: "#F8FAFF", color: "#1E293B", overflowX: "hidden" }}>
@@ -259,7 +264,7 @@ export default function LandingPage() {
       {/* ══ STATS ══ */}
       <div style={{ background: "#1D4ED8", padding: "0 3rem" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", maxWidth: 1000, margin: "0 auto" }}>
-          {STATS.map((s, i) => (
+          {stats.map((s, i) => (
             <div key={s.label} style={{ padding: "2rem 1rem", textAlign: "center", borderRight: i < 3 ? "1px solid rgba(255,255,255,0.15)" : "none" }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 8, fontFamily: "'Sora',sans-serif", letterSpacing: "0.08em", textTransform: "uppercase" }}>{s.icon} {s.label}</div>
               <div style={{ fontSize: 36, fontWeight: 800, color: "#fff", fontFamily: "'Lora',serif", lineHeight: 1 }}>
@@ -350,7 +355,7 @@ export default function LandingPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
-            {DEPARTEMENTS.map((d) => (
+            {departements.map((d) => (
               <div key={d.code} className="dept-card" style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: "2.5rem", boxShadow: "0 4px 20px rgba(0,0,0,0.05)", borderTop: `4px solid ${d.accentColor}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
                   <div style={{ background: d.lightBg, color: d.accentColor, fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 6, fontFamily: "'Sora',sans-serif", letterSpacing: "0.06em" }}>{d.code}</div>
@@ -374,7 +379,7 @@ export default function LandingPage() {
           <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 14, padding: "1.75rem 2rem" }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 14, fontFamily: "'Sora',sans-serif" }}>Débouchés professionnels</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {DEBOUCHES.map((d) => <span key={d} style={{ fontSize: 13, color: "#374151", background: "#F1F5F9", border: "1px solid #E2E8F0", padding: "6px 16px", borderRadius: 8, fontFamily: "'Sora',sans-serif", fontWeight: 500 }}>{d}</span>)}
+              {debouches.map((d) => <span key={d.id} style={{ fontSize: 13, color: "#374151", background: "#F1F5F9", border: "1px solid #E2E8F0", padding: "6px 16px", borderRadius: 8, fontFamily: "'Sora',sans-serif", fontWeight: 500 }}>{d.name}</span>)}
             </div>
           </div>
         </div>
@@ -388,7 +393,7 @@ export default function LandingPage() {
       <h2 className="lora" style={{ fontSize: 42, fontWeight: 700, color: "#0F172A" }}>Admission &amp; conditions</h2>
     </div>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }}>
-      {ADMISSION_STEPS.map((s, i) => (
+      {admission.map((s, i) => (
         <div key={s.n} style={{ background: "#F8FAFF", border: "1px solid #E2E8F0", borderRadius: 14, padding: "2rem 1.5rem", position: "relative", textAlign: "center" }}>
           <div style={{ width: 48, height: 48, background: "#DBEAFE", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
             {s.icon}
@@ -396,7 +401,7 @@ export default function LandingPage() {
           <div style={{ fontSize: 10, fontWeight: 800, color: "#1D4ED8", letterSpacing: "0.15em", marginBottom: 10, fontFamily: "'Sora',sans-serif" }}>ÉTAPE {s.n}</div>
           <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 10, fontFamily: "'Sora',sans-serif" }}>{s.title}</h3>
           <p style={{ fontSize: 12, color: "#64748B", lineHeight: 1.7, fontFamily: "'Sora',sans-serif", fontWeight: 300 }}>{s.desc}</p>
-          {i < ADMISSION_STEPS.length - 1 && (
+          {i < admission.length - 1 && (
             <div style={{ position: "absolute", right: -10, top: "42%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", background: "#1D4ED8", color: "#fff", borderRadius: "50%", fontSize: 10, zIndex: 2, fontWeight: 700 }}>›</div>
           )}
         </div>
@@ -414,7 +419,7 @@ export default function LandingPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 40 }}>
-            {DIRECTION.map((p, i) => {
+            {direction.map((p, i) => {
               const initials = p.name.split(" ").filter(w => w.length > 2).slice(0,2).map(w => w[0]).join("");
               const gradients = [
                 "linear-gradient(135deg,#1D4ED8,#3B82F6)",
@@ -436,7 +441,7 @@ export default function LandingPage() {
           <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 14, padding: "1.75rem 2rem" }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 16, fontFamily: "'Sora',sans-serif" }}>Historique des Directeurs Généraux</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {HISTORIQUE.map((h) => (
+              {historique.map((h) => (
                 <div key={h.n} className="hist-row" style={{ display: "flex", alignItems: "center", gap: 20, padding: "10px 14px", borderRadius: 8, transition: "background 0.2s", cursor: "default" }}>
                   <span style={{ fontSize: 12, fontWeight: 700, color: "#1D4ED8", width: 120, flexShrink: 0, fontFamily: "'Sora',sans-serif" }}>{h.p}</span>
                   <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#CBD5E1", flexShrink: 0 }} />
