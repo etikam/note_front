@@ -4,7 +4,7 @@ import {
   Activity,
   AlertTriangle,
   ArrowUpRight,
-  ClipboardList,
+  BookOpen,
   Download,
   Upload,
   Users,
@@ -15,15 +15,15 @@ import {
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { useTeacherDashboardOverview } from '@/features/teacherFacultyDashboard/model/useTeacherDashboardOverview'
-import { HistogramChart } from '@/features/teacherFacultyDashboard/ui/HistogramChart'
+import { OverviewRadarChart } from '@/features/teacherFacultyDashboard/ui/OverviewRadarChart'
 import { LineChart } from '@/features/teacherFacultyDashboard/ui/LineChart'
 import { cn } from '@/shared/lib/cn'
-import { Badge, Button, Card, Spinner } from '@/shared/ui'
+import { Badge, Button } from '@/shared/ui'
 
 const DASHBOARD_TAB_KEY = 'gestion_ci.dashboard.facultyTab'
 
 const DASHBOARD_TABS = [
-  { id: 'overview',    label: "Vue d'ensemble",       description: "Indicateurs réels (API) pour l'année sélectionnée : effectifs, histogramme et alertes." },
+  { id: 'overview',    label: "Vue d'ensemble",       description: "Indicateurs réels (API) pour l'année sélectionnée : effectifs, synthèse radar et alertes." },
   { id: 'enrollment',  label: 'Effectifs & inscriptions', description: "Flux d'inscriptions, validations et files d'attente." },
   { id: 'operations',  label: 'Opérations & qualité', description: 'Imports, complétude des données et résolution d\'alertes.' },
 ]
@@ -139,36 +139,37 @@ function AlertsPanel({ alerts }) {
   )
 }
 
-function QuickActions({ canImport, canReports, canViewStudents, canViewGrades }) {
-  const Item = ({ ok, to, icon: Icon, label, desc }) =>
-    ok ? (
-      <Link
-        className="group flex flex-col gap-2.5 rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_98%,var(--app-canvas))] p-4 transition-all duration-200 hover:border-secondary-400/60 hover:shadow-md dark:bg-[color-mix(in_srgb,var(--app-elevated)_96%,black)] dark:hover:border-secondary-500/35"
-        to={to}
-      >
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary-500/10 text-secondary-700 ring-1 ring-secondary-500/15 transition-all duration-200 group-hover:bg-secondary-500 group-hover:text-white group-hover:ring-secondary-600 dark:text-secondary-200 dark:ring-secondary-500/25 dark:group-hover:bg-secondary-500">
-          <Icon size={18} strokeWidth={2} />
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-[var(--app-fg)]">{label}</p>
-          <p className="text-xs text-[var(--app-muted)]">{desc}</p>
-        </div>
-      </Link>
-    ) : (
-      <span
-        className="flex cursor-not-allowed flex-col gap-2.5 rounded-xl border border-[var(--app-border)]/60 bg-[color-mix(in_srgb,var(--app-elevated)_94%,var(--app-canvas))] p-4 opacity-55 dark:bg-white/[0.03]"
-        aria-disabled="true"
-      >
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--app-elevated)_88%,var(--app-canvas))] text-[var(--app-muted)] dark:bg-white/[0.06]">
-          <Icon size={18} strokeWidth={2} />
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-[var(--app-muted)]">{label}</p>
-          <p className="text-xs text-[var(--app-muted)]">{desc}</p>
-        </div>
+function QuickActionGridItem({ ok, to, icon: Icon, label, desc }) {
+  return ok ? (
+    <Link
+      className="group flex flex-col gap-2.5 rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_98%,var(--app-canvas))] p-4 transition-all duration-200 hover:border-secondary-400/60 hover:shadow-md dark:bg-[color-mix(in_srgb,var(--app-elevated)_96%,black)] dark:hover:border-secondary-500/35"
+      to={to}
+    >
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary-500/10 text-secondary-700 ring-1 ring-secondary-500/15 transition-all duration-200 group-hover:bg-secondary-500 group-hover:text-white group-hover:ring-secondary-600 dark:text-secondary-200 dark:ring-secondary-500/25 dark:group-hover:bg-secondary-500">
+        <Icon size={18} strokeWidth={2} aria-hidden />
       </span>
-    )
+      <div>
+        <p className="text-sm font-semibold text-[var(--app-fg)]">{label}</p>
+        <p className="text-xs text-[var(--app-muted)]">{desc}</p>
+      </div>
+    </Link>
+  ) : (
+    <span
+      className="flex cursor-not-allowed flex-col gap-2.5 rounded-xl border border-[var(--app-border)]/60 bg-[color-mix(in_srgb,var(--app-elevated)_94%,var(--app-canvas))] p-4 opacity-55 dark:bg-white/[0.03]"
+      aria-disabled="true"
+    >
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--app-elevated)_88%,var(--app-canvas))] text-[var(--app-muted)] dark:bg-white/[0.06]">
+        <Icon size={18} strokeWidth={2} aria-hidden />
+      </span>
+      <div>
+        <p className="text-sm font-semibold text-[var(--app-muted)]">{label}</p>
+        <p className="text-xs text-[var(--app-muted)]">{desc}</p>
+      </div>
+    </span>
+  )
+}
 
+function QuickActions({ canImport, canReports, canViewStudents, canViewGrades }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-sm">
       <div className="flex items-center gap-2.5 border-b border-[var(--app-border)] px-5 py-4">
@@ -178,11 +179,11 @@ function QuickActions({ canImport, canReports, canViewStudents, canViewGrades })
         <h2 className="text-sm font-semibold text-[var(--app-fg)]">Actions rapides</h2>
       </div>
       <div className="grid grid-cols-2 gap-3 p-4">
-        <Item ok={canViewStudents} to="/teacher/students" icon={Users} label="Étudiants" desc="Liste et suivi" />
-        <Item ok={canViewGrades} to="/teacher/grades" icon={ClipboardList} label="Notes" desc="Saisie et consultation" />
-        <Item ok={canImport} to="/teacher/import-export" icon={Upload} label="Importer" desc="Données structurées" />
-        <Item ok={canImport} to="/teacher/import-export" icon={Download} label="Exporter" desc="Listes et extractions" />
-        <Item ok={canReports} to="/teacher/reports" icon={Activity} label="Rapports" desc="Indicateurs et synthèses" />
+        <QuickActionGridItem ok={canViewStudents} to="/teacher/students" icon={Users} label="Étudiants" desc="Liste et suivi" />
+        <QuickActionGridItem ok={canViewGrades} to="/teacher/my-courses" icon={BookOpen} label="Mes cours" desc="Notation et suivi par cours" />
+        <QuickActionGridItem ok={canImport} to="/teacher/import-export" icon={Upload} label="Importer" desc="Données structurées" />
+        <QuickActionGridItem ok={canImport} to="/teacher/import-export" icon={Download} label="Exporter" desc="Listes et extractions" />
+        <QuickActionGridItem ok={canReports} to="/teacher/reports" icon={Activity} label="Rapports" desc="Indicateurs et synthèses" />
       </div>
     </div>
   )
@@ -441,16 +442,17 @@ export function TeacherFacultyDashboardPage() {
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-700 ring-1 ring-brand-500/15 dark:text-brand-300 dark:ring-brand-500/20">
                       <Activity size={17} strokeWidth={2} aria-hidden />
                     </span>
-                    <h2 className="text-sm font-semibold text-[var(--app-fg)]">Vue histogramme</h2>
+                    <h2 className="text-sm font-semibold text-[var(--app-fg)]">Synthèse année (radar)</h2>
                   </div>
                   {overviewQw.data?.academic_year_label && (
                     <Badge tone="secondary">{overviewQw.data.academic_year_label}</Badge>
                   )}
                 </div>
                 <div className="p-5">
-                  <HistogramChart
+                  <OverviewRadarChart
                     bars={overviewQw.data?.histogram}
                     title=""
+                    subtitle="Valeurs normalisées sur le maximum des quatre indicateurs ; détail chiffré sous le graphique."
                     loading={overviewQw.loading}
                     emptyMessage="Aucune donnée pour cette année ou ce périmètre."
                   />

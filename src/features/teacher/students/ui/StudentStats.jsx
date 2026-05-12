@@ -10,22 +10,13 @@ import { ShieldCheck, Users, Upload, Download, UserPlus } from 'lucide-react'
  * 3) Comptes & actions
  */
 export function StudentStats({ stats }) {
-  if (!stats?.cohort || !stats?.accounts || !stats?.enrollments) return null
-
-  const c = stats.cohort
-  const a = stats.accounts
-  const total = c.total ?? 0
-
-  const fmt = (n) => (typeof n === 'number' ? n.toLocaleString('fr-FR') : '—')
-  const pct = (part, whole) => {
-    if (!whole) return '0 %'
-    return `${Math.min(100, Math.round((Number(part ?? 0) / Number(whole)) * 100))} %`
-  }
-
-  const deptRows = Array.isArray(c.by_department) ? c.by_department : []
-  const levelRows = Array.isArray(c.by_level) ? c.by_level : []
+  const cohort = stats?.cohort
+  const deptRows = Array.isArray(cohort?.by_department) ? cohort.by_department : []
+  const levelRows = Array.isArray(cohort?.by_level) ? cohort.by_level : []
 
   const departmentBreakdown = useMemo(() => {
+    if (!stats?.cohort || !stats?.accounts || !stats?.enrollments) return []
+
     const normalize = (v) => (v == null ? '' : String(v).trim())
     const map = new Map()
     const byId = new Map()
@@ -74,7 +65,19 @@ export function StudentStats({ stats }) {
     return Array.from(map.values())
       .map((d) => ({ ...d, licenses: d.licenses.sort((a1, b1) => b1.count - a1.count) }))
       .sort((a1, b1) => b1.total - a1.total)
-  }, [deptRows, levelRows])
+  }, [stats, deptRows, levelRows])
+
+  if (!stats?.cohort || !stats?.accounts || !stats?.enrollments) return null
+
+  const c = stats.cohort
+  const a = stats.accounts
+  const total = c.total ?? 0
+
+  const fmt = (n) => (typeof n === 'number' ? n.toLocaleString('fr-FR') : '—')
+  const pct = (part, whole) => {
+    if (!whole) return '0 %'
+    return `${Math.min(100, Math.round((Number(part ?? 0) / Number(whole)) * 100))} %`
+  }
 
   return (
     <section
@@ -132,9 +135,9 @@ export function StudentStats({ stats }) {
                 <span className="text-xs font-semibold tabular-nums text-[var(--app-muted)]">{fmt(dept.total)}</span>
               </div>
               <div className="space-y-1.5">
-                {dept.licenses.slice(0, 4).map((lic, i) => (
+                {dept.licenses.slice(0, 4).map((lic) => (
                   <div
-                    key={`${dept.key}-${i}`}
+                    key={`${dept.key}-${lic.label}-${lic.count}`}
                     className="flex items-center justify-between gap-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-elevated)] px-2.5 py-1.5"
                   >
                     <p className="truncate text-xs font-medium text-[var(--app-fg)]">{lic.label}</p>

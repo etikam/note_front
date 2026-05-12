@@ -51,8 +51,8 @@ export async function deleteAcademicYear(id, config = {}) {
 }
 
 /** @param {number} academicYearId @param {import('axios').AxiosRequestConfig} [config] */
-export async function fetchSemesters(academicYearId, config = {}) {
-  const { data } = await apiClient.get(endpoints.academics.semesters, {
+export async function fetchModules(academicYearId, config = {}) {
+  const { data } = await apiClient.get(endpoints.academics.modules, {
     params: { academic_year_id: academicYearId },
     ...config,
   })
@@ -60,8 +60,8 @@ export async function fetchSemesters(academicYearId, config = {}) {
 }
 
 /** @param {number} academicYearId @param {Record<string, unknown>} body */
-export async function postSemester(academicYearId, body, config = {}) {
-  const { data } = await apiClient.post(endpoints.academics.semesters, body, {
+export async function postModule(academicYearId, body, config = {}) {
+  const { data } = await apiClient.post(endpoints.academics.modules, body, {
     params: { academic_year_id: academicYearId },
     ...config,
   })
@@ -69,14 +69,14 @@ export async function postSemester(academicYearId, body, config = {}) {
 }
 
 /** @param {number} id @param {Record<string, unknown>} body */
-export async function patchSemester(id, body, config = {}) {
-  const { data } = await apiClient.patch(endpoints.academics.semesterDetail(id), body, config)
+export async function patchModule(id, body, config = {}) {
+  const { data } = await apiClient.patch(endpoints.academics.moduleDetail(id), body, config)
   return data
 }
 
 /** @param {number} id */
-export async function deleteSemester(id, config = {}) {
-  await apiClient.delete(endpoints.academics.semesterDetail(id), config)
+export async function deleteModule(id, config = {}) {
+  await apiClient.delete(endpoints.academics.moduleDetail(id), config)
 }
 
 /**
@@ -107,7 +107,7 @@ export async function deleteTeachingUnit(id, config = {}) {
 
 /**
  * @param {number} teachingUnitId
- * @param {{ semester: number, level: number, courses: Array<{code: string, name: string, credits: number, description?: string}>, replace_existing?: boolean }} body
+ * @param {{ module: number, level: number, courses: Array<{code: string, name: string, credits: number, description?: string, semester?: number|null}>, replace_existing?: boolean }} body
  */
 export async function postTeachingUnitCourseOffering(teachingUnitId, body, config = {}) {
   const { data } = await apiClient.post(
@@ -206,6 +206,19 @@ export async function fetchCourseGradeImportTemplateBlob(courseId, config = {}) 
 export async function postCourseGradesImport(courseId, formData, config = {}) {
   const { data } = await apiClient.post(endpoints.academics.courseGradeImport(courseId), formData, {
     headers: { 'Content-Type': undefined },
+    skipErrorToast: true,
+    ...config,
+  })
+  return data
+}
+
+/**
+ * @param {string} courseId
+ * @param {{ batch_public_id: string, decisions?: Array<{ student_id: number, field: string, decision: 'keep'|'overwrite' }>, apply_to_remaining?: 'keep'|'overwrite' }} body
+ * @param {import('axios').AxiosRequestConfig} [config]
+ */
+export async function postCourseGradesImportCommit(courseId, body, config = {}) {
+  const { data } = await apiClient.post(endpoints.academics.courseGradeImportCommit(courseId), body, {
     skipErrorToast: true,
     ...config,
   })

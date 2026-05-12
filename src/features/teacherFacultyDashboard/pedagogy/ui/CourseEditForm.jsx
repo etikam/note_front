@@ -22,6 +22,16 @@ function allowedProgramSemestersForLevel(level) {
   return byNumber[Number(level.number)] ?? []
 }
 
+/** S impair → M1, S pair → M2. */
+function calendarModuleIdForParcours(modules, parcoursSemester) {
+  if (parcoursSemester === '' || parcoursSemester == null) return null
+  const n = Number(parcoursSemester)
+  if (!Number.isFinite(n)) return null
+  const want = n % 2 === 1 ? 1 : 2
+  const m = modules.find((x) => Number(x.number) === want)
+  return m ? String(m.id) : null
+}
+
 /**
  * Formulaire d’édition d’un cours (réutilisable modale ou page fiche).
  */
@@ -29,7 +39,7 @@ export function CourseEditForm({
   courseId,
   active,
   canStructure,
-  semesters,
+  modules,
   teachingUnits,
   onSaved,
   /** Modale : bouton annuler */
@@ -45,8 +55,8 @@ export function CourseEditForm({
     name: '',
     description: '',
     credits: 0,
+    module: '',
     semester: '',
-    program_semester: '',
     level: '',
     teaching_unit: '',
   })
@@ -64,9 +74,8 @@ export function CourseEditForm({
           name: c.name ?? '',
           description: c.description ?? '',
           credits: c.credits ?? 0,
-          semester: c.semester != null ? String(c.semester) : '',
-          program_semester:
-            c.program_semester != null && c.program_semester !== '' ? String(c.program_semester) : '',
+          module: c.module != null ? String(c.module) : '',
+          semester: c.semester != null && c.semester !== '' ? String(c.semester) : '',
           level: c.level != null ? String(c.level) : '',
           teaching_unit: c.teaching_unit != null ? String(c.teaching_unit) : '',
         })
@@ -117,12 +126,19 @@ export function CourseEditForm({
   }, [active, selectedDepartmentId])
 
   useEffect(() => {
-    if (form.program_semester === '') return
-    const current = Number(form.program_semester)
+    if (form.semester === '') return
+    const current = Number(form.semester)
     if (!availableProgramSemesters.includes(current)) {
-      setForm((f) => ({ ...f, program_semester: '' }))
+      setForm((f) => ({ ...f, semester: '' }))
     }
-  }, [availableProgramSemesters, form.program_semester])
+  }, [availableProgramSemesters, form.semester])
+
+  useEffect(() => {
+    if (form.semester === '' || form.semester == null || modules.length === 0) return
+    const next = calendarModuleIdForParcours(modules, form.semester)
+    if (!next) return
+    setForm((f) => (String(f.module) === next ? f : { ...f, module: next }))
+  }, [form.semester, modules])
 
   const submit = async (e) => {
     e.preventDefault()
@@ -134,9 +150,8 @@ export function CourseEditForm({
         name: form.name.trim(),
         description: form.description,
         credits: Number(form.credits) || 0,
-        semester: Number(form.semester),
-        program_semester:
-          form.program_semester === '' || form.program_semester == null ? null : Number(form.program_semester),
+        module: Number(form.module),
+        semester: form.semester === '' || form.semester == null ? null : Number(form.semester),
         level: Number(form.level),
         teaching_unit: Number(form.teaching_unit),
       })
@@ -205,33 +220,17 @@ export function CourseEditForm({
       <Field label="Département (via UE)">
         <Input className={inputCls} value={selectedDepartmentCode || '—'} readOnly />
       </Field>
-      <Field label="Semestre calendaire">
-        <select
-          className={inputCls}
-          value={form.semester}
-          disabled={!canStructure}
-          onChange={(e) => setForm((f) => ({ ...f, semester: e.target.value }))}
-        >
-          <option value="">—</option>
-          {semesters.map((s) => (
-            <option key={s.id} value={s.id}>
-              S{s.number}
-              {s.academic_year_label ? ` (${s.academic_year_label})` : ''}
-            </option>
-          ))}
-        </select>
-      </Field>
       <div className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Semestre programme (parcours)</span>
+        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Semestre (parcours)</span>
         <p className="text-[11px] leading-snug text-[var(--app-muted)]">
-          Mapping licence strict : L1 (S1–S2), L2 (S3–S4), L3 (S5–S6). Choisissez d’abord un niveau pour voir
-          uniquement les valeurs autorisées.
+          S impair (S1, S3, S5) → module calendaire M1 ; S pair (S2, S4, S6) → M2. Choisissez d’abord un niveau pour
+          les valeurs autorisées en licence.
         </p>
         <select
           className={inputCls}
-          value={form.program_semester}
+          value={form.semester}
           disabled={!canStructure || !selectedLevel}
-          onChange={(e) => setForm((f) => ({ ...f, program_semester: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, semester: e.target.value }))}
         >
           <option value="">— Non renseigné</option>
           {availableProgramSemesters.map((n) => (
@@ -241,6 +240,22 @@ export function CourseEditForm({
           ))}
         </select>
       </div>
+      <Field label="Module (calendrier)">
+        <select
+          className={inputCls}
+          value={form.module}
+          disabled={!canStructure || (form.semester !== '' && form.semester != null)}
+          onChange={(e) => setForm((f) => ({ ...f, module: e.target.value }))}
+        >
+          <option value="">—</option>
+          {modules.map((s) => (
+            <option key={s.id} value={s.id}>
+              M{s.number}
+              {s.academic_year_label ? ` (${s.academic_year_label})` : ''}
+            </option>
+          ))}
+        </select>
+      </Field>
       <Field label="Niveau">
         <select
           className={inputCls}

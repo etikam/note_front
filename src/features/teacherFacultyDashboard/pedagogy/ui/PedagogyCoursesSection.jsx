@@ -41,7 +41,7 @@ function groupCoursesByTeachingUnit(rows) {
 /**
  * @param {{
  *   yearFocusId: number | null
- *   semesters: Array<{ id: number; number: number; start_date?: string; end_date?: string; academic_year_label?: string }>
+ *   modules: Array<{ id: number; number: number; start_date?: string; end_date?: string; academic_year_label?: string }>
  *   departments: Array<{ id: number; code: string; name: string }>
  *   unitsForUeFilter: Array<{ id: number; code: string; name: string }>
  *   managedDeptId: number | null
@@ -52,7 +52,7 @@ function groupCoursesByTeachingUnit(rows) {
  */
 export function PedagogyCoursesSection({
   yearFocusId,
-  semesters,
+  modules,
   departments,
   unitsForUeFilter,
   managedDeptId,
@@ -66,7 +66,7 @@ export function PedagogyCoursesSection({
   const [flatSort, setFlatSort] = useState(/** @type {'asc' | 'desc'} */ ('asc'))
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [filterSemester, setFilterSemester] = useState('')
+  const [filterModule, setFilterModule] = useState('')
   const [filterDepartment, setFilterDepartment] = useState(() =>
     managedDeptId != null && !institutionWide ? String(managedDeptId) : '',
   )
@@ -120,7 +120,7 @@ export function PedagogyCoursesSection({
       const base = {
         academic_year_id: yearFocusId,
         ...(debouncedSearch ? { search: debouncedSearch } : {}),
-        ...(filterSemester ? { semester_id: Number(filterSemester) } : {}),
+        ...(filterModule ? { module_id: Number(filterModule) } : {}),
         ...(filterDepartment ? { department_id: Number(filterDepartment) } : {}),
         ...(filterUe ? { teaching_unit_id: Number(filterUe) } : {}),
       }
@@ -151,7 +151,7 @@ export function PedagogyCoursesSection({
   }, [
     yearFocusId,
     debouncedSearch,
-    filterSemester,
+    filterModule,
     filterDepartment,
     filterUe,
     viewMode,
@@ -166,7 +166,7 @@ export function PedagogyCoursesSection({
 
   useEffect(() => {
     setPage(1)
-  }, [viewMode, flatSort, debouncedSearch, filterSemester, filterDepartment, filterUe, yearFocusId])
+  }, [viewMode, flatSort, debouncedSearch, filterModule, filterDepartment, filterUe, yearFocusId])
 
   const groups = useMemo(() => groupCoursesByTeachingUnit(payload.results ?? []), [payload.results])
 
@@ -176,7 +176,7 @@ export function PedagogyCoursesSection({
   if (!yearFocusId) {
     return (
       <Card className="p-8 border border-zinc-200/90 dark:border-[var(--app-border)] text-center text-sm text-zinc-500">
-        Sélectionnez une année académique dans l’onglet « Années & semestres » pour afficher les cours.
+        Sélectionnez une année académique dans l’onglet « Années & modules » pour afficher les cours.
       </Card>
     )
   }
@@ -240,12 +240,12 @@ export function PedagogyCoursesSection({
         </div>
 
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Field label="Semestre" className="mb-0">
-            <select className={inputCls} value={filterSemester} onChange={(e) => setFilterSemester(e.target.value)}>
+          <Field label="Module" className="mb-0">
+            <select className={inputCls} value={filterModule} onChange={(e) => setFilterModule(e.target.value)}>
               <option value="">Tous</option>
-              {semesters.map((s) => (
+              {modules.map((s) => (
                 <option key={s.id} value={s.id}>
-                  S{s.number}
+                  M{s.number}
                   {s.academic_year_label ? ` (${s.academic_year_label})` : ''}
                 </option>
               ))}
@@ -309,8 +309,8 @@ export function PedagogyCoursesSection({
                   <th className="py-3 pr-3 font-mono w-[7rem]">Code</th>
                   <th className="py-3 pr-3">Matière</th>
                   <th className="py-3 pr-3 w-[4rem] text-center">Cr.</th>
-                  <th className="py-3 pr-3 w-[10rem]">Semestre</th>
-                  <th className="py-3 pr-3 w-[5rem] text-center">Prog.</th>
+                  <th className="py-3 pr-3 w-[10rem]">Module</th>
+                  <th className="py-3 pr-3 w-[5rem] text-center">Sem.</th>
                   <th className="py-3 pr-4 w-[7rem] text-right">Action</th>
                 </tr>
               </thead>
@@ -340,9 +340,9 @@ export function PedagogyCoursesSection({
                         <td className="py-2.5 pr-3 font-mono text-xs text-zinc-700 dark:text-zinc-300">{c.code}</td>
                         <td className="py-2.5 pr-3 text-zinc-900 dark:text-zinc-100">{c.name}</td>
                         <td className="py-2.5 pr-3 text-center tabular-nums text-zinc-600 dark:text-zinc-400">{c.credits}</td>
-                        <td className="py-2.5 pr-3 text-xs text-zinc-500 dark:text-zinc-400">{c.semester_label ?? '—'}</td>
+                        <td className="py-2.5 pr-3 text-xs text-zinc-500 dark:text-zinc-400">{c.module_label ?? '—'}</td>
                         <td className="py-2.5 pr-3 text-center text-xs font-mono tabular-nums text-zinc-600 dark:text-zinc-400">
-                          {c.program_semester != null ? `S${c.program_semester}` : '—'}
+                          {c.semester != null ? `S${c.semester}` : '—'}
                         </td>
                         <td className="py-2.5 pr-4 text-right">
                           <Button
@@ -369,8 +369,8 @@ export function PedagogyCoursesSection({
                   <th className="py-3 pr-3">Matière</th>
                   <th className="py-3 pr-3 w-[4rem] text-center">Cr.</th>
                   <th className="py-3 pr-3 w-[10rem]">UE</th>
-                  <th className="py-3 pr-3 w-[10rem]">Semestre</th>
-                  <th className="py-3 pr-3 w-[5rem] text-center">Prog.</th>
+                  <th className="py-3 pr-3 w-[10rem]">Module</th>
+                  <th className="py-3 pr-3 w-[5rem] text-center">Sem.</th>
                   <th className="py-3 pr-4 w-[7rem] text-right">Action</th>
                 </tr>
               </thead>
@@ -394,9 +394,9 @@ export function PedagogyCoursesSection({
                         <span className="font-mono text-brand-700 dark:text-brand-300">{c.teaching_unit_code}</span>
                         <span className="text-zinc-500 dark:text-zinc-400"> · {c.teaching_unit_name}</span>
                       </td>
-                      <td className="py-2.5 pr-3 text-xs text-zinc-500 dark:text-zinc-400">{c.semester_label ?? '—'}</td>
+                      <td className="py-2.5 pr-3 text-xs text-zinc-500 dark:text-zinc-400">{c.module_label ?? '—'}</td>
                       <td className="py-2.5 pr-3 text-center text-xs font-mono tabular-nums text-zinc-600 dark:text-zinc-400">
-                        {c.program_semester != null ? `S${c.program_semester}` : '—'}
+                        {c.semester != null ? `S${c.semester}` : '—'}
                       </td>
                       <td className="py-2.5 pr-4 text-right">
                         <Button

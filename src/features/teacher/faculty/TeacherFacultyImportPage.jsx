@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
-import { ArrowLeft, PieChart, Play } from 'lucide-react'
+import { Navigate } from 'react-router-dom'
+import { Play } from 'lucide-react'
 
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { validateTeacherImportCsv } from '@/features/teacher/faculty/teacherCsvValidation'
@@ -16,6 +16,7 @@ import {
   FileDropzone,
   getImportDisabledHint,
   HeaderIssuesAlert,
+  ImportPageHeader,
   ImportProgressBlock,
   ImportResultPanel,
   ImportSidebar,
@@ -30,47 +31,6 @@ import { Button } from '@/shared/ui/Button'
 import { Stack } from '@/shared/ui/Stack'
 
 const IMPORT_ROLE_VALUES = ['teacher', 'department_head', 'study_director', 'program_director', 'general_director']
-
-function TeacherImportPageHeader({ canViewReports }) {
-  return (
-    <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <Link
-          to="/teacher/faculty/list"
-          className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-zinc-600 transition-colors hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-300"
-        >
-          <ArrowLeft size={16} aria-hidden />
-          Retour au dashboard enseignants
-        </Link>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary-600 dark:text-secondary-400 mb-1.5">
-          Ressources humaines
-        </p>
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">
-          Import enseignants
-        </h1>
-        <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400 max-w-2xl">
-          CSV UTF-8 — séparateur <strong className="font-semibold">virgule</strong> ou{' '}
-          <strong className="font-semibold">point-virgule</strong> — création en masse de fiches enseignant (compte inactif
-          jusqu’à activation). Colonnes facultatives
-          dans le modèle : gender, phone, teacher_role, grade_code. Taille max. 5 Mo — l’aperçu est vérifié localement
-          avant envoi. Chaque ligne doit avoir matricule, prénom, nom et e-mail valide (l’e-mail ne pourra pas être saisi
-          à l’activation).
-        </p>
-      </div>
-      {canViewReports ? (
-        <Button
-          as={Link}
-          to="/teacher/reports"
-          variant="ghost"
-          className="shrink-0 border border-zinc-200 dark:border-[var(--app-border)]"
-        >
-          <PieChart size={16} aria-hidden />
-          Rapports
-        </Button>
-      ) : null}
-    </header>
-  )
-}
 
 export function TeacherFacultyImportPage() {
   const { user } = useAuth()
@@ -236,7 +196,20 @@ export function TeacherFacultyImportPage() {
 
   return (
     <div className="w-full max-w-7xl text-zinc-900 dark:text-zinc-100">
-      <TeacherImportPageHeader canViewReports={canViewReports} />
+      <ImportPageHeader
+        canViewReports={canViewReports}
+        backTo="/teacher/faculty/list"
+        title="Import enseignants"
+        description={
+          <>
+            CSV UTF-8 — séparateur <strong className="font-semibold">virgule</strong> ou{' '}
+            <strong className="font-semibold">point-virgule</strong> — création en masse de fiches enseignant (compte
+            inactif jusqu’à activation). Colonnes facultatives dans le modèle : gender, phone, teacher_role,
+            grade_code. Taille max. 5 Mo — l’aperçu est vérifié localement avant envoi. Chaque ligne doit avoir
+            matricule, prénom, nom et e-mail valide (l’e-mail ne pourra pas être saisi à l’activation).
+          </>
+        }
+      />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_17.5rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
         <div className="flex min-w-0 flex-col gap-8">

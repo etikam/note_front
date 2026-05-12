@@ -383,7 +383,7 @@ export function TeacherStudentDetailPage() {
                   <thead>
                     <tr>
                       <th>Année</th>
-                      <th>Semestre</th>
+                      <th>Module</th>
                       <th>Cours</th>
                       <th>Statut</th>
                       <th>Crédits</th>
@@ -394,7 +394,7 @@ export function TeacherStudentDetailPage() {
                       student.enrollment_history.map((row, i) => (
                         <tr key={`${row.course_code}-${i}`}>
                           <td>{row.academic_year}</td>
-                          <td>S{row.semester_number}</td>
+                          <td>M{row.module_number}</td>
                           <td>
                             <span className="sd-table-course">
                               <span className="sd-table-course__code">{row.course_code}</span>
@@ -436,7 +436,7 @@ export function TeacherStudentDetailPage() {
                       <th className="sd-table__th-ue">Unité d’enseignement</th>
                       <th>Matière</th>
                       <th>Année</th>
-                      <th>Sem.</th>
+                      <th>Mod.</th>
                       <th>Note</th>
                       <th>Statut</th>
                       <th>Crédits</th>
@@ -474,7 +474,7 @@ export function TeacherStudentDetailPage() {
                               </span>
                             </td>
                             <td>{row.academic_year ?? '—'}</td>
-                            <td>{row.semester_number != null ? `S${row.semester_number}` : '—'}</td>
+                            <td>{row.module_number != null ? `M${row.module_number}` : '—'}</td>
                             <td>{row.average != null ? row.average.toFixed(2) : '—'}</td>
                             <td>
                               <span className={gradeBadgeClass(row.status)}>

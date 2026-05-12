@@ -137,7 +137,7 @@ export function TeacherFacultyCourseAssignmentDetailPage() {
             <BookOpen size={14} aria-hidden />
             {detail.credits} crédits ECTS
           </span>
-          {detail.semester_label ? <span>{detail.semester_label}</span> : null}
+          {detail.module_label ? <span>{detail.module_label}</span> : null}
         </p>
       </header>
 
@@ -149,7 +149,7 @@ export function TeacherFacultyCourseAssignmentDetailPage() {
             <Row label="Unité d’enseignement" value={[detail.teaching_unit_code, detail.teaching_unit_name].filter(Boolean).join(' — ')} />
             <Row label="Niveau" value={detail.level_name} />
             <Row label="Année académique" value={detail.academic_year_year} />
-            <Row label="Semestre" value={detail.semester_number != null ? `S${detail.semester_number}` : null} />
+            <Row label="Module" value={detail.module_number != null ? `M${detail.module_number}` : null} />
             <Row label="Description" value={detail.description} />
           </dl>
         </Card>

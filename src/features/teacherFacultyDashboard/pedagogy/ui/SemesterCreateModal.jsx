@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CalendarDays } from 'lucide-react'
 
-import { postSemester } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
+import { postModule } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
 import { Button } from '@/shared/ui/Button'
 import { Field } from '@/shared/ui/Field'
 import { DateInputFr } from '@/shared/ui/DateInputFr'
@@ -37,12 +37,12 @@ export function SemesterCreateModal({ open, onClose, academicYearId, yearLabel, 
     }
     setSaving(true)
     try {
-      await postSemester(academicYearId, {
+      await postModule(academicYearId, {
         number: Number(form.number),
         start_date: form.start_date.trim(),
         end_date: form.end_date.trim(),
       })
-      dispatchToast({ type: 'success', message: 'Semestre créé.' })
+      dispatchToast({ type: 'success', message: 'Module créé.' })
       await onCreated?.()
       onClose()
     } catch (err) {
@@ -58,7 +58,7 @@ export function SemesterCreateModal({ open, onClose, academicYearId, yearLabel, 
     <PedagogyModalFrame
       open={open}
       onClose={onClose}
-      title="Nouveau semestre"
+      title="Nouveau module"
       subtitle={
         academicYearId
           ? yearLabel
@@ -72,13 +72,13 @@ export function SemesterCreateModal({ open, onClose, academicYearId, yearLabel, 
           <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>
             Annuler
           </Button>
-          <Button type="submit" form="form-semester" variant="primary" disabled={saving || disabled}>
-            {saving ? 'Création…' : 'Créer le semestre'}
+          <Button type="submit" form="form-module" variant="primary" disabled={saving || disabled}>
+            {saving ? 'Création…' : 'Créer le module'}
           </Button>
         </div>
       }
     >
-      <form id="form-semester" className="space-y-4" onSubmit={submit}>
+      <form id="form-module" className="space-y-4" onSubmit={submit}>
         <Field label="Numéro">
           <select
             className={inputCls}
@@ -86,8 +86,8 @@ export function SemesterCreateModal({ open, onClose, academicYearId, yearLabel, 
             disabled={disabled}
             onChange={(e) => setForm((x) => ({ ...x, number: Number(e.target.value) }))}
           >
-            <option value={1}>Semestre 1</option>
-            <option value={2}>Semestre 2</option>
+            <option value={1}>Module 1</option>
+            <option value={2}>Module 2</option>
           </select>
         </Field>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

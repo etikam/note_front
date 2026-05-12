@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  ClipboardList,
   FileText,
   LayoutDashboard,
   Link2,
@@ -165,7 +164,6 @@ function buildTeacherNavItems(capabilities = {}, user = null) {
         },
       ],
     },
-    { type: 'link', to: '/teacher/grades', label: 'Notes', icon: ClipboardList, required: 'can_view_all_grades' },
     { type: 'link', to: '/teacher/reports', label: 'Rapports', icon: PieChart, required: 'can_view_reports' },
   ]
 
@@ -427,6 +425,15 @@ export function DashboardLayout() {
   useEffect(() => {
     setMobileOpen(false)
   }, [location.pathname, location.search])
+
+  useEffect(() => {
+    const onSidebarPref = () => {
+      if (typeof window === 'undefined') return
+      setCollapsed(window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === '1')
+    }
+    window.addEventListener('gestion_ci:sidebar-pref-changed', onSidebarPref)
+    return () => window.removeEventListener('gestion_ci:sidebar-pref-changed', onSidebarPref)
+  }, [])
 
   useEffect(() => {
     if (isMobileMode && mobileOpen) {

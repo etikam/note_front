@@ -54,8 +54,8 @@ export async function fetchCourseAssignmentDetail(courseId, config = {}) {
  * @param {Record<string, unknown>} params
  * @param {import('axios').AxiosRequestConfig} [config]
  */
-export async function fetchCourseAssignmentSemesters(params, config = {}) {
-  const { data } = await apiClient.get(endpoints.academics.courseAssignmentSemesters, {
+export async function fetchCourseAssignmentModules(params, config = {}) {
+  const { data } = await apiClient.get(endpoints.academics.courseAssignmentModules, {
     params,
     ...listSkip,
     ...config,

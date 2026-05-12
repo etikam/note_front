@@ -145,7 +145,13 @@ html[data-theme="dark"] {
   --accent-secondary-muted: var(--color-secondary-300);
 }
 
-/* Halo lampe thème (accent secondaire) */
+/* Halo icône lune (toggle thème header) */
+.theme-toggle-moon {
+  color: color-mix(in srgb, var(--color-amber-200) 92%, white);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--color-amber-300) 50%, transparent));
+}
+
+/* Ancienne classe lampe — conservée si référencée ailleurs */
 .theme-lamp-on {
   color: var(--accent-secondary);
   filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent-secondary-muted) 55%, transparent));
