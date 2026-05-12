@@ -60,13 +60,6 @@ const TABS = [
   },
 ]
 
-function isSimpleTeacherProfile(user) {
-  if (!user || user.role !== 'teacher') return false
-  const codes = Array.isArray(user.teacher_role_codes) ? user.teacher_role_codes : []
-  const elevated = ['department_head', 'study_director', 'program_director', 'general_director']
-  return !codes.some((c) => elevated.includes(c))
-}
-
 function formatBytes(n) {
   if (n == null || !Number.isFinite(Number(n))) return '—'
   const v = Number(n)
@@ -93,8 +86,8 @@ export function TeacherCourseDetailPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const canStructure = Boolean(user?.capabilities?.can_manage_academic_structure)
-  const isSimpleTeacher = isSimpleTeacherProfile(user)
-  const visibleTabs = useMemo(() => (isSimpleTeacher ? [TABS[0]] : TABS), [isSimpleTeacher])
+  /** Tous les onglets : le périmètre cours est déjà imposé par l’API (`courses_for_user` limite l’enseignant « simple » à ses cours assignés). */
+  const visibleTabs = TABS
 
   const [tab, setTab] = useState('info')
   const [loadKey, setLoadKey] = useState(0)
