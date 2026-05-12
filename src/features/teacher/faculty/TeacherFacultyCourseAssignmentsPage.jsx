@@ -6,7 +6,7 @@ import { useAcademicYear } from '@/features/academicYear/model/AcademicYearConte
 import { useAuth } from '@/features/auth/model/AuthContext'
 import {
   deleteCourseAssignment,
-  fetchCourseAssignmentSemesters,
+  fetchCourseAssignmentModules,
   fetchCourseAssignmentsList,
 } from '@/features/teacher/faculty/api/courseAssignmentsApi'
 import { CourseAssignModal } from '@/features/teacher/faculty/ui/CourseAssignModal'
@@ -21,16 +21,19 @@ import { cn } from '@/shared/lib/cn'
 
 const PAGE_SIZE = 20
 
-const selectClass =
-  'w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]'
+const SEMESTER_SELECT_CLASS =
+  'w-full min-h-[2.5rem] px-3 py-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-elevated)] text-sm text-zinc-900 dark:text-zinc-100 ' +
+  'focus:outline-none focus:ring-2 focus:ring-brand-500 dark:focus:ring-brand-400 focus:border-transparent transition-shadow ' +
+  'cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-zinc-50 dark:disabled:bg-brand-950/40'
 
 export function TeacherFacultyCourseAssignmentsPage() {
   const { user } = useAuth()
+  const institutionWide = Boolean(user?.scope?.institution_wide)
   const canManageCourses = Boolean(user?.capabilities?.can_manage_courses)
   const { academicYearId, academicYearLabel, refreshAcademicYears } = useAcademicYear()
 
-  const [semesterFilter, setSemesterFilter] = useState('')
-  const [semesterOptions, setSemesterOptions] = useState([])
+  const [moduleFilter, setModuleFilter] = useState('')
+  const [moduleOptions, setModuleOptions] = useState([])
   const [data, setData] = useState(null)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -45,7 +48,7 @@ export function TeacherFacultyCourseAssignmentsPage() {
 
   useEffect(() => {
     if (!academicYearId) {
-      setSemesterOptions([])
+      setModuleOptions([])
       return
     }
     let cancelled = false
@@ -53,28 +56,28 @@ export function TeacherFacultyCourseAssignmentsPage() {
       try {
         const params = { academic_year_id: academicYearId }
         const managed = user?.scope?.managed_department_id
-        if (managed) params.department_id = managed
-        const rows = await fetchCourseAssignmentSemesters(params)
-        if (!cancelled) setSemesterOptions(Array.isArray(rows) ? rows : [])
+        if (managed && !institutionWide) params.department_id = managed
+        const rows = await fetchCourseAssignmentModules(params)
+        if (!cancelled) setModuleOptions(Array.isArray(rows) ? rows : [])
       } catch {
-        if (!cancelled) setSemesterOptions([])
+        if (!cancelled) setModuleOptions([])
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [academicYearId, user?.scope?.managed_department_id])
+  }, [academicYearId, user?.scope?.managed_department_id, institutionWide])
 
   useEffect(() => {
     setPage(1)
-  }, [academicYearId, semesterFilter])
+  }, [academicYearId, moduleFilter])
 
   const params = useMemo(() => {
     const p = { page }
     if (academicYearId) p.academic_year_id = academicYearId
-    if (semesterFilter) p.semester_id = semesterFilter
+    if (moduleFilter) p.module_id = moduleFilter
     return p
-  }, [page, academicYearId, semesterFilter])
+  }, [page, academicYearId, moduleFilter])
 
   const load = useCallback(async () => {
     if (!academicYearId || !canManageCourses) return
@@ -106,7 +109,7 @@ export function TeacherFacultyCourseAssignmentsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary-600 dark:text-secondary-400 mb-1.5">
@@ -147,10 +150,10 @@ export function TeacherFacultyCourseAssignmentsPage() {
 
       {academicYearId ? (
         <div className="max-w-xs">
-          <Field label="Filtrer par semestre">
-            <select className={selectClass} value={semesterFilter} onChange={(e) => setSemesterFilter(e.target.value)}>
-              <option value="">Tous les semestres</option>
-              {semesterOptions.map((s) => (
+          <Field label="Filtrer par module">
+            <select className={SEMESTER_SELECT_CLASS} value={moduleFilter} onChange={(e) => setModuleFilter(e.target.value)}>
+              <option value="">Tous les modules</option>
+              {moduleOptions.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.label}
                 </option>
@@ -218,7 +221,7 @@ export function TeacherFacultyCourseAssignmentsPage() {
         <p className="text-sm text-zinc-500">
           <BookOpen size={14} className="inline mr-1 align-text-bottom opacity-70" aria-hidden />
           <Link to="/teacher/faculty/list" className="text-brand-600 hover:underline dark:text-brand-400">
-            Retour au dashboard enseignants
+            Retour à l’annuaire enseignants
           </Link>
         </p>
       ) : null}

@@ -18,6 +18,7 @@ export function useStudents(opts = {}) {
   const { listEnabled = true } = opts
   const { user } = useAuth()
   const managedDeptId = user?.scope?.managed_department_id ?? null
+  const institutionWide = Boolean(user?.scope?.institution_wide)
   const canViewAggregatedStats = Boolean(user?.capabilities?.can_view_directory_aggregated_stats)
   const { academicYears, isLoadingYears } = useAcademicYear()
 
@@ -48,9 +49,20 @@ export function useStudents(opts = {}) {
     return () => window.clearTimeout(t)
   }, [q])
 
+  /**
+   * Périmètre liste : aligné sur l’API (chef cantonné ; DG / DE sans filtre département imposé).
+   * `institution_wide` vient de `/me` (Teacher.has_institution_wide_department_scope).
+   */
   useEffect(() => {
+    if (institutionWide) return
     if (managedDeptId != null) setDepartmentId(String(managedDeptId))
-  }, [managedDeptId])
+  }, [managedDeptId, institutionWide])
+
+  /** Changement de compte : éviter de garder le filtre département d’un autre utilisateur (ex. chef → DG). */
+  useEffect(() => {
+    if (user?.id == null) return
+    if (institutionWide) setDepartmentId('')
+  }, [user?.id, institutionWide])
 
   useEffect(() => {
     setPage(1)
@@ -183,6 +195,8 @@ export function useStudents(opts = {}) {
     }
   }, [statsParams])
 
+  const deptScoped = managedDeptId != null && !institutionWide
+
   const resetFilters = useCallback(() => {
     setQ('')
     setDebouncedQ('')
@@ -190,20 +204,20 @@ export function useStudents(opts = {}) {
     setStatus('')
     setFilterAcademicYearId('')
     setCohorteId('')
-    setDepartmentId(managedDeptId != null ? String(managedDeptId) : '')
+    setDepartmentId(deptScoped ? String(managedDeptId) : '')
     setPage(1)
-  }, [managedDeptId])
+  }, [deptScoped, managedDeptId])
 
   const activeFilterCount = useMemo(() => {
     let n = 0
     if (debouncedQ) n++
-    if (managedDeptId == null && departmentId) n++
+    if ((institutionWide || managedDeptId == null) && departmentId) n++
     if (levelId) n++
     if (status) n++
     if (filterAcademicYearId) n++
     if (cohorteId) n++
     return n
-  }, [debouncedQ, departmentId, levelId, status, filterAcademicYearId, cohorteId, managedDeptId])
+  }, [debouncedQ, departmentId, levelId, status, filterAcademicYearId, cohorteId, managedDeptId, institutionWide])
 
   const results = data?.results ?? []
   const count = data?.count ?? 0
@@ -222,8 +236,6 @@ export function useStudents(opts = {}) {
     for (let i = start; i <= end; i++) arr.push(i)
     return arr
   }, [page, totalPages])
-
-  const deptScoped = managedDeptId != null
 
   return {
     academicYears,
@@ -268,6 +280,7 @@ export function useStudents(opts = {}) {
     rangeEnd,
     pageNumbers,
     deptScoped,
+    institutionWide,
     canImport: Boolean(user?.capabilities?.can_import_data),
   }
 }

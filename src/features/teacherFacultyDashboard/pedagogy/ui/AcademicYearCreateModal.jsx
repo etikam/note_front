@@ -4,6 +4,7 @@ import { GraduationCap } from 'lucide-react'
 import { postAcademicYear } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
 import { Button } from '@/shared/ui/Button'
 import { Field, Input } from '@/shared/ui/Field'
+import { DateInputFr } from '@/shared/ui/DateInputFr'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
 
 import { PedagogyModalFrame } from '@/features/teacherFacultyDashboard/pedagogy/ui/PedagogyModalFrame'
@@ -23,9 +24,20 @@ export function AcademicYearCreateModal({ open, onClose, onCreated }) {
 
   const submit = async (e) => {
     e.preventDefault()
+    if (!form.start_date?.trim() || !form.end_date?.trim()) {
+      dispatchToast({
+        type: 'error',
+        message: 'Renseignez la date de début et la date de fin.',
+      })
+      return
+    }
     setSaving(true)
     try {
-      await postAcademicYear(form)
+      await postAcademicYear({
+        ...form,
+        start_date: form.start_date.trim(),
+        end_date: form.end_date.trim(),
+      })
       dispatchToast({ type: 'success', message: 'Année académique créée.' })
       await onCreated?.()
       onClose()
@@ -60,10 +72,20 @@ export function AcademicYearCreateModal({ open, onClose, onCreated }) {
         </Field>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Date de début">
-            <Input type="date" className={inputCls} value={form.start_date} onChange={(e) => setForm((x) => ({ ...x, start_date: e.target.value }))} required />
+            <DateInputFr
+              className={inputCls}
+              value={form.start_date}
+              onChange={(v) => setForm((x) => ({ ...x, start_date: v }))}
+              required
+            />
           </Field>
           <Field label="Date de fin">
-            <Input type="date" className={inputCls} value={form.end_date} onChange={(e) => setForm((x) => ({ ...x, end_date: e.target.value }))} required />
+            <DateInputFr
+              className={inputCls}
+              value={form.end_date}
+              onChange={(v) => setForm((x) => ({ ...x, end_date: v }))}
+              required
+            />
           </Field>
         </div>
         <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-zinc-200/90 bg-white/60 px-3 py-2.5 text-sm dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_88%,white)]">

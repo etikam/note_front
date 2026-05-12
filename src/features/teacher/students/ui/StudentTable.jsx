@@ -31,36 +31,16 @@ function formatMatriculeCell(s) {
   return m || '—'
 }
 
-const rtf = typeof Intl !== 'undefined' ? new Intl.RelativeTimeFormat('fr', { numeric: 'auto' }) : null
-
-function formatRelativeFr(iso) {
-  if (!iso) return '—'
-  const t = new Date(iso)
+/** Date calendaire (jour, mois, année) — ISO date ou datetime. */
+function formatFrenchCalendarDate(raw) {
+  if (!raw) return '—'
+  const t = new Date(raw)
   if (Number.isNaN(t.getTime())) return '—'
-  const sec = Math.round((t.getTime() - Date.now()) / 1000)
-  const abs = Math.abs(sec)
-  const divisions = [
-    { amount: 60, unit: 'second' },
-    { amount: 60, unit: 'minute' },
-    { amount: 24, unit: 'hour' },
-    { amount: 7, unit: 'day' },
-    { amount: 4.34524, unit: 'week' },
-    { amount: 12, unit: 'month' },
-    { amount: Number.POSITIVE_INFINITY, unit: 'year' },
-  ]
-  let u = 'second'
-  let val = sec
-  for (let i = 0, d = 1; i < divisions.length; i++) {
-    const next = d * divisions[i].amount
-    if (abs < next) {
-      u = divisions[i].unit
-      val = sec / d
-      break
-    }
-    d *= divisions[i].amount
-  }
-  if (!rtf) return t.toLocaleDateString('fr-FR')
-  return rtf.format(Math.round(val), u)
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(t)
 }
 
 function nextOrdering(current, field) {
@@ -69,12 +49,14 @@ function nextOrdering(current, field) {
   return field
 }
 
-/** En-tête triable (`--app-*`) */
-function SortTh({ label, field, ordering, onChange, align = 'left', className }) {
+/** En-tête triable (`--app-*`). `title` = infobulle (nom complet si le libellé est abrégé ou tronqué). */
+function SortTh({ label, title: titleAttr, field, ordering, onChange, align = 'left', className }) {
   const active = ordering === field || ordering === `-${field}`
   const desc = ordering === `-${field}`
+  const tip = titleAttr ?? label
   return (
     <th
+      title={tip}
       className={cn(
         'border-b border-[var(--app-border)] px-4 py-3.5 align-top text-[10px] font-semibold uppercase tracking-widest text-[var(--app-muted)]',
         align === 'right' && 'text-right',
@@ -84,6 +66,7 @@ function SortTh({ label, field, ordering, onChange, align = 'left', className })
     >
       <button
         type="button"
+        title={tip}
         onClick={() => onChange(nextOrdering(ordering, field))}
         className={cn(
           'inline-flex max-w-full items-center gap-1.5 rounded-md text-left outline-none transition-colors',
@@ -106,7 +89,7 @@ function SortTh({ label, field, ordering, onChange, align = 'left', className })
   )
 }
 
-const COL_COUNT = 10
+const COL_COUNT = 11
 
 /**
  * Annuaire étudiants (enseignant) : colonnes métier, tri, pagination, sélection.
@@ -228,10 +211,13 @@ export function StudentTable({
           </div>
 
           <div className="overflow-x-auto bg-[var(--app-canvas)]">
-            <table className="w-full min-w-[70rem] table-fixed text-left text-[13px] leading-snug">
+            <table className="w-full min-w-[77rem] table-fixed text-left text-[13px] leading-snug">
               <thead>
                 <tr className="bg-[var(--app-canvas)]">
-                  <th className="w-11 border-b border-[var(--app-border)] px-3 py-3.5 align-top">
+                  <th
+                    title="Sélection — cocher les lignes pour les actions groupées"
+                    className="w-11 border-b border-[var(--app-border)] px-3 py-3.5 align-top"
+                  >
                     <input
                       ref={selectAllRef}
                       type="checkbox"
@@ -243,6 +229,7 @@ export function StudentTable({
                   </th>
                   <SortTh
                     label="Matricule"
+                    title="Matricule institutionnel"
                     field="matricule"
                     ordering={ordering}
                     onChange={onOrderingChange}
@@ -250,6 +237,7 @@ export function StudentTable({
                   />
                   <SortTh
                     label="Étudiant"
+                    title="Étudiant — identité et contact"
                     field="last_name"
                     ordering={ordering}
                     onChange={onOrderingChange}
@@ -257,14 +245,23 @@ export function StudentTable({
                   />
                   <SortTh
                     label="Parcours"
+                    title="Parcours — niveau et département"
                     field="level__name"
                     ordering={ordering}
                     onChange={onOrderingChange}
                     className="w-[9rem]"
                   />
-                  <SortTh label="INE" field="INE" ordering={ordering} onChange={onOrderingChange} className="w-[7rem]" />
+                  <SortTh
+                    label="INE"
+                    title="Identifiant national étudiant (INE)"
+                    field="INE"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    className="w-[7rem]"
+                  />
                   <SortTh
                     label="Genre"
+                    title="Genre"
                     field="gender"
                     ordering={ordering}
                     onChange={onOrderingChange}
@@ -273,20 +270,40 @@ export function StudentTable({
                   />
                   <SortTh
                     label="Cohorte"
+                    title="Cohorte — promotion et entrée"
                     field="cohorte__promotion_number"
                     ordering={ordering}
                     onChange={onOrderingChange}
                     className="w-[9rem]"
                   />
-                  <SortTh label="Statut" field="status" ordering={ordering} onChange={onOrderingChange} className="w-[8rem]" />
                   <SortTh
-                    label="Fiche créée"
+                    label="Statut"
+                    title="Statut du dossier"
+                    field="status"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    className="w-[8rem]"
+                  />
+                  <SortTh
+                    label="Date d’inscription"
+                    title="Date d’inscription de l’étudiant (jour, mois, année)"
                     field="created_at"
                     ordering={ordering}
                     onChange={onOrderingChange}
                     className="w-[7rem]"
                   />
-                  <th className="border-b border-[var(--app-border)] px-3 py-3.5 text-right align-top text-[10px] font-semibold uppercase tracking-widest text-[var(--app-muted)]">
+                  <SortTh
+                    label="Naissance"
+                    title="Date de naissance"
+                    field="birth_date"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    className="w-[7rem]"
+                  />
+                  <th
+                    title="Actions — ouvrir la fiche étudiant"
+                    className="border-b border-[var(--app-border)] px-3 py-3.5 text-right align-top text-[10px] font-semibold uppercase tracking-widest text-[var(--app-muted)]"
+                  >
                     Actions
                   </th>
                 </tr>
@@ -378,7 +395,10 @@ export function StudentTable({
                           </span>
                         </td>
                         <td className="px-4 py-4 align-middle text-[12px] text-[var(--app-muted)]">
-                          {formatRelativeFr(s.created_at)}
+                          {formatFrenchCalendarDate(s.created_at)}
+                        </td>
+                        <td className="px-4 py-4 align-middle text-[12px] tabular-nums text-[var(--app-muted)]">
+                          {formatFrenchCalendarDate(s.birth_date)}
                         </td>
                         <td className="px-3 py-4 text-right align-middle">
                           <Link

@@ -79,6 +79,33 @@ export async function patchTeacher(id, body, config = {}) {
   return data
 }
 
+/**
+ * @param {number} id
+ * @param {File} file
+ * @param {Pick<import('axios').AxiosRequestConfig, 'headers' | 'onUploadProgress' | 'skipErrorToast'>} [config]
+ */
+export async function patchTeacherPhoto(id, file, config = {}) {
+  const formData = new FormData()
+  formData.append('photo', file)
+  const { data } = await apiClient.patch(endpoints.teachers.photo(id), formData, {
+    skipErrorToast: true,
+    ...config,
+  })
+  return data
+}
+
+/**
+ * @param {number} id
+ * @param {Pick<import('axios').AxiosRequestConfig, 'skipErrorToast'>} [config]
+ */
+export async function deleteTeacherPhoto(id, config = {}) {
+  const { data } = await apiClient.delete(endpoints.teachers.photo(id), {
+    skipErrorToast: true,
+    ...config,
+  })
+  return data
+}
+
 /** @param {import('axios').AxiosRequestConfig} [config] */
 export async function fetchTeacherImportTemplateBlob(config = {}) {
   return apiClient.get(endpoints.teachers.importTemplate, {

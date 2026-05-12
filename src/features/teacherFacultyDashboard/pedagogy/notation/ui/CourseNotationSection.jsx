@@ -4,9 +4,8 @@ import {
   fetchCourseGradeImportTemplateBlob,
   fetchCourseGradesExportBlob,
   postCourseGradesImport,
-  postCourseGradesImportResolve,
 } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
-import { GradeImportConflictModal } from '@/features/teacherFacultyDashboard/pedagogy/notation/ui/GradeImportConflictModal'
+import { GradeImportWizardModal } from '@/features/teacherFacultyDashboard/pedagogy/notation/ui/GradeImportWizardModal'
 import { NotationTable } from '@/features/teacherFacultyDashboard/pedagogy/notation/ui/NotationTable'
 import { NotationToolbar } from '@/features/teacherFacultyDashboard/pedagogy/notation/ui/NotationToolbar'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
@@ -51,11 +50,9 @@ export function CourseNotationSection({
   const [q, setQ] = useState('')
   const [rowSaving, setRowSaving] = useState(null)
   const [importBusy, setImportBusy] = useState(false)
-  const [conflictModal, setConflictModal] = useState({
-    open: false,
-    batchPublicId: '',
-    conflicts: /** @type {any[]} */ ([]),
-  })
+  const [importWizard, setImportWizard] = useState(
+    /** @type {{ data: Record<string, unknown>, fileName: string } | null} */ (null),
+  )
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase()
@@ -109,44 +106,29 @@ export function CourseNotationSection({
         const fd = new FormData()
         fd.append('file', file)
         const data = await postCourseGradesImport(courseId, fd)
-        const n = data?.applied_count ?? 0
         const errN = (data?.errors?.length ?? 0) + (data?.file_errors?.length ?? 0)
-        if (data?.batch_public_id && Array.isArray(data.conflicts) && data.conflicts.length > 0) {
-          setConflictModal({ open: true, batchPublicId: data.batch_public_id, conflicts: data.conflicts })
-        }
         if (errN > 0) {
           dispatchToast({
             type: 'warning',
-            message: `${n} ligne(s) appliquée(s). ${errN} erreur(s) ou avertissement(s) — vérifiez le rapport.`,
+            message: 'Analyse terminée : des lignes ou le fichier posent problème — voir le rapport.',
           })
-        } else if (!data?.batch_public_id) {
-          dispatchToast({ type: 'success', message: n > 0 ? `Import : ${n} ligne(s) mise(s) à jour.` : 'Aucun changement.' })
         } else {
           dispatchToast({
             type: 'success',
-            message: `${n} ligne(s) sans conflit enregistrée(s). Résolvez les conflits restants.`,
+            message: 'Fichier analysé. Vérifiez le résumé puis validez l’import.',
           })
         }
-        await onRosterReload?.()
+        setImportWizard({ data, fileName: file.name })
       } catch (e) {
         dispatchToast({
           type: 'error',
-          message: e?.response?.data?.message ?? e?.response?.data?.detail ?? e?.message ?? 'Import refusé.',
+          message: e?.response?.data?.message ?? e?.response?.data?.detail ?? e?.message ?? 'Analyse refusée.',
         })
       } finally {
         setImportBusy(false)
       }
     },
-    [courseId, onRosterReload],
-  )
-
-  const handleResolve = useCallback(
-    async (payload) => {
-      await postCourseGradesImportResolve(courseId, conflictModal.batchPublicId, payload)
-      dispatchToast({ type: 'success', message: 'Conflits traités.' })
-      await onRosterReload?.()
-    },
-    [conflictModal.batchPublicId, courseId, onRosterReload],
+    [courseId],
   )
 
   return (
@@ -156,7 +138,7 @@ export function CourseNotationSection({
           <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Notation</h2>
           <p className="pb-2 text-xs text-zinc-500">
             Saisie 0–10 · moyenne pondérée 30/30/40 · rattrapage activé par le serveur · enregistrement au blur.
-            {canEditGrades ? ' · import Excel (modèle) puis export Excel ou PDF.' : ''}
+            {canEditGrades ? ' · import Excel : analyse du fichier puis validation avant enregistrement.' : ''}
           </p>
         </div>
         <NotationToolbar
@@ -190,11 +172,15 @@ export function CourseNotationSection({
           onGradeSaved={onGradeSaved}
         />
       )}
-      <GradeImportConflictModal
-        open={conflictModal.open}
-        conflicts={conflictModal.conflicts}
-        onClose={() => setConflictModal({ open: false, batchPublicId: '', conflicts: [] })}
-        onResolve={handleResolve}
+      <GradeImportWizardModal
+        open={importWizard != null}
+        onClose={() => setImportWizard(null)}
+        courseId={courseId}
+        fileName={importWizard?.fileName}
+        preview={importWizard?.data ?? null}
+        onCommitted={async () => {
+          await onRosterReload?.()
+        }}
       />
     </Card>
   )

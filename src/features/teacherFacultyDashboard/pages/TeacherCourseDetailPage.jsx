@@ -9,7 +9,7 @@ import {
   fetchCourseArchives,
   fetchCourseEnrollments,
   fetchCourseNotationRoster,
-  fetchSemesters,
+  fetchModules,
   fetchTeachingUnits,
   patchCourseArchive,
   postCourseArchive,
@@ -104,7 +104,7 @@ export function TeacherCourseDetailPage() {
   const [enrollments, setEnrollments] = useState([])
   const [notationRoster, setNotationRoster] = useState([])
   const [courseArchives, setCourseArchives] = useState([])
-  const [semesters, setSemesters] = useState([])
+  const [modules, setModules] = useState([])
   const [teachingUnits, setTeachingUnits] = useState([])
   const [uploadingArchive, setUploadingArchive] = useState(false)
   const [archiveUploadModalOpen, setArchiveUploadModalOpen] = useState(false)
@@ -203,14 +203,14 @@ export function TeacherCourseDetailPage() {
         setCourse(cRow)
         const ayId = cRow.academic_year_id
         const [sem, tu, en, roster, ca] = await Promise.all([
-          ayId ? fetchSemesters(ayId) : Promise.resolve([]),
+          ayId ? fetchModules(ayId) : Promise.resolve([]),
           fetchTeachingUnits(),
           fetchCourseEnrollments(courseId),
           fetchCourseNotationRoster(courseId),
           fetchCourseArchives(courseId),
         ])
         if (cancelled) return
-        setSemesters(Array.isArray(sem) ? sem : [])
+        setModules(Array.isArray(sem) ? sem : [])
         setTeachingUnits(Array.isArray(tu) ? tu : [])
         setEnrollments(Array.isArray(en) ? en : [])
         setNotationRoster(Array.isArray(roster) ? roster : [])
@@ -295,7 +295,7 @@ export function TeacherCourseDetailPage() {
           </Button>
           <h1 className="font-heading text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{pageTitle}</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {course.semester_label ?? '—'} · {course.department_code ?? '—'} · UE {course.teaching_unit_code ?? '—'} ·{' '}
+            {course.module_label ?? '—'} · {course.department_code ?? '—'} · UE {course.teaching_unit_code ?? '—'} ·{' '}
             {course.credits} cr.
             {course.teacher_name ? (
               <>
@@ -365,14 +365,14 @@ export function TeacherCourseDetailPage() {
           <Card className="p-6 border border-zinc-200/90 dark:border-[var(--app-border)] shadow-sm">
             <h2 className="font-heading text-sm font-semibold text-zinc-900 dark:text-zinc-50">Référentiel</h2>
             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-              Modifiez code, intitulé, crédits, rattachements (département, semestre, niveau, UE).
+              Modifiez code, intitulé, crédits, rattachements (département, module, semestre de parcours, niveau, UE).
             </p>
             <div className="mt-4">
               <CourseEditForm
                 courseId={courseId}
                 active
                 canStructure={canStructure}
-                semesters={semesters}
+                modules={modules}
                 teachingUnits={teachingUnits}
                 onSaved={reload}
                 submitLabel="Enregistrer les modifications"
