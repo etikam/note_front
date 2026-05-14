@@ -18,7 +18,7 @@ export function CourseAssignmentCard({ row, detailHref, onRequestUnassign, unass
   const code = row.code != null ? String(row.code) : '—'
   const name = row.name != null ? String(row.name) : '—'
   const dept = row.department_code != null ? String(row.department_code) : '—'
-  const sem = row.semester_label != null ? String(row.semester_label) : '—'
+  const sem = row.module_label != null ? String(row.module_label) : '—'
   const teacher = row.teacher_name != null ? String(row.teacher_name) : '—'
   const mat = row.teacher_matricule != null ? String(row.teacher_matricule) : ''
   const credits = row.credits != null ? String(row.credits) : '—'

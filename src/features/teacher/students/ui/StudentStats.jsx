@@ -1,320 +1,262 @@
-import { useId, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { ShieldCheck, Users, Upload, Download, UserPlus } from 'lucide-react'
 
 /**
- * Deux vues synthétiques : effectif & répartition (genre, départements, niveaux, inscriptions),
- * puis tous les états de compte (statuts + activation). Section repliable.
+ * Dashboard stats étudiants — version UX/UI pro
+ * Hiérarchie:
+ * 1) Hero synthétique
+ * 2) Répartition par département/licence
+ * 3) Comptes & actions
  */
 export function StudentStats({ stats }) {
-  const [open, setOpen] = useState(true)
-  const panelId = useId()
-  const toggleId = useId()
+  const cohort = stats?.cohort
+  const deptRows = Array.isArray(cohort?.by_department) ? cohort.by_department : []
+  const levelRows = Array.isArray(cohort?.by_level) ? cohort.by_level : []
+
+  const departmentBreakdown = useMemo(() => {
+    if (!stats?.cohort || !stats?.accounts || !stats?.enrollments) return []
+
+    const normalize = (v) => (v == null ? '' : String(v).trim())
+    const map = new Map()
+    const byId = new Map()
+    const byCode = new Map()
+    const byName = new Map()
+
+    for (const d of deptRows) {
+      const code = normalize(d.code)
+      const name = normalize(d.name)
+      const id = normalize(d.department_id)
+      const key = id || code || name
+      if (!key) continue
+      map.set(key, {
+        key,
+        code,
+        name: name || code || `Département ${key}`,
+        total: Number(d.count ?? 0),
+        licenses: [],
+      })
+      if (id) byId.set(id, key)
+      if (code) byCode.set(code.toLowerCase(), key)
+      if (name) byName.set(name.toLowerCase(), key)
+    }
+
+    for (const row of levelRows) {
+      const code = normalize(row.department_code)
+      const name = normalize(row.department_name)
+      const id = normalize(row.department_id)
+      const key =
+        (id && byId.get(id)) ||
+        (code && byCode.get(code.toLowerCase())) ||
+        (name && byName.get(name.toLowerCase())) ||
+        null
+      if (!key) continue
+      const current = map.get(key)
+      if (!current) continue
+
+      const levelBase = row.name || (row.level_id == null ? 'Sans niveau' : `Niveau #${row.level_id}`)
+      const levelLabel = row.number != null ? `Licence ${row.number}` : levelBase
+      const count = Number(row.count ?? 0)
+
+      current.licenses.push({ label: levelLabel, count })
+      map.set(key, current)
+    }
+
+    return Array.from(map.values())
+      .map((d) => ({ ...d, licenses: d.licenses.sort((a1, b1) => b1.count - a1.count) }))
+      .sort((a1, b1) => b1.total - a1.total)
+  }, [stats, deptRows, levelRows])
 
   if (!stats?.cohort || !stats?.accounts || !stats?.enrollments) return null
 
   const c = stats.cohort
   const a = stats.accounts
-  const e = stats.enrollments
   const total = c.total ?? 0
 
-  const fmt = (n) =>
-    typeof n === 'number' ? n.toLocaleString('fr-FR') : '—'
-
+  const fmt = (n) => (typeof n === 'number' ? n.toLocaleString('fr-FR') : '—')
   const pct = (part, whole) => {
     if (!whole) return '0 %'
-    return `${Math.min(100, Math.round((part / whole) * 100))} %`
+    return `${Math.min(100, Math.round((Number(part ?? 0) / Number(whole)) * 100))} %`
   }
 
-  const deptRows = Array.isArray(c.by_department) ? c.by_department : []
-  const levelRows = Array.isArray(c.by_level) ? c.by_level : []
-
-  const accountItems = [
-    {
-      key: 'active',
-      label: 'Actifs',
-      value: a.active ?? 0,
-      hint: 'Compte opérationnel (statut ACTIVE).',
-    },
-    {
-      key: 'inactive',
-      label: 'Inactifs',
-      value: a.inactive ?? 0,
-      hint: 'Compte créé mais statut INACTIVE.',
-    },
-    {
-      key: 'suspended',
-      label: 'Suspendus',
-      value: a.suspended ?? 0,
-      hint: 'Accès gelé (discipline / administratif).',
-    },
-    {
-      key: 'excluded',
-      label: 'Exclus',
-      value: a.excluded ?? 0,
-      hint: 'Sortie définitive du parcours.',
-    },
-    {
-      key: 'completed',
-      label: 'Terminés',
-      value: a.completed ?? 0,
-      hint: 'Parcours achevé (diplôme / fin de cycle).',
-    },
-    {
-      key: 'pending_activation',
-      label: 'À activer',
-      value: a.pending_activation ?? 0,
-      hint: 'Fiche sans utilisateur lié (OTP / première connexion).',
-    },
-  ]
-
-  const cardShell =
-    'rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-[0_2px_16px_-8px_rgba(15,23,42,0.1)] dark:shadow-[0_8px_28px_-14px_rgba(0,0,0,0.4)] overflow-hidden'
-
   return (
-    <div className={cardShell}>
-      <button
-        type="button"
-        id={toggleId}
-        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--app-canvas)]/80 sm:px-5"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <ChevronDown
-          size={20}
-          strokeWidth={2}
-          className={`shrink-0 text-zinc-500 transition-transform duration-200 dark:text-zinc-400 ${open ? 'rotate-180' : ''}`}
+    <section
+      className="overflow-hidden rounded-3xl border border-[var(--app-border)] bg-[var(--app-elevated)] text-[var(--app-fg)] shadow-[0_2px_16px_-8px_rgba(15,23,42,0.1)] dark:shadow-[0_8px_28px_-14px_rgba(0,0,0,0.4)]"
+      aria-labelledby="student-stats-heading"
+    >
+      <div id="student-stats-heading" className="sr-only">
+        Synthèse et répartition étudiants
+      </div>
+
+      <div className="relative overflow-hidden border-b border-[var(--app-border)] bg-brand-600 px-5 py-8 sm:px-8 sm:py-9">
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.14),transparent_55%)]"
           aria-hidden
         />
-        <div className="min-w-0 flex-1">
-          <span className="font-heading text-base font-semibold text-zinc-900 dark:text-zinc-50">
-            Statistiques
-          </span>
-          <span className="mt-0.5 block text-xs text-[var(--app-muted)] sm:inline sm:mt-0 sm:ml-2">
-            Effectif, répartition, comptes et inscriptions
-          </span>
-        </div>
-        <span className="shrink-0 tabular-nums text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-          {fmt(total)} étudiant{total !== 1 ? 's' : ''}
-        </span>
-      </button>
-
-      {open ? (
-        <div
-          id={panelId}
-          role="region"
-          aria-labelledby={toggleId}
-          className="border-t border-[var(--app-border)] p-4 sm:p-5"
-        >
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-      <section className={cardShell}>
-        <header className="border-b border-[var(--app-border)] bg-indigo-50/80 dark:bg-indigo-950/25 px-5 py-4">
-          <h2 className="font-heading text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Effectif & répartition
-          </h2>
-          <p className="mt-1 text-sm text-[var(--app-muted)]">
-            Selon les filtres de l’annuaire : volume, genre, départements, classes et inscriptions cours.
-          </p>
-        </header>
-        <div className="space-y-6 p-5">
-          <div className="flex flex-wrap items-end gap-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">
-                Effectif total
-              </p>
-              <p className="text-4xl font-bold tabular-nums text-zinc-900 dark:text-zinc-50">{fmt(total)}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--app-border)] bg-[var(--app-canvas)] px-3 py-1.5 text-sm">
-                <span className="text-[var(--app-muted)]">Filles</span>
-                <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-                  {fmt(c.female_count ?? 0)}
-                </span>
-                <span className="text-xs text-zinc-400">{pct(c.female_count ?? 0, total)}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--app-border)] bg-[var(--app-canvas)] px-3 py-1.5 text-sm">
-                <span className="text-[var(--app-muted)]">Garçons</span>
-                <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-                  {fmt(c.male_count ?? 0)}
-                </span>
-                <span className="text-xs text-zinc-400">{pct(c.male_count ?? 0, total)}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--app-border)] bg-[var(--app-canvas)] px-3 py-1.5 text-sm">
-                <span className="text-[var(--app-muted)]">Genre N/R</span>
-                <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-                  {fmt(c.gender_unknown_count ?? 0)}
-                </span>
-                <span className="text-xs text-zinc-400">{pct(c.gender_unknown_count ?? 0, total)}</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-orange-200/80 bg-orange-50/50 px-4 py-3 text-sm dark:border-orange-900/40 dark:bg-orange-950/20">
-            <span className="font-semibold text-zinc-800 dark:text-zinc-100">Profils suspendus : </span>
-            <span className="tabular-nums font-bold text-secondary-700 dark:text-secondary-400">
-              {fmt(c.suspended_count ?? 0)}
-            </span>
-            <span className="text-[var(--app-muted)]"> — étudiants au statut SUSPENDED dans ce périmètre.</span>
-          </div>
-
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              Par département
-            </h3>
-            <div className="overflow-x-auto rounded-xl border border-[var(--app-border)]">
-              <table className="w-full min-w-[320px] text-left text-sm">
-                <caption className="sr-only">Répartition par département</caption>
-                <thead className="border-b border-[var(--app-border)] bg-[var(--app-canvas)] text-xs uppercase tracking-wide text-zinc-500">
-                  <tr>
-                    <th className="px-3 py-2 font-medium">Département</th>
-                    <th className="px-3 py-2 font-medium text-right">Total</th>
-                    <th className="px-3 py-2 font-medium text-right">Filles</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--app-border)]">
-                  {deptRows.length === 0 ? (
-                    <tr>
-                      <td colSpan={3} className="px-3 py-4 text-center text-[var(--app-muted)]">
-                        Aucun étudiant ne correspond aux filtres.
-                      </td>
-                    </tr>
-                  ) : (
-                    deptRows.map((row, i) => (
-                      <tr key={row.department_id ?? `d-${i}`} className="hover:bg-[var(--app-canvas)]/80">
-                        <td className="px-3 py-2.5">
-                          <span className="font-medium text-zinc-900 dark:text-zinc-100">{row.name}</span>
-                          {row.code ? (
-                            <span className="ml-2 text-xs text-zinc-400">({row.code})</span>
-                          ) : null}
-                        </td>
-                        <td className="px-3 py-2.5 text-right tabular-nums font-semibold">{fmt(row.count)}</td>
-                        <td className="px-3 py-2.5 text-right tabular-nums text-zinc-600 dark:text-zinc-300">
-                          {fmt(row.female_count)}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-brand-100/90">Effectif global</p>
+            <p className="mt-2 font-heading text-4xl font-bold tracking-tight text-white sm:text-5xl">
+              {fmt(total)} <span className="font-semibold">{total !== 1 ? 'étudiants' : 'étudiant'}</span>
+            </p>
           </div>
-
-          <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              Par classe (niveau)
-            </h3>
-            <div className="overflow-x-auto rounded-xl border border-[var(--app-border)]">
-              <table className="w-full min-w-[360px] text-left text-sm">
-                <caption className="sr-only">Répartition par niveau</caption>
-                <thead className="border-b border-[var(--app-border)] bg-[var(--app-canvas)] text-xs uppercase tracking-wide text-zinc-500">
-                  <tr>
-                    <th className="px-3 py-2 font-medium">Classe</th>
-                    <th className="px-3 py-2 font-medium">Département</th>
-                    <th className="px-3 py-2 font-medium text-right">Total</th>
-                    <th className="px-3 py-2 font-medium text-right">Filles</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--app-border)]">
-                  {levelRows.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-3 py-4 text-center text-[var(--app-muted)]">
-                        Aucun niveau à afficher.
-                      </td>
-                    </tr>
-                  ) : (
-                    levelRows.map((row, i) => {
-                      const base =
-                        row.name ||
-                        (row.level_id == null ? 'Sans niveau' : `Niveau #${row.level_id}`)
-                      const label =
-                        row.number != null && row.name
-                          ? `${row.name} (n° ${row.number})`
-                          : base
-                      return (
-                        <tr key={row.level_id ?? `l-${i}`} className="hover:bg-[var(--app-canvas)]/80">
-                          <td className="px-3 py-2.5 font-medium text-zinc-900 dark:text-zinc-100">{label}</td>
-                          <td className="px-3 py-2.5 text-zinc-600 dark:text-zinc-300">
-                            {row.department_code || row.department_name || '—'}
-                          </td>
-                          <td className="px-3 py-2.5 text-right tabular-nums font-semibold">{fmt(row.count)}</td>
-                          <td className="px-3 py-2.5 text-right tabular-nums text-zinc-600 dark:text-zinc-300">
-                            {fmt(row.female_count)}
-                          </td>
-                        </tr>
-                      )
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              Inscriptions aux cours (lignes)
-            </h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-teal-200/70 bg-teal-50/60 px-4 py-3 dark:border-teal-900/40 dark:bg-teal-950/25">
-                <p className="text-xs font-medium text-teal-800 dark:text-teal-200">En attente</p>
-                <p className="text-2xl font-bold tabular-nums text-teal-900 dark:text-teal-100">
-                  {fmt(e.pending ?? 0)}
-                </p>
-              </div>
-              <div className="rounded-xl border border-green-200/70 bg-green-50/60 px-4 py-3 dark:border-green-900/40 dark:bg-green-950/25">
-                <p className="text-xs font-medium text-green-800 dark:text-green-200">Approuvées</p>
-                <p className="text-2xl font-bold tabular-nums text-green-900 dark:text-green-100">
-                  {fmt(e.approved ?? 0)}
-                </p>
-              </div>
-              <div className="rounded-xl border border-red-200/70 bg-red-50/60 px-4 py-3 dark:border-red-900/40 dark:bg-red-950/25">
-                <p className="text-xs font-medium text-red-800 dark:text-red-200">Rejetées</p>
-                <p className="text-2xl font-bold tabular-nums text-red-900 dark:text-red-100">
-                  {fmt(e.rejected ?? 0)}
-                </p>
-              </div>
-            </div>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <KpiMini label="Actifs" value={fmt(a.active ?? 0)} />
+            <KpiMini label="Inactifs" value={fmt(a.inactive ?? 0)} />
+            <KpiMini label="Suspendus" value={fmt(a.suspended ?? 0)} />
           </div>
         </div>
-      </section>
+      </div>
 
-      <section className={cardShell}>
-        <header className="border-b border-[var(--app-border)] bg-violet-50/80 dark:bg-violet-950/25 px-5 py-4">
-          <h2 className="font-heading text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Comptes & accès
-          </h2>
-          <p className="mt-1 text-sm text-[var(--app-muted)]">
-            Répartition par statut de fiche étudiant et situation du compte utilisateur.
-          </p>
-        </header>
-        <p className="border-b border-[var(--app-border)] bg-[var(--app-canvas)]/40 px-5 py-2 text-xs text-[var(--app-muted)]">
-          Les statuts (actif, inactif, …) sont exclusifs entre eux. « À activer » compte les fiches sans
-          utilisateur lié et peut se cumuler avec un autre statut.
-        </p>
-        <div className="grid gap-3 p-5 sm:grid-cols-2">
-          {accountItems.map((item) => (
-            <div
-              key={item.key}
-              className="rounded-xl border border-[var(--app-border)] bg-[var(--app-canvas)]/60 px-4 py-3"
+      <div className="border-b border-[var(--app-border)] px-4 py-5 sm:px-6">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="font-heading text-base font-semibold text-[var(--app-fg)]">Répartition par département et licences</h2>
+          <span className="rounded-full border border-[var(--app-border)] bg-[var(--app-canvas)] px-2.5 py-1 text-xs font-semibold text-[var(--app-muted)]">
+            {departmentBreakdown.length} départements
+          </span>
+        </div>
+
+        <div className="mb-3 grid grid-cols-3 gap-2">
+          <StatMini label="Filles" value={fmt(c.female_count ?? 0)} helper={pct(c.female_count ?? 0, total)} />
+          <StatMini label="Garçons" value={fmt(c.male_count ?? 0)} helper={pct(c.male_count ?? 0, total)} />
+          <StatMini label="N/R" value={fmt(c.gender_unknown_count ?? 0)} helper={pct(c.gender_unknown_count ?? 0, total)} />
+        </div>
+
+        <div className="grid max-h-72 grid-cols-1 gap-3 overflow-auto pr-1 lg:grid-cols-2">
+          {departmentBreakdown.map((dept) => (
+            <section
+              key={dept.key}
+              className="rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_94%,var(--app-canvas))] p-3"
             >
-              <div className="flex items-baseline justify-between gap-2">
-                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{item.label}</p>
-                <p className="text-2xl font-bold tabular-nums text-zinc-900 dark:text-zinc-50">
-                  {fmt(item.value)}
-                </p>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h3 className="truncate text-sm font-semibold text-[var(--app-fg)]">
+                  {dept.code ? `${dept.code} · ${dept.name}` : dept.name}
+                </h3>
+                <span className="text-xs font-semibold tabular-nums text-[var(--app-muted)]">{fmt(dept.total)}</span>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-[var(--app-muted)]">{item.hint}</p>
-              <p className="mt-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                {item.key === 'pending_activation'
-                  ? 'Indicateur transversal (sans User lié)'
-                  : `${pct(item.value, total)} de l’effectif filtré`}
-              </p>
-            </div>
+              <div className="space-y-1.5">
+                {dept.licenses.slice(0, 4).map((lic) => (
+                  <div
+                    key={`${dept.key}-${lic.label}-${lic.count}`}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-elevated)] px-2.5 py-1.5"
+                  >
+                    <p className="truncate text-xs font-medium text-[var(--app-fg)]">{lic.label}</p>
+                    <p className="shrink-0 text-xs font-semibold tabular-nums text-[var(--app-fg)]">{fmt(lic.count)}</p>
+                  </div>
+                ))}
+                {dept.licenses.length === 0 ? (
+                  <p className="text-xs text-[var(--app-muted)]">Aucune licence dans ce département.</p>
+                ) : null}
+              </div>
+            </section>
           ))}
+          {departmentBreakdown.length === 0 ? (
+            <p className="rounded-xl border border-[var(--app-border)] bg-[var(--app-canvas)] px-3 py-2 text-xs text-[var(--app-muted)]">
+              Aucune répartition disponible.
+            </p>
+          ) : null}
         </div>
-      </section>
+      </div>
+
+      <div className="px-4 py-5 sm:px-6">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="font-heading text-base font-semibold text-[var(--app-fg)]">Comptes & actions</h2>
+            <p className="mt-0.5 max-w-xl text-[13px] text-[var(--app-muted)]">
+              Suivi des statuts comptes et accès rapides pour les opérations étudiantes.
+            </p>
           </div>
         </div>
-      ) : null}
+
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
+          <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-4 shadow-sm sm:p-5">
+            <div className="flex flex-wrap items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-700 ring-1 ring-brand-500/15 dark:text-brand-300 dark:ring-brand-500/20">
+                <ShieldCheck size={20} strokeWidth={2} aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-heading text-base font-semibold text-[var(--app-fg)]">Comptes & accès</p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-3">
+              <AccountCell label="Actifs" value={fmt(a.active ?? 0)} hint={`${pct(a.active ?? 0, total)} de l'effectif`} />
+              <AccountCell label="Inactifs" value={fmt(a.inactive ?? 0)} hint={`${pct(a.inactive ?? 0, total)} de l'effectif`} />
+              <AccountCell label="Suspendus · gelés" value={fmt(a.suspended ?? 0)} hint="Compte utilisateur suspendu" />
+              <AccountCell label="Exclus" value={fmt(a.excluded ?? 0)} hint={`${pct(a.excluded ?? 0, total)} de l'effectif`} />
+              <AccountCell label="Parcours terminés" value={fmt(a.completed ?? 0)} hint={`${pct(a.completed ?? 0, total)} de l'effectif`} />
+            </div>
+
+            {(c.suspended_count ?? 0) > 0 ? (
+              <div className="mt-3 rounded-xl border border-secondary-200/90 bg-secondary-50 px-3 py-2.5 text-[13px] text-secondary-900 dark:border-secondary-800/55 dark:bg-secondary-950/35 dark:text-secondary-100">
+                <span className="font-semibold">Profils étudiants suspendus : </span>
+                <span className="font-bold tabular-nums">{fmt(c.suspended_count ?? 0)}</span>
+              </div>
+            ) : null}
+          </div>
+
+            <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-sm">
+              <div className="flex items-center gap-2.5 border-b border-[var(--app-border)] px-4 py-3.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-700 ring-1 ring-brand-500/15 dark:text-brand-300 dark:ring-brand-500/25">
+                  <Users size={17} strokeWidth={2} aria-hidden />
+                </span>
+                <h3 className="font-heading text-sm font-semibold text-[var(--app-fg)]">Actions rapides étudiants</h3>
+            </div>
+              <div className="grid grid-cols-2 gap-3 p-4">
+                <QuickAction to="/teacher/students" icon={Users} title="Étudiants" subtitle="Liste et suivi" />
+                <QuickAction to="/teacher/students/import-export" icon={Upload} title="Importer" subtitle="Données structurées" />
+                <QuickAction to="/teacher/students/import-export" icon={Download} title="Exporter" subtitle="Listes et extractions" />
+                <QuickAction to="/teacher/students/import-export" icon={UserPlus} title="Ajouter" subtitle="Création de fiche" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function KpiMini({ label, value }) {
+  return (
+    <div className="rounded-xl border border-white/20 bg-white/[0.12] px-3 py-2 text-center">
+      <p className="text-[10px] uppercase tracking-wide text-brand-100/85">{label}</p>
+      <p className="text-base font-bold tabular-nums text-white">{value}</p>
     </div>
+  )
+}
+
+function StatMini({ label, value, helper }) {
+  return (
+    <div className="rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_94%,var(--app-canvas))] px-3 py-2 text-center">
+      <p className="text-[10px] uppercase tracking-wide text-[var(--app-muted)]">{label}</p>
+      <p className="text-base font-bold tabular-nums text-[var(--app-fg)]">{value}</p>
+      <p className="text-[10px] text-[var(--app-muted)]">{helper}</p>
+    </div>
+  )
+}
+
+function AccountCell({ label, value, hint }) {
+  return (
+    <div className="rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_94%,var(--app-canvas))] px-3 py-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--app-muted)]">{label}</p>
+      <p className="mt-1 font-heading text-2xl font-bold tabular-nums text-[var(--app-fg)]">{value}</p>
+      <p className="mt-1 text-[11px] text-[var(--app-muted)]">{hint}</p>
+    </div>
+  )
+}
+
+function QuickAction({ to, icon: Icon, title, subtitle }) {
+  return (
+    <Link
+      to={to}
+      className="group flex flex-col gap-2.5 rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_98%,var(--app-canvas))] p-4 transition-all duration-200 hover:border-secondary-400/60 hover:shadow-md dark:bg-[color-mix(in_srgb,var(--app-elevated)_96%,black)] dark:hover:border-secondary-500/35"
+    >
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary-500/10 text-secondary-700 ring-1 ring-secondary-500/15 transition-all duration-200 group-hover:bg-secondary-500 group-hover:text-white group-hover:ring-secondary-600 dark:text-secondary-200 dark:ring-secondary-500/25 dark:group-hover:bg-secondary-500">
+        <Icon size={18} strokeWidth={2} aria-hidden />
+      </span>
+      <span>
+        <p className="text-sm font-semibold text-[var(--app-fg)]">{title}</p>
+        <p className="text-xs text-[var(--app-muted)]">{subtitle}</p>
+      </span>
+    </Link>
   )
 }

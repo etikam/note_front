@@ -12,7 +12,6 @@ import { GuestRoute, ProtectedRoute } from '@/features/auth/ui/RouteGuards'
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { StudentDashboardPage } from '@/features/student/pages/StudentDashboardPage'
 import { StudentGradesPage } from '@/features/student/pages/StudentGradesPage'
-import { TeacherGradesPage } from '@/features/teacher/pages/TeacherGradesPage'
 import { TeacherReportsPage } from '@/features/teacher/pages/TeacherReportsPage'
 import { TeacherMyCoursesPage } from '@/features/teacher/courses/TeacherMyCoursesPage'
 import { TeacherStudentDetailPage } from '@/features/teacher/students/TeacherStudentDetailPage'
@@ -100,7 +99,7 @@ export function AppRouter() {
             element={<Navigate to="/teacher/students/import-export" replace />}
           />
           <Route path="/teacher/reports" element={<TeacherReportsPage />} />
-          <Route path="/teacher/grades" element={<TeacherGradesPage />} />
+          <Route path="/teacher/grades" element={<Navigate to="/teacher/dashboard" replace />} />
           <Route path="/student/dashboard" element={<StudentDashboardPage />} />
           <Route path="/student/grades" element={<StudentGradesPage />} />
           <Route path="/profile" element={<ProfilePage />} />

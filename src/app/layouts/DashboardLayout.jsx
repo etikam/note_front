@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  ClipboardList,
   FileText,
   LayoutDashboard,
   Link2,
@@ -165,7 +164,6 @@ function buildTeacherNavItems(capabilities = {}, user = null) {
         },
       ],
     },
-    { type: 'link', to: '/teacher/grades', label: 'Notes', icon: ClipboardList, required: 'can_view_all_grades' },
     { type: 'link', to: '/teacher/reports', label: 'Rapports', icon: PieChart, required: 'can_view_reports' },
   ]
 
@@ -189,6 +187,7 @@ function buildTeacherNavItems(capabilities = {}, user = null) {
 
 function TeacherNavContextualGroup({ group, collapsed, onNavigate }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const triggerRef = useRef(null)
   const panelRef = useRef(null)
   const [open, setOpen] = useState(false)
@@ -242,6 +241,7 @@ function TeacherNavContextualGroup({ group, collapsed, onNavigate }) {
   }, [open])
 
   const Icon = group.icon
+  const primaryChild = group.children[0]
 
   const flyout = open
     ? createPortal(
@@ -302,38 +302,57 @@ function TeacherNavContextualGroup({ group, collapsed, onNavigate }) {
 
   return (
     <div className="relative w-full">
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-controls={flyoutId}
-        title={collapsed ? group.label : undefined}
-        onClick={() => setOpen((v) => !v)}
-        className={cn(
-          sidebarNavLinkClass({ isActive: childActive || open, collapsed }),
-          'w-full',
-          !collapsed && 'pr-2',
-        )}
-      >
-        <Icon size={collapsed ? 20 : 19} strokeWidth={2} className={cn('shrink-0 opacity-90', collapsed && 'opacity-100')} aria-hidden />
-        <span
-          className={cn(
-            'flex-1 text-left transition-[opacity,max-width] duration-300 ease-out overflow-hidden whitespace-nowrap',
-            collapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-[200px]',
-          )}
+      {collapsed ? (
+        <button
+          ref={triggerRef}
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-controls={flyoutId}
+          title={group.label}
+          onClick={() => setOpen((v) => !v)}
+          className={cn(sidebarNavLinkClass({ isActive: childActive || open, collapsed }), 'w-full')}
         >
-          {group.label}
-        </span>
-        {!collapsed ? (
-          <ChevronRight
-            size={15}
-            strokeWidth={2}
-            className={cn('ml-auto shrink-0 text-[var(--app-sidebar-muted)] transition-transform', open && 'rotate-90')}
-            aria-hidden
-          />
-        ) : null}
-      </button>
+          <Icon size={20} strokeWidth={2} className="shrink-0 opacity-100" aria-hidden />
+          <span className="sr-only">{group.label}</span>
+        </button>
+      ) : (
+        <div className={cn(sidebarNavLinkClass({ isActive: childActive || open, collapsed: false }), 'w-full pr-2')}>
+          <button
+            type="button"
+            onClick={() => {
+              if (!primaryChild) return
+              setOpen(false)
+              navigate(primaryChild.to)
+              onNavigate?.()
+            }}
+            className="flex min-w-0 flex-1 items-center gap-3 text-left"
+            title={group.label}
+          >
+            <Icon size={19} strokeWidth={2} className="shrink-0 opacity-90" aria-hidden />
+            <span className="flex-1 truncate">{group.label}</span>
+          </button>
+          <button
+            ref={triggerRef}
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={open}
+            aria-controls={flyoutId}
+            aria-label={open ? `Refermer le sous-menu ${group.label}` : `Ouvrir le sous-menu ${group.label}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              setOpen((v) => !v)
+            }}
+            className={cn(
+              'ml-auto flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--app-sidebar-muted)]',
+              'hover:bg-[var(--app-nav-hover)] hover:text-[var(--app-sidebar-fg)]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)]',
+            )}
+          >
+            <ChevronRight size={15} strokeWidth={2} className={cn('transition-transform', open && 'rotate-90')} aria-hidden />
+          </button>
+        </div>
+      )}
       {flyout}
     </div>
   )
@@ -406,6 +425,15 @@ export function DashboardLayout() {
   useEffect(() => {
     setMobileOpen(false)
   }, [location.pathname, location.search])
+
+  useEffect(() => {
+    const onSidebarPref = () => {
+      if (typeof window === 'undefined') return
+      setCollapsed(window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === '1')
+    }
+    window.addEventListener('gestion_ci:sidebar-pref-changed', onSidebarPref)
+    return () => window.removeEventListener('gestion_ci:sidebar-pref-changed', onSidebarPref)
+  }, [])
 
   useEffect(() => {
     if (isMobileMode && mobileOpen) {

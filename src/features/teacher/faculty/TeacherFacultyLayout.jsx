@@ -34,20 +34,20 @@ export function TeacherFacultyLayout() {
               role="tablist"
               aria-label="Sections enseignants"
             >
+              {canProvision ? (
+                <>
+                  <NavLink to="/teacher/faculty/list" className={facultyTabClass} role="tab" end>
+                    Annuaire
+                  </NavLink>
+                  <NavLink to="/teacher/faculty/import-export" className={facultyTabClass} role="tab">
+                    Import / Export
+                  </NavLink>
+                </>
+              ) : null}
               {canManageCourses ? (
                 <NavLink to="/teacher/faculty/course-assignments" className={facultyTabClass} role="tab">
                   Affectations cours
                 </NavLink>
-              ) : null}
-              {canProvision ? (
-                <>
-                  <NavLink to="/teacher/faculty/list" className={facultyTabClass} role="tab" end>
-                    Dashboard
-                  </NavLink>
-                  <NavLink to="/teacher/faculty/import-export" className={facultyTabClass} role="tab">
-                    Import & ajout
-                  </NavLink>
-                </>
               ) : null}
             </nav>
           </div>

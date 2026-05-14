@@ -3,10 +3,10 @@ import { cn } from '@/shared/lib/cn'
 
 /**
  * Liste des colonnes obligatoires : vert si présente dans le CSV, rouge sinon.
- * @param {{ headers: string[] }} props
+ * @param {{ headers: string[]; requiredKeys?: string[]; labels?: Record<string, string> }} props
  */
-export function RequiredColumnsMatchList({ headers }) {
-  const { items, matchedCount, missingCount } = getRequiredColumnMatchState(headers)
+export function RequiredColumnsMatchList({ headers, requiredKeys, labels }) {
+  const { items, matchedCount, missingCount } = getRequiredColumnMatchState(headers, { requiredKeys, labels })
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-zinc-50/50 px-4 py-3 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)]">

@@ -7,9 +7,16 @@ import { Button } from '@/shared/ui/Button'
 import { Stack } from '@/shared/ui/Stack'
 
 /**
- * @param {{ onDownload: () => void }} props
+ * @param {{
+ *   onDownload: () => void
+ *   requiredColumns?: string[]
+ *   detailsSlot?: import('react').ReactNode
+ * }} props
  */
-export function TemplateSection({ onDownload }) {
+export function TemplateSection({ onDownload, requiredColumns = REQUIRED_COLUMNS, detailsSlot }) {
+  const details =
+    detailsSlot !== undefined ? detailsSlot : <CsvRequirementsDetails />
+
   return (
     <Stack size="md">
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -20,7 +27,7 @@ export function TemplateSection({ onDownload }) {
           Colonnes obligatoires
         </p>
         <div className="flex flex-wrap gap-2">
-          {REQUIRED_COLUMNS.map((name) => (
+          {requiredColumns.map((name) => (
             <Badge key={name} tone="neutral" className="font-mono text-[11px]">
               {name}
             </Badge>
@@ -33,7 +40,7 @@ export function TemplateSection({ onDownload }) {
           Télécharger le modèle (.csv)
         </Button>
       </div>
-      <CsvRequirementsDetails />
+      {details}
     </Stack>
   )
 }

@@ -1,4 +1,4 @@
-/** Colonnes attendues dans le CSV (aligné backend / csvPreview). */
+/** Colonnes obligatoires du CSV (aligné backend / csvPreview). */
 export const REQUIRED_COLUMNS = [
   'matricule',
   'first_name',
@@ -8,6 +8,8 @@ export const REQUIRED_COLUMNS = [
   'level_cycle',
   'level_number',
 ]
+
+/** Colonnes facultatives (API import) : gender, status, phone, birth_date, cohorte_promotion, cohorte_annee_entree. */
 
 export const PREVIEW_ROW_CAP = 15
 

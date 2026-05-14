@@ -6,20 +6,22 @@ import { fetchTeachersList, fetchTeachersStats } from '@/features/teacher/facult
 const DEFAULT_PAGE_SIZE = 20
 export const TEACHER_PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
-function buildTeacherListParams({ page, pageSize, ordering, debouncedQ, status }) {
+function buildTeacherListParams({ page, pageSize, ordering, debouncedQ, status, teacherRole }) {
   return {
     page,
     page_size: pageSize,
     ordering,
     ...(debouncedQ ? { q: debouncedQ } : {}),
     ...(status ? { status } : {}),
+    ...(teacherRole ? { teacher_role: teacherRole } : {}),
   }
 }
 
-function buildTeacherStatsParams({ debouncedQ, status }) {
+function buildTeacherStatsParams({ debouncedQ, status, teacherRole }) {
   return {
     ...(debouncedQ ? { q: debouncedQ } : {}),
     ...(status ? { status } : {}),
+    ...(teacherRole ? { teacher_role: teacherRole } : {}),
   }
 }
 
@@ -38,6 +40,7 @@ export function useTeacherDirectoryList(opts = {}) {
   const [q, setQ] = useState('')
   const [debouncedQ, setDebouncedQ] = useState('')
   const [status, setStatus] = useState('')
+  const [teacherRole, setTeacherRole] = useState('')
 
   const [data, setData] = useState(null)
   const [stats, setStats] = useState(null)
@@ -51,17 +54,23 @@ export function useTeacherDirectoryList(opts = {}) {
 
   useEffect(() => {
     setPage(1)
-  }, [debouncedQ, status, pageSize, ordering])
+  }, [debouncedQ, status, teacherRole, pageSize, ordering])
 
   const listParams = useMemo(
-    () => buildTeacherListParams({ page, pageSize, ordering, debouncedQ, status }),
-    [page, pageSize, ordering, debouncedQ, status],
+    () => buildTeacherListParams({ page, pageSize, ordering, debouncedQ, status, teacherRole }),
+    [page, pageSize, ordering, debouncedQ, status, teacherRole],
   )
 
   const statsParams = useMemo(
-    () => buildTeacherStatsParams({ debouncedQ, status }),
-    [debouncedQ, status],
+    () => buildTeacherStatsParams({ debouncedQ, status, teacherRole }),
+    [debouncedQ, status, teacherRole],
   )
+
+  const resetFilters = useCallback(() => {
+    setQ('')
+    setStatus('')
+    setTeacherRole('')
+  }, [])
 
   const load = useCallback(async () => {
     if (canViewAggregatedStats) {
@@ -114,11 +123,20 @@ export function useTeacherDirectoryList(opts = {}) {
     return arr
   }, [page, totalPages])
 
+  const activeFilterCount = useMemo(
+    () => [status, teacherRole].filter(Boolean).length,
+    [status, teacherRole],
+  )
+
   return {
     q,
     setQ,
     status,
     setStatus,
+    teacherRole,
+    setTeacherRole,
+    resetFilters,
+    activeFilterCount,
     page,
     setPage,
     pageSize,
