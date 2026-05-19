@@ -8,10 +8,20 @@ import { ActivationPage } from '@/features/auth/pages/ActivationPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { SettingsPage } from '@/features/settings/pages/SettingsPage'
-import { GuestRoute, ProtectedRoute } from '@/features/auth/ui/RouteGuards'
+import {
+  GuestRoute,
+  ProtectedRoute,
+  RoleHomeRedirect,
+  StudentRoute,
+  TeacherRoute,
+} from '@/features/auth/ui/RouteGuards'
 import { useAuth } from '@/features/auth/model/AuthContext'
+import { StudentCourseDetailPage } from '@/features/student/pages/StudentCourseDetailPage'
+import { StudentCoursesPage } from '@/features/student/pages/StudentCoursesPage'
 import { StudentDashboardPage } from '@/features/student/pages/StudentDashboardPage'
+import { StudentEnrollmentsPage } from '@/features/student/pages/StudentEnrollmentsPage'
 import { StudentGradesPage } from '@/features/student/pages/StudentGradesPage'
+import { StudentPromotionPage } from '@/features/student/pages/StudentPromotionPage'
 import { TeacherReportsPage } from '@/features/teacher/pages/TeacherReportsPage'
 import { TeacherMyCoursesPage } from '@/features/teacher/courses/TeacherMyCoursesPage'
 import { TeacherStudentDetailPage } from '@/features/teacher/students/TeacherStudentDetailPage'
@@ -74,40 +84,49 @@ export function AppRouter() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
-          <Route path="/teacher/dashboard" element={<TeacherDashboardEntry />} />
-          <Route path="/teacher/my-courses" element={<TeacherMyCoursesPage />} />
-          <Route path="/teacher/academie" element={<TeacherPedagogyPage />} />
-          <Route path="/teacher/pedagogy" element={<RedirectPedagogyToAcademie />} />
-          <Route path="/teacher/courses/:courseId" element={<TeacherCourseDetailPage />} />
-          <Route path="/teacher/departments" element={<Navigate to="/teacher/academie?tab=departments" replace />} />
-          <Route path="/teacher/students" element={<TeacherStudentsLayout />}>
-            <Route index element={<Navigate to="list" replace />} />
-            <Route path="list" element={<TeacherStudentsListPage />} />
-            <Route path="import-export" element={<TeacherStudentsImportPage />} />
-            <Route path=":studentId" element={<TeacherStudentDetailPage />} />
+          <Route element={<TeacherRoute />}>
+            <Route path="/teacher/dashboard" element={<TeacherDashboardEntry />} />
+            <Route path="/teacher/my-courses" element={<TeacherMyCoursesPage />} />
+            <Route path="/teacher/academie" element={<TeacherPedagogyPage />} />
+            <Route path="/teacher/pedagogy" element={<RedirectPedagogyToAcademie />} />
+            <Route path="/teacher/courses/:courseId" element={<TeacherCourseDetailPage />} />
+            <Route path="/teacher/departments" element={<Navigate to="/teacher/academie?tab=departments" replace />} />
+            <Route path="/teacher/students" element={<TeacherStudentsLayout />}>
+              <Route index element={<Navigate to="list" replace />} />
+              <Route path="list" element={<TeacherStudentsListPage />} />
+              <Route path="import-export" element={<TeacherStudentsImportPage />} />
+              <Route path=":studentId" element={<TeacherStudentDetailPage />} />
+            </Route>
+            <Route path="/teacher/faculty" element={<TeacherFacultyLayout />}>
+              <Route index element={<FacultyIndexRedirect />} />
+              <Route path="course-assignments/:courseId" element={<TeacherFacultyCourseAssignmentDetailPage />} />
+              <Route path="course-assignments" element={<TeacherFacultyCourseAssignmentsPage />} />
+              <Route path="list" element={<TeacherFacultyListPage />} />
+              <Route path="import-export" element={<TeacherFacultyImportPage />} />
+              <Route path=":teacherId" element={<TeacherFacultyDetailPage />} />
+            </Route>
+            <Route
+              path="/teacher/import-export"
+              element={<Navigate to="/teacher/students/import-export" replace />}
+            />
+            <Route path="/teacher/reports" element={<TeacherReportsPage />} />
+            <Route path="/teacher/grades" element={<Navigate to="/teacher/dashboard" replace />} />
           </Route>
-          <Route path="/teacher/faculty" element={<TeacherFacultyLayout />}>
-            <Route index element={<FacultyIndexRedirect />} />
-            <Route path="course-assignments/:courseId" element={<TeacherFacultyCourseAssignmentDetailPage />} />
-            <Route path="course-assignments" element={<TeacherFacultyCourseAssignmentsPage />} />
-            <Route path="list" element={<TeacherFacultyListPage />} />
-            <Route path="import-export" element={<TeacherFacultyImportPage />} />
-            <Route path=":teacherId" element={<TeacherFacultyDetailPage />} />
+          <Route element={<StudentRoute />}>
+            <Route path="/student/dashboard" element={<StudentDashboardPage />} />
+            <Route path="/student/courses" element={<StudentCoursesPage />} />
+            <Route path="/student/courses/:courseId" element={<StudentCourseDetailPage />} />
+            <Route path="/student/grades" element={<StudentGradesPage />} />
+            <Route path="/student/enrollments" element={<StudentEnrollmentsPage />} />
+            <Route path="/student/profile" element={<Navigate to="/profile" replace />} />
+            <Route path="/student/promotion" element={<StudentPromotionPage />} />
           </Route>
-          <Route
-            path="/teacher/import-export"
-            element={<Navigate to="/teacher/students/import-export" replace />}
-          />
-          <Route path="/teacher/reports" element={<TeacherReportsPage />} />
-          <Route path="/teacher/grades" element={<Navigate to="/teacher/dashboard" replace />} />
-          <Route path="/student/dashboard" element={<StudentDashboardPage />} />
-          <Route path="/student/grades" element={<StudentGradesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<SettingsEntry />} />
         </Route>
       </Route>
 
-      <Route path="/dashboard" element={<Navigate to="/teacher/dashboard" replace />} />
+      <Route path="/dashboard" element={<RoleHomeRedirect />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
     

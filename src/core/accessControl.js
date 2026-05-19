@@ -3,6 +3,17 @@ function roleCodesOf(user) {
   return Array.isArray(user.teacher_role_codes) ? user.teacher_role_codes : []
 }
 
+/** Chemin d’accueil après connexion ou redirection « dashboard ». */
+export function getRoleHomePath(user) {
+  if (!user) return '/auth/login'
+  if (user.role === 'student') return '/student/dashboard'
+  if (user.role === 'teacher') {
+    if (isSimpleTeacherProfile(user)) return '/teacher/my-courses'
+    return '/teacher/dashboard'
+  }
+  return '/auth/login'
+}
+
 export function hasTeacherRole(user, roleCode) {
   return roleCodesOf(user).includes(roleCode)
 }

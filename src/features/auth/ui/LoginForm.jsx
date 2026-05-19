@@ -5,6 +5,7 @@ import { Lock, LogIn, User, Eye, EyeOff } from 'lucide-react'
 import { login } from '@/features/auth/api/authApi'
 import { validateMatricule, validatePassword } from '@/features/auth/lib/validation'
 import { useAuth } from '@/features/auth/model/AuthContext'
+import { getRoleHomePath } from '@/core/accessControl'
 import { authInputUnderline } from '@/features/auth/ui/authInputClasses'
 import { Spinner } from '@/shared/ui/Spinner'
 import { cn } from '@/shared/lib/cn'
@@ -37,8 +38,8 @@ export function LoginForm() {
     setIsSubmitting(true)
     try {
       await login(form)
-      await refreshMe()
-      navigate('/teacher/dashboard', { replace: true })
+      const me = await refreshMe()
+      navigate(getRoleHomePath(me), { replace: true })
     } catch (httpError) {
       setError(httpError.message || 'Connexion impossible.')
     } finally {

@@ -8,6 +8,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   FileText,
+  GraduationCap,
   LayoutDashboard,
   Link2,
   LogOut,
@@ -358,11 +359,49 @@ function TeacherNavContextualGroup({ group, collapsed, onNavigate }) {
   )
 }
 
-function buildStudentNavItems() {
-  return [
-    { to: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/student/grades', label: 'Mes notes', icon: FileText },
+function buildStudentNavItems(capabilities = {}) {
+  const items = [
+    { to: '/student/dashboard', label: 'Accueil', icon: LayoutDashboard },
+    { to: '/student/courses', label: 'Cours', icon: BookOpen },
+    { to: '/student/grades', label: 'Notes', icon: FileText },
+    { to: '/student/enrollments', label: 'Inscriptions', icon: GraduationCap },
   ]
+  if (capabilities?.can_manage_promotion) {
+    items.push({ to: '/student/promotion', label: 'Ma promotion', icon: Users })
+  }
+  return items
+}
+
+function StudentBottomNav({ items, onNavigate }) {
+  return (
+    <nav
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[95] border-t border-[var(--app-border)] bg-[var(--app-elevated)]/95 backdrop-blur-md safe-area-pb"
+      aria-label="Navigation mobile étudiant"
+    >
+      <ul className="flex items-stretch justify-around gap-0 px-1 py-1">
+        {items.map((it) => {
+          const Icon = it.icon
+          return (
+            <li key={it.to} className="flex-1 min-w-0">
+              <NavLink
+                to={it.to}
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  cn(
+                    'flex min-h-[52px] flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-[10px] font-semibold leading-tight',
+                    isActive ? 'text-brand-700 dark:text-brand-200' : 'text-[var(--app-muted)]',
+                  )
+                }
+              >
+                <Icon size={20} strokeWidth={2} aria-hidden />
+                <span className="truncate max-w-full">{it.label}</span>
+              </NavLink>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
 }
 
 function userRolePresentation(user) {
@@ -475,7 +514,7 @@ export function DashboardLayout() {
 
   const navItems = useMemo(() => {
     if (user?.role === 'teacher') return buildTeacherNavItems(user?.capabilities ?? {}, user)
-    if (user?.role === 'student') return buildStudentNavItems()
+    if (user?.role === 'student') return buildStudentNavItems(user?.capabilities ?? {})
     return []
   }, [user])
 
@@ -771,7 +810,13 @@ export function DashboardLayout() {
                 {mobileOpen ? <X size={20} strokeWidth={2} /> : <Menu size={20} strokeWidth={2} />}
               </button>
               <div className="min-w-0 flex-1">
-                <AcademicYearNavPicker />
+                {user?.role === 'student' ? (
+                  <p className="truncate text-sm font-medium text-[var(--app-muted)]">
+                    Année académique courante · espace étudiant
+                  </p>
+                ) : (
+                  <AcademicYearNavPicker />
+                )}
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
@@ -782,9 +827,19 @@ export function DashboardLayout() {
         </header>
 
         {/* Page content — clé = année pour remonter les écrans et relancer les effets / requêtes */}
-        <main className={cn('min-w-0 flex-1 p-6', isAcademicYearSwitching && 'pointer-events-none')}>
-          <Outlet key={academicYearId ?? 'ay-none'} />
+        <main
+          className={cn(
+            'min-w-0 flex-1 p-6',
+            isAcademicYearSwitching && 'pointer-events-none',
+            user?.role === 'student' && 'pb-24 md:pb-6',
+          )}
+        >
+          <Outlet key={user?.role === 'student' ? 'student' : academicYearId ?? 'ay-none'} />
         </main>
+
+        {user?.role === 'student' ? (
+          <StudentBottomNav items={navItems} onNavigate={isMobileMode ? closeMobileNav : undefined} />
+        ) : null}
       </div>
     </div>
   )
