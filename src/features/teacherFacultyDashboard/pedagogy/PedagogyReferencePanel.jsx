@@ -176,7 +176,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
       <div className="flex flex-col gap-3">
         <div className="flex flex-col overflow-hidden rounded-xl bg-brand-600 shadow-sm ring-1 ring-brand-700/30 dark:bg-brand-600 dark:ring-white/10 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 flex-1" role="tablist" aria-label="Sections Académie">
-            <div className="-mb-px flex flex-wrap divide-x divide-secondary-400/50 px-1 sm:px-2">
+            <div className="-mb-px flex min-w-0 flex-nowrap touch-pan-x divide-x divide-secondary-400/50 overflow-x-auto overflow-y-hidden overscroll-x-contain px-1 sm:px-2 [scrollbar-width:thin]">
               {sections.map((s) => {
                 const Icon = s.icon
                 return (
@@ -187,7 +187,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
                     aria-selected={section === s.id}
                     onClick={() => setSectionFromUi(s.id)}
                     className={cn(
-                      'inline-flex min-w-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none sm:px-4',
+                      'inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none sm:px-4',
                       'rounded-t-md focus-visible:ring-2 focus-visible:ring-secondary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600',
                       section === s.id
                         ? 'border-secondary-400 text-secondary-50 shadow-[inset_0_-8px_12px_-10px_rgba(249,115,22,0.35)] dark:border-secondary-300 dark:text-secondary-50'
@@ -195,7 +195,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
                     )}
                   >
                     <Icon size={17} strokeWidth={2} aria-hidden />
-                    <span className="truncate">{s.label}</span>
+                    <span>{s.label}</span>
                   </button>
                 )
               })}

@@ -43,9 +43,13 @@ export function CsvRequirementsDetails() {
           <li>
             Colonnes facultatives&nbsp;:{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">gender</code>,{' '}
-            <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">status</code>,{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">phone</code>,{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">birth_date</code> (YYYY-MM-DD),{' '}
+            <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">dad_name</code> /{' '}
+            <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">mum_name</code>{' '}
+            (filiation — nom du père et de la mère ; alias acceptés&nbsp;:{' '}
+            <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">nom_pere</code>,{' '}
+            <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">nom_mere</code>),{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">cohorte_promotion</code>{' '}
             (numéro métier de la cohorte ex.&nbsp;18, 15) et{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">cohorte_annee_entree</code>{' '}
