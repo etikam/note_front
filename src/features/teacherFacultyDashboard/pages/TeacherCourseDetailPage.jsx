@@ -313,7 +313,7 @@ export function TeacherCourseDetailPage() {
           role="tablist"
           aria-label="Sections du cours"
         >
-          <div className="-mb-px flex flex-wrap divide-x divide-secondary-400/50 px-1 sm:px-2">
+          <div className="-mb-px flex min-w-0 flex-nowrap touch-pan-x divide-x divide-secondary-400/50 overflow-x-auto overflow-y-hidden overscroll-x-contain px-1 sm:px-2 [scrollbar-width:thin]">
             {visibleTabs.map((t) => (
               <button
                 key={t.id}
@@ -323,7 +323,7 @@ export function TeacherCourseDetailPage() {
                 aria-selected={tab === t.id}
                 aria-controls={`tcd-panel-${t.id}`}
                 className={cn(
-                  'border-b-2 px-4 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none',
+                  'shrink-0 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none',
                   'rounded-t-md focus-visible:ring-2 focus-visible:ring-secondary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600',
                   tab === t.id
                     ? 'border-secondary-400 text-secondary-50 shadow-[inset_0_-8px_12px_-10px_rgba(249,115,22,0.35)] dark:border-secondary-300 dark:text-secondary-50'

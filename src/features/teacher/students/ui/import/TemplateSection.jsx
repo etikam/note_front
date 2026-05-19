@@ -1,6 +1,6 @@
 import { Download } from 'lucide-react'
 
-import { REQUIRED_COLUMNS } from '@/features/teacher/students/ui/import/import.constants'
+import { OPTIONAL_COLUMNS, REQUIRED_COLUMNS } from '@/features/teacher/students/ui/import/import.constants'
 import { CsvRequirementsDetails } from '@/features/teacher/students/ui/import/CsvRequirementsDetails'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
@@ -29,6 +29,18 @@ export function TemplateSection({ onDownload, requiredColumns = REQUIRED_COLUMNS
         <div className="flex flex-wrap gap-2">
           {requiredColumns.map((name) => (
             <Badge key={name} tone="neutral" className="font-mono text-[11px]">
+              {name}
+            </Badge>
+          ))}
+        </div>
+      </div>
+      <div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
+          Colonnes facultatives (filiation, cohorte…)
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {OPTIONAL_COLUMNS.map((name) => (
+            <Badge key={name} tone="neutral" className="font-mono text-[11px] opacity-90">
               {name}
             </Badge>
           ))}
