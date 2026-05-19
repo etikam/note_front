@@ -9,7 +9,16 @@ export const REQUIRED_COLUMNS = [
   'level_number',
 ]
 
-/** Colonnes facultatives (API import) : gender, status, phone, birth_date, cohorte_promotion, cohorte_annee_entree. */
+/** Colonnes facultatives (API import) : gender, phone, birth_date, dad_name, mum_name, cohorte_promotion, cohorte_annee_entree (alias nom_pere / nom_mere). */
+export const OPTIONAL_COLUMNS = [
+  'gender',
+  'phone',
+  'birth_date',
+  'dad_name',
+  'mum_name',
+  'cohorte_promotion',
+  'cohorte_annee_entree',
+]
 
 export const PREVIEW_ROW_CAP = 15
 
