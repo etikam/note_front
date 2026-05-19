@@ -9,7 +9,7 @@ import {
   fetchCourseArchives,
   fetchCourseEnrollments,
   fetchCourseNotationRoster,
-  fetchSemesters,
+  fetchModules,
   fetchTeachingUnits,
   patchCourseArchive,
   postCourseArchive,
@@ -60,13 +60,6 @@ const TABS = [
   },
 ]
 
-function isSimpleTeacherProfile(user) {
-  if (!user || user.role !== 'teacher') return false
-  const codes = Array.isArray(user.teacher_role_codes) ? user.teacher_role_codes : []
-  const elevated = ['department_head', 'study_director', 'program_director', 'general_director']
-  return !codes.some((c) => elevated.includes(c))
-}
-
 function formatBytes(n) {
   if (n == null || !Number.isFinite(Number(n))) return '—'
   const v = Number(n)
@@ -93,8 +86,8 @@ export function TeacherCourseDetailPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const canStructure = Boolean(user?.capabilities?.can_manage_academic_structure)
-  const isSimpleTeacher = isSimpleTeacherProfile(user)
-  const visibleTabs = useMemo(() => (isSimpleTeacher ? [TABS[0]] : TABS), [isSimpleTeacher])
+  /** Tous les onglets : le périmètre cours est déjà imposé par l’API (`courses_for_user` limite l’enseignant « simple » à ses cours assignés). */
+  const visibleTabs = TABS
 
   const [tab, setTab] = useState('info')
   const [loadKey, setLoadKey] = useState(0)
@@ -104,7 +97,7 @@ export function TeacherCourseDetailPage() {
   const [enrollments, setEnrollments] = useState([])
   const [notationRoster, setNotationRoster] = useState([])
   const [courseArchives, setCourseArchives] = useState([])
-  const [semesters, setSemesters] = useState([])
+  const [modules, setModules] = useState([])
   const [teachingUnits, setTeachingUnits] = useState([])
   const [uploadingArchive, setUploadingArchive] = useState(false)
   const [archiveUploadModalOpen, setArchiveUploadModalOpen] = useState(false)
@@ -203,14 +196,14 @@ export function TeacherCourseDetailPage() {
         setCourse(cRow)
         const ayId = cRow.academic_year_id
         const [sem, tu, en, roster, ca] = await Promise.all([
-          ayId ? fetchSemesters(ayId) : Promise.resolve([]),
+          ayId ? fetchModules(ayId) : Promise.resolve([]),
           fetchTeachingUnits(),
           fetchCourseEnrollments(courseId),
           fetchCourseNotationRoster(courseId),
           fetchCourseArchives(courseId),
         ])
         if (cancelled) return
-        setSemesters(Array.isArray(sem) ? sem : [])
+        setModules(Array.isArray(sem) ? sem : [])
         setTeachingUnits(Array.isArray(tu) ? tu : [])
         setEnrollments(Array.isArray(en) ? en : [])
         setNotationRoster(Array.isArray(roster) ? roster : [])
@@ -295,7 +288,7 @@ export function TeacherCourseDetailPage() {
           </Button>
           <h1 className="font-heading text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{pageTitle}</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {course.semester_label ?? '—'} · {course.department_code ?? '—'} · UE {course.teaching_unit_code ?? '—'} ·{' '}
+            {course.module_label ?? '—'} · {course.department_code ?? '—'} · UE {course.teaching_unit_code ?? '—'} ·{' '}
             {course.credits} cr.
             {course.teacher_name ? (
               <>
@@ -320,7 +313,7 @@ export function TeacherCourseDetailPage() {
           role="tablist"
           aria-label="Sections du cours"
         >
-          <div className="-mb-px flex flex-wrap divide-x divide-secondary-400/50 px-1 sm:px-2">
+          <div className="-mb-px flex min-w-0 flex-nowrap touch-pan-x divide-x divide-secondary-400/50 overflow-x-auto overflow-y-hidden overscroll-x-contain px-1 sm:px-2 [scrollbar-width:thin]">
             {visibleTabs.map((t) => (
               <button
                 key={t.id}
@@ -330,7 +323,7 @@ export function TeacherCourseDetailPage() {
                 aria-selected={tab === t.id}
                 aria-controls={`tcd-panel-${t.id}`}
                 className={cn(
-                  'border-b-2 px-4 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none',
+                  'shrink-0 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none',
                   'rounded-t-md focus-visible:ring-2 focus-visible:ring-secondary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600',
                   tab === t.id
                     ? 'border-secondary-400 text-secondary-50 shadow-[inset_0_-8px_12px_-10px_rgba(249,115,22,0.35)] dark:border-secondary-300 dark:text-secondary-50'
@@ -365,14 +358,14 @@ export function TeacherCourseDetailPage() {
           <Card className="p-6 border border-zinc-200/90 dark:border-[var(--app-border)] shadow-sm">
             <h2 className="font-heading text-sm font-semibold text-zinc-900 dark:text-zinc-50">Référentiel</h2>
             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-              Modifiez code, intitulé, crédits, rattachements (département, semestre, niveau, UE).
+              Modifiez code, intitulé, crédits, rattachements (département, module, semestre de parcours, niveau, UE).
             </p>
             <div className="mt-4">
               <CourseEditForm
                 courseId={courseId}
                 active
                 canStructure={canStructure}
-                semesters={semesters}
+                modules={modules}
                 teachingUnits={teachingUnits}
                 onSaved={reload}
                 submitLabel="Enregistrer les modifications"

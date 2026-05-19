@@ -1,7 +1,31 @@
+function firstNonEmptyLine(text) {
+  const lines = text.split(/\r?\n/)
+  for (const line of lines) {
+    if (line.trim()) return line
+  }
+  return ''
+}
+
 /**
- * Parse CSV text into rows (UTF-8). Gère guillemets et virgules dans les champs.
+ * Détecte le séparateur (`,` ou `;`) à partir de la première ligne non vide, aligné sur le backend.
+ * @param {string} text
+ * @returns {',' | ';'}
  */
-export function parseCsv(text) {
+export function inferCsvDelimiter(text) {
+  const line = firstNonEmptyLine(text)
+  if (!line) return ','
+  const commas = line.split(',').length - 1
+  const semis = line.split(';').length - 1
+  return semis > commas ? ';' : ','
+}
+
+/**
+ * Parse CSV text into rows (UTF-8). Gère guillemets et séparateur `,` ou `;`.
+ * @param {string} text
+ * @param {',' | ';' | null} [delimiter] — si omis, déduit depuis la première ligne
+ */
+export function parseCsv(text, delimiter = null) {
+  const delim = delimiter === null ? inferCsvDelimiter(text) : delimiter
   const rows = []
   let row = []
   let cur = ''
@@ -21,7 +45,7 @@ export function parseCsv(text) {
       }
     } else if (c === '"') {
       inQuotes = true
-    } else if (c === ',') {
+    } else if (c === delim) {
       row.push(cur)
       cur = ''
     } else if (c === '\n' || c === '\r') {
@@ -59,8 +83,9 @@ export const IMPORT_REQUIRED_HEADERS = [
 /**
  * @param {string} text — contenu CSV
  * @param {number} maxRows — lignes de données à afficher (hors en-tête)
+ * @param {string[]} [requiredHeaders] — clés normalisées attendues (défaut : import étudiants)
  */
-export function buildCsvPreview(text, maxRows = 12) {
+export function buildCsvPreview(text, maxRows = 12, requiredHeaders = IMPORT_REQUIRED_HEADERS) {
   const rows = parseCsv(text)
   if (rows.length === 0) {
     return { headers: [], dataRows: [], totalDataRows: 0, headerIssues: ['Fichier vide.'] }
@@ -68,7 +93,7 @@ export function buildCsvPreview(text, maxRows = 12) {
   const headers = rows[0].map((h) => String(h).trim())
   const normalized = headers.map(NORM)
   const issues = []
-  for (const req of IMPORT_REQUIRED_HEADERS) {
+  for (const req of requiredHeaders) {
     if (!normalized.includes(req)) {
       issues.push(`Colonne manquante ou mal nommée : « ${req} »`)
     }

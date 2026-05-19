@@ -32,6 +32,16 @@ function allowedProgramSemestersForLevel(level) {
   return byNumber[Number(level.number)] ?? []
 }
 
+/** S impair → M1, S pair → M2 (``modules`` = créneaux de l’année affichée). */
+function calendarModuleIdForParcours(modules, parcoursSemester) {
+  if (parcoursSemester === '' || parcoursSemester == null) return null
+  const n = Number(parcoursSemester)
+  if (!Number.isFinite(n)) return null
+  const want = n % 2 === 1 ? 1 : 2
+  const m = modules.find((x) => Number(x.number) === want)
+  return m ? String(m.id) : null
+}
+
 function formatApiError(data) {
   if (!data) return null
   if (typeof data === 'string') return data
@@ -61,8 +71,8 @@ function formatApiError(data) {
               ? 'Code'
               : key === 'name'
                 ? 'Intitulé'
-                : key === 'program_semester'
-                  ? 'Sem. programme'
+                : key === 'semester'
+                  ? 'Sem. parcours'
                   : key === 'credits'
                     ? 'Crédits'
                     : key
@@ -75,12 +85,12 @@ function formatApiError(data) {
 }
 
 /**
- * Saisie semestre / niveau et matières pour une UE (département déduit de l'UE).
+ * Saisie module calendaire / niveau et matières pour une UE (département déduit de l'UE).
  * @param {{
  *   formId?: string
- *   semesters: Array<{ id: number; number: number; start_date?: string; end_date?: string; academic_year_label?: string }>
+ *   modules: Array<{ id: number; number: number; start_date?: string; end_date?: string; academic_year_label?: string }>
  *   unitsForOfferSelect: Array<{ id: number; code: string; name: string; total_credits?: number; department?: number; department_code?: string }>
- *   existingCourses?: Array<{ id: string; semester?: number; department?: number; level?: number; credits?: number }>
+ *   existingCourses?: Array<{ id: string; module?: number; department?: number; level?: number; credits?: number }>
  *   forcedUeId?: number | null
  *   active: boolean
  *   onSuccess?: () => void | Promise<void>
@@ -89,7 +99,7 @@ function formatApiError(data) {
  */
 export function CourseOfferingFormBlock({
   formId = 'form-offering',
-  semesters,
+  modules,
   unitsForOfferSelect,
   existingCourses = [],
   forcedUeId = null,
@@ -100,13 +110,13 @@ export function CourseOfferingFormBlock({
   const rowIdRef = useRef(0)
   const makeRow = useCallback((credits = '3') => {
     rowIdRef.current += 1
-    return { id: rowIdRef.current, code: '', name: '', credits: String(credits), program_semester: '' }
+    return { id: rowIdRef.current, code: '', name: '', credits: String(credits), semester: '' }
   }, [])
 
   const [saving, setSaving] = useState(false)
   const [offerUeId, setOfferUeId] = useState(() => (forcedUeId != null ? String(forcedUeId) : ''))
   const [offer, setOffer] = useState({
-    semester: '',
+    module: '',
     level: '',
     replace_existing: false,
     rows: [makeRow('3'), makeRow('3')],
@@ -119,7 +129,7 @@ export function CourseOfferingFormBlock({
     setOfferUeId(ueInit)
     rowIdRef.current = 0
     setOffer({
-      semester: '',
+      module: '',
       level: '',
       replace_existing: false,
       rows: [makeRow('3'), makeRow('3')],
@@ -161,40 +171,77 @@ export function CourseOfferingFormBlock({
   }, [selectedDepartmentId])
 
   useEffect(() => {
-    if (!offer.semester || semesters.length === 0) return
-    const ok = semesters.some((s) => String(s.id) === String(offer.semester))
-    if (!ok) setOffer((o) => ({ ...o, semester: '' }))
-  }, [semesters, offer.semester])
+    if (!offer.module || modules.length === 0) return
+    const ok = modules.some((s) => String(s.id) === String(offer.module))
+    if (!ok) setOffer((o) => ({ ...o, module: '' }))
+  }, [modules, offer.module])
 
   useEffect(() => {
     if (!selectedLevel) return
     setOffer((o) => ({
       ...o,
       rows: o.rows.map((r) => {
-        if (r.program_semester === '' || r.program_semester == null) return r
-        return availableProgramSemesters.includes(Number(r.program_semester))
+        if (r.semester === '' || r.semester == null) return r
+        return availableProgramSemesters.includes(Number(r.semester))
           ? r
-          : { ...r, program_semester: '' }
+          : { ...r, semester: '' }
       }),
     }))
   }, [availableProgramSemesters, selectedLevel])
+
+  const resolvedSlotModuleIds = useMemo(() => {
+    const ids = new Set()
+    if (offer.module) ids.add(Number(offer.module))
+    for (const r of offer.rows) {
+      if (r.semester === '' || r.semester == null) continue
+      const want = Number(r.semester) % 2 === 1 ? 1 : 2
+      const m = modules.find((x) => Number(x.number) === want)
+      if (m) ids.add(m.id)
+    }
+    return ids
+  }, [offer.rows, offer.module, modules])
+
+  const parcoursParityMismatch = useMemo(() => {
+    const nums = offer.rows
+      .map((r) => (r.semester === '' || r.semester == null ? null : Number(r.semester)))
+      .filter((n) => n != null && Number.isFinite(n))
+    if (nums.length < 2) return false
+    return new Set(nums.map((n) => n % 2)).size > 1
+  }, [offer.rows])
+
+  const moduleLockedByParcours = useMemo(
+    () => offer.rows.some((r) => r.semester !== '' && r.semester != null),
+    [offer.rows],
+  )
+
+  useEffect(() => {
+    const first = offer.rows.find((r) => r.semester !== '' && r.semester != null)
+    if (!first || modules.length === 0) return
+    const next = calendarModuleIdForParcours(modules, first.semester)
+    if (!next) return
+    setOffer((o) => (String(o.module) === next ? o : { ...o, module: next }))
+  }, [offer.rows, modules])
 
   const targetCredits = selectedUe?.total_credits ?? 0
   const sumOffer = sumRowCredits(offer.rows)
   const offerCreditsOk = Boolean(selectedUe && targetCredits > 0 && sumOffer === targetCredits)
   const slotKey = useMemo(() => {
-    if (!offer.semester || !selectedDepartmentId || !offer.level) return null
-    return `${offer.semester}|${selectedDepartmentId}|${offer.level}`
-  }, [offer.semester, selectedDepartmentId, offer.level])
+    if (!selectedDepartmentId || !offer.level) return null
+    const ids = [...resolvedSlotModuleIds].sort((a, b) => a - b)
+    if (ids.length === 0) return null
+    return `${ids.join(',')}|${selectedDepartmentId}|${offer.level}`
+  }, [resolvedSlotModuleIds, selectedDepartmentId, offer.level])
   const existingSlot = useMemo(() => {
-    if (!slotKey) return []
-    const sem = Number(offer.semester)
+    if (!slotKey || resolvedSlotModuleIds.size === 0) return []
     const dep = Number(selectedDepartmentId)
     const lvl = Number(offer.level)
     return (existingCourses ?? []).filter(
-      (c) => Number(c.semester) === sem && Number(c.department) === dep && Number(c.level) === lvl,
+      (c) =>
+        resolvedSlotModuleIds.has(Number(c.module)) &&
+        Number(c.department) === dep &&
+        Number(c.level) === lvl,
     )
-  }, [existingCourses, slotKey, offer.semester, selectedDepartmentId, offer.level])
+  }, [existingCourses, slotKey, resolvedSlotModuleIds, selectedDepartmentId, offer.level])
   const existingSlotCredits = useMemo(
     () => existingSlot.reduce((acc, c) => acc + (Number(c.credits) || 0), 0),
     [existingSlot],
@@ -224,21 +271,21 @@ export function CourseOfferingFormBlock({
       dispatchToast({ type: 'error', message: 'Choisir une unité d’enseignement.' })
       return
     }
-    if (!offer.semester || !selectedDepartmentId || !offer.level) {
-      dispatchToast({ type: 'error', message: 'Renseignez semestre, UE et niveau.' })
+    if (!offer.module || !selectedDepartmentId || !offer.level) {
+      dispatchToast({ type: 'error', message: 'Renseignez module, UE et niveau.' })
       return
     }
     setSaving(true)
     try {
       await postTeachingUnitCourseOffering(Number(offerUeId), {
-        semester: Number(offer.semester),
+        module: Number(offer.module),
         level: Number(offer.level),
         replace_existing: offer.replace_existing,
         courses: offer.rows.map((r) => ({
           code: r.code.trim(),
           name: r.name.trim(),
           credits: rowCreditsToNumber(r.credits),
-          program_semester: r.program_semester === '' || r.program_semester == null ? null : Number(r.program_semester),
+          semester: r.semester === '' || r.semester == null ? null : Number(r.semester),
         })),
       })
       dispatchToast({ type: 'success', message: 'Matières enregistrées.' })
@@ -276,19 +323,19 @@ export function CourseOfferingFormBlock({
       ) : null}
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <Field label="Semestre">
+        <Field label="Module">
           <select
             className={inputCls}
-            value={offer.semester}
-            onChange={(e) => setOffer((o) => ({ ...o, semester: e.target.value }))}
-            disabled={semesters.length === 0}
+            value={offer.module}
+            onChange={(e) => setOffer((o) => ({ ...o, module: e.target.value }))}
+            disabled={modules.length === 0 || moduleLockedByParcours}
           >
             <option value="">
-              {semesters.length === 0 ? 'Aucun semestre pour l’année…' : 'Choisir un semestre…'}
+              {modules.length === 0 ? 'Aucun module pour l’année…' : 'Choisir un module…'}
             </option>
-            {semesters.map((s) => (
+            {modules.map((s) => (
               <option key={s.id} value={s.id}>
-                S{s.number}
+                M{s.number}
                 {s.start_date && s.end_date ? ` — ${s.start_date} → ${s.end_date}` : ''}
                 {s.academic_year_label ? ` (${s.academic_year_label})` : ''}
               </option>
@@ -315,6 +362,18 @@ export function CourseOfferingFormBlock({
         </Field>
       </div>
 
+      {parcoursParityMismatch ? (
+        <p className="mb-2 text-xs text-amber-700 dark:text-amber-300">
+          Semestres de parcours contradictoires (impair et pair) : le module affiché suit la première ligne renseignée ;
+          l’enregistrement répartira les cours sur M1 ou M2 selon chaque ligne.
+        </p>
+      ) : null}
+      {moduleLockedByParcours ? (
+        <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+          Module calendaire aligné sur le semestre de parcours (S impair → M1, S pair → M2).
+        </p>
+      ) : null}
+
       <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-zinc-200/90 bg-white/60 px-3 py-2.5 text-xs dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_88%,white)]">
         <input
           type="checkbox"
@@ -330,7 +389,7 @@ export function CourseOfferingFormBlock({
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Matières</p>
         <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-400 leading-snug">
-          Une ligne = un cours pour <strong>ce</strong> semestre, département de l’UE et niveau. Somme des « Cr. » ={' '}
+          Une ligne = un cours pour <strong>ce</strong> module, département de l’UE et niveau. Somme des « Cr. » ={' '}
           <strong className="text-zinc-800 dark:text-zinc-200">{targetCredits || '—'}</strong> cr. (total UE). Pas
           d’addition avec le tableau du haut (autres créneaux).
         </p>
@@ -429,16 +488,16 @@ export function CourseOfferingFormBlock({
                 </Field>
               </div>
               <div className="col-span-6 sm:col-span-1">
-                <Field label={i === 0 ? 'Sem. prog.' : ''}>
+                <Field label={i === 0 ? 'Sem. (parcours)' : ''}>
                   <select
                     className={inputCls}
-                    value={row.program_semester}
+                    value={row.semester}
                     disabled={!selectedLevel}
                     onChange={(e) => {
                       const v = e.target.value
                       setOffer((o) => ({
                         ...o,
-                        rows: o.rows.map((r) => (r.id === row.id ? { ...r, program_semester: v } : r)),
+                        rows: o.rows.map((r) => (r.id === row.id ? { ...r, semester: v } : r)),
                       }))
                     }}
                   >

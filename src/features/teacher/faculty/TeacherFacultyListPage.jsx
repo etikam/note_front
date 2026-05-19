@@ -1,25 +1,20 @@
 import { useEffect, useState } from 'react'
-import { UserPlus, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Upload, UserPlus, X } from 'lucide-react'
 
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { fetchTeacherGrades, postTeacher } from '@/features/teacher/faculty/api/teachersApi'
+import { TEACHER_ROLE_OPTIONS } from '@/features/teacher/faculty/facultyList.constants'
 import { useTeacherDirectoryList } from '@/features/teacher/faculty/hooks/useTeacherDirectoryList'
 import { FacultyDirectoryTable } from '@/features/teacher/faculty/ui/FacultyDirectoryTable'
+import { FacultyFilters } from '@/features/teacher/faculty/ui/FacultyFilters'
 import { FacultyStats } from '@/features/teacher/faculty/ui/FacultyStats'
 import { useInView } from '@/shared/hooks/useInView'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { Field, Input } from '@/shared/ui/Field'
-import { Spinner } from '@/shared/ui/Spinner'
 import { cn } from '@/shared/lib/cn'
-
-const TEACHER_ROLE_OPTIONS = [
-  { value: 'teacher', label: 'Enseignant' },
-  { value: 'department_head', label: 'Chef de département' },
-  { value: 'study_director', label: 'Directeur des études' },
-  { value: 'program_director', label: 'Directeur de programme' },
-  { value: 'general_director', label: 'Directeur général' },
-]
+import { DateInputFr } from '@/shared/ui/DateInputFr'
 
 function emptyCreateForm() {
   return {
@@ -51,13 +46,13 @@ function buildCreatePayload(form) {
   if (form.gender) payload.gender = form.gender
   const phone = form.phone.trim()
   if (phone) payload.phone = phone
-  if (form.birth_date) payload.birth_date = form.birth_date
+  if (form.birth_date?.trim()) payload.birth_date = form.birth_date.trim()
   if (form.grade) payload.grade = form.grade
   if (form.years_of_experience !== '' && form.years_of_experience != null) {
     const n = Number(form.years_of_experience)
     if (!Number.isNaN(n)) payload.years_of_experience = n
   }
-  if (form.hire_date) payload.hire_date = form.hire_date
+  if (form.hire_date?.trim()) payload.hire_date = form.hire_date.trim()
   const bio = form.bio.trim()
   if (bio) payload.bio = bio
   return payload
@@ -72,6 +67,7 @@ const INPUT_ERR =
 export function TeacherFacultyListPage() {
   const { user } = useAuth()
   const canProvision = Boolean(user?.capabilities?.can_provision_teacher)
+  const canManageCourses = Boolean(user?.capabilities?.can_manage_courses)
 
   const [setTableHostRef, listInView] = useInView({ rootMargin: '100px' })
   const dir = useTeacherDirectoryList({ listEnabled: listInView })
@@ -148,49 +144,57 @@ export function TeacherFacultyListPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary-600 dark:text-secondary-400 mb-1.5">
-            Ressources humaines
+            Gestion académique
           </p>
           <h1 className="text-2xl sm:text-3xl font-bold font-heading text-zinc-900 dark:text-zinc-50 tracking-tight">
             Enseignants
           </h1>
           <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400 max-w-xl">
-            Tableau de bord RH — création unitaire, statistiques et accès à la fiche (affectation cours selon vos
-            droits).
+            Annuaire institutionnel — recherche, filtres, statistiques et fiches (affectations cours selon vos droits).
           </p>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          className="border border-zinc-200 dark:border-[var(--app-border)]"
-          onClick={() => {
-            setCreateOpen(true)
-            setCreateError(null)
-            setCreateFieldErrors({})
-          }}
-        >
-          <UserPlus size={16} aria-hidden />
-          Ajouter un enseignant
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Button as={Link} to="/teacher/faculty/import-export" variant="softSecondary">
+            <Upload size={16} aria-hidden />
+            Import / Export
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => {
+              setCreateOpen(true)
+              setCreateError(null)
+              setCreateFieldErrors({})
+            }}
+          >
+            <UserPlus size={16} aria-hidden />
+            Ajouter un enseignant
+          </Button>
+        </div>
       </div>
 
-      <FacultyStats stats={dir.stats} />
+      <FacultyStats
+        stats={dir.stats}
+        canManageCourses={canManageCourses}
+        onAddTeacher={() => {
+          setCreateOpen(true)
+          setCreateError(null)
+          setCreateFieldErrors({})
+        }}
+      />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <Field label="Recherche" className="min-w-[12rem] flex-1">
-          <Input value={dir.q} onChange={(e) => dir.setQ(e.target.value)} placeholder="Matricule, nom, email…" />
-        </Field>
-        <Field label="Statut" className="w-40">
-          <select className={selectClass} value={dir.status} onChange={(e) => dir.setStatus(e.target.value)}>
-            <option value="">Tous</option>
-            <option value="active">Actif</option>
-            <option value="inactive">Inactif</option>
-            <option value="suspended">Suspendu</option>
-            <option value="on_leave">En congé</option>
-          </select>
-        </Field>
-      </div>
+      <FacultyFilters
+        q={dir.q}
+        onQChange={dir.setQ}
+        status={dir.status}
+        onStatusChange={dir.setStatus}
+        teacherRole={dir.teacherRole}
+        onTeacherRoleChange={dir.setTeacherRole}
+        activeFilterCount={dir.activeFilterCount}
+        onResetFilters={dir.resetFilters}
+      />
 
-      <div ref={setTableHostRef}>
+      <div id="faculty-directory" ref={setTableHostRef}>
         <FacultyDirectoryTable
           listEnabled={listInView}
           loading={dir.loading}
@@ -316,11 +320,10 @@ export function TeacherFacultyListPage() {
                     />
                   </Field>
                   <Field label="Date de naissance" error={createFieldErrors.birth_date}>
-                    <Input
-                      type="date"
+                    <DateInputFr
                       name="birth_date"
                       value={createForm.birth_date}
-                      onChange={(e) => handleCreateChange('birth_date', e.target.value)}
+                      onChange={(v) => handleCreateChange('birth_date', v)}
                       aria-invalid={Boolean(createFieldErrors.birth_date)}
                       className={inputErrClass('birth_date')}
                     />
@@ -391,11 +394,10 @@ export function TeacherFacultyListPage() {
                     </label>
                   </Field>
                   <Field label="Date d’embauche" error={createFieldErrors.hire_date}>
-                    <Input
-                      type="date"
+                    <DateInputFr
                       name="hire_date"
                       value={createForm.hire_date}
-                      onChange={(e) => handleCreateChange('hire_date', e.target.value)}
+                      onChange={(v) => handleCreateChange('hire_date', v)}
                       aria-invalid={Boolean(createFieldErrors.hire_date)}
                       className={inputErrClass('hire_date')}
                     />

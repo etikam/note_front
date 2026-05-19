@@ -53,6 +53,19 @@ export async function fetchStudentDetail(id, config = {}) {
   return data
 }
 
+/**
+ * @param {number} id
+ * @param {Record<string, unknown>} body
+ * @param {import('axios').AxiosRequestConfig} [config]
+ */
+export async function patchStudentDetail(id, body, config = {}) {
+  const { data } = await apiClient.patch(endpoints.students.detail(id), body, {
+    skipErrorToast: true,
+    ...config,
+  })
+  return data
+}
+
 /** @param {import('axios').AxiosRequestConfig} [config] */
 export async function fetchStudentImportTemplateBlob(config = {}) {
   return apiClient.get(endpoints.students.importTemplate, {

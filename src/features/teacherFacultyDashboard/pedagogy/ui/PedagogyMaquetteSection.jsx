@@ -35,8 +35,8 @@ export function PedagogyMaquetteSection({
   const [departmentFilter, setDepartmentFilter] = useState('')
   const [levelFilter, setLevelFilter] = useState('')
   const [unitFilter, setUnitFilter] = useState('')
-  const [calendarSemesterFilter, setCalendarSemesterFilter] = useState('')
-  const [programSemesterFilter, setProgramSemesterFilter] = useState('')
+  const [moduleFilter, setModuleFilter] = useState('')
+  const [parcoursSemesterFilter, setParcoursSemesterFilter] = useState('')
 
   useEffect(() => {
     if (!yearFocusId) {
@@ -73,7 +73,7 @@ export function PedagogyMaquetteSection({
     const levelMap = new Map()
     const unitMap = new Map()
     const calendarMap = new Map()
-    const programSet = new Set()
+    const parcoursSet = new Set()
     for (const row of rows) {
       const deptId = row.department ?? row.department_id ?? null
       const deptCode = row.department_code ?? row.teaching_unit_department_code ?? null
@@ -90,8 +90,8 @@ export function PedagogyMaquetteSection({
           name: row.teaching_unit_name ?? 'UE non renseignée',
         })
       }
-      if (row.semester != null) calendarMap.set(String(row.semester), row.semester_label ?? `Semestre #${row.semester}`)
-      if (row.program_semester != null) programSet.add(String(row.program_semester))
+      if (row.module != null) calendarMap.set(String(row.module), row.module_label ?? `Module #${row.module}`)
+      if (row.semester != null) parcoursSet.add(String(row.semester))
     }
     return {
       departments: Array.from(departmentMap.values()).sort((a, b) =>
@@ -103,10 +103,10 @@ export function PedagogyMaquetteSection({
       units: Array.from(unitMap.values()).sort((a, b) =>
         `${a.code} ${a.name}`.localeCompare(`${b.code} ${b.name}`, 'fr', { sensitivity: 'base' }),
       ),
-      calendarSemesters: Array.from(calendarMap.entries())
+      calendarModules: Array.from(calendarMap.entries())
         .map(([id, label]) => ({ id, label }))
         .sort((a, b) => String(a.label).localeCompare(String(b.label), 'fr', { sensitivity: 'base' })),
-      programSemesters: Array.from(programSet)
+      parcoursSemesters: Array.from(parcoursSet)
         .map((s) => Number(s))
         .sort((a, b) => a - b)
         .map((value) => String(value)),
@@ -122,8 +122,8 @@ export function PedagogyMaquetteSection({
       if (departmentFilter && deptKey !== departmentFilter) return false
       if (levelFilter && String(row.level ?? '') !== levelFilter) return false
       if (unitFilter && String(row.teaching_unit ?? '') !== unitFilter) return false
-      if (calendarSemesterFilter && String(row.semester ?? '') !== calendarSemesterFilter) return false
-      if (programSemesterFilter && String(row.program_semester ?? '') !== programSemesterFilter) return false
+      if (moduleFilter && String(row.module ?? '') !== moduleFilter) return false
+      if (parcoursSemesterFilter && String(row.semester ?? '') !== parcoursSemesterFilter) return false
       if (!q) return true
       const haystack = [
         row.code,
@@ -133,14 +133,14 @@ export function PedagogyMaquetteSection({
         row.level_name,
         row.teaching_unit_code,
         row.teaching_unit_name,
-        row.semester_label,
+        row.module_label,
       ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase()
       return haystack.includes(q)
     })
-  }, [rows, search, departmentFilter, levelFilter, unitFilter, calendarSemesterFilter, programSemesterFilter])
+  }, [rows, search, departmentFilter, levelFilter, unitFilter, moduleFilter, parcoursSemesterFilter])
 
   const grouped = useMemo(() => {
     const normalize = (value) => String(value ?? '').trim().toLowerCase()
@@ -171,7 +171,7 @@ export function PedagogyMaquetteSection({
       const unitId = c.teaching_unit ?? null
       const unitCode = c.teaching_unit_code ?? 'UE-?'
       const unitName = c.teaching_unit_name ?? 'UE non renseignée'
-      const unitKey = `${normalize(unitCode)}::${normalize(unitName)}` || `${unitId ?? 'x'}::${unitCode}`
+      const unitKey = unitId != null ? `id:${unitId}` : `${normalize(unitCode)}::${normalize(unitName)}`
       if (!levelGroup.teachingUnits.has(unitKey)) {
         levelGroup.teachingUnits.set(unitKey, { unitId, unitCode, unitName, courses: [], _courseIds: new Set() })
       }
@@ -223,15 +223,15 @@ export function PedagogyMaquetteSection({
     const department = filterOptions.departments.find((x) => x.id === departmentFilter)
     const level = filterOptions.levels.find((x) => x.id === levelFilter)
     const unit = filterOptions.units.find((x) => x.id === unitFilter)
-    const calendar = filterOptions.calendarSemesters.find((x) => x.id === calendarSemesterFilter)
+    const calendar = filterOptions.calendarModules.find((x) => x.id === moduleFilter)
     if (department) chips.push(`Département: ${department.code ? `${department.code} - ` : ''}${department.name}`)
     if (level) chips.push(`Niveau: ${level.name}`)
     if (unit) chips.push(`UE: ${unit.code} - ${unit.name}`)
-    if (calendar) chips.push(`Sem. calendaire: ${calendar.label}`)
-    if (programSemesterFilter) chips.push(`Sem. parcours: S${programSemesterFilter}`)
+    if (calendar) chips.push(`Module: ${calendar.label}`)
+    if (parcoursSemesterFilter) chips.push(`Sem. parcours: S${parcoursSemesterFilter}`)
     if (search.trim()) chips.push(`Recherche: "${search.trim()}"`)
     return chips
-  }, [filterOptions, departmentFilter, levelFilter, unitFilter, calendarSemesterFilter, programSemesterFilter, search])
+  }, [filterOptions, departmentFilter, levelFilter, unitFilter, moduleFilter, parcoursSemesterFilter, search])
 
   const renderExportHtml = () => {
     const esc = (value) =>
@@ -253,8 +253,8 @@ export function PedagogyMaquetteSection({
                   <td>${esc(c.code)}</td>
                   <td>${esc(c.name)}</td>
                   <td class="center">${esc(c.credits ?? '—')}</td>
-                  <td>${esc(c.semester_label ?? '—')}</td>
-                  <td class="center">${c.program_semester != null ? `S${esc(c.program_semester)}` : '—'}</td>
+                  <td>${esc(c.module_label ?? '—')}</td>
+                  <td class="center">${c.semester != null ? `S${esc(c.semester)}` : '—'}</td>
                 </tr>`,
                   )
                   .join('')
@@ -269,7 +269,7 @@ export function PedagogyMaquetteSection({
                 <table>
                   <thead>
                     <tr>
-                      <th>Code</th><th>Matière</th><th>Cr.</th><th>Sem. calendaire</th><th>Sem. parcours</th>
+                      <th>Code</th><th>Matière</th><th>Cr.</th><th>Module</th><th>Sem. parcours</th>
                     </tr>
                   </thead>
                   <tbody>${lines}</tbody>
@@ -439,13 +439,13 @@ export function PedagogyMaquetteSection({
         lvl.teachingUnits.forEach((ue) => {
           autoTable(doc, {
             startY: cursorY + 2,
-            head: [['Code', 'Matière', 'Cr.', 'Sem. calendaire', 'Sem. parcours']],
+            head: [['Code', 'Matière', 'Cr.', 'Module', 'Sem. parcours']],
             body: ue.courses.map((c) => [
               c.code ?? '—',
               c.name ?? '—',
               c.credits ?? '—',
-              c.semester_label ?? '—',
-              c.program_semester != null ? `S${c.program_semester}` : '—',
+              c.module_label ?? '—',
+              c.semester != null ? `S${c.semester}` : '—',
             ]),
             theme: 'grid',
             headStyles: { fillColor: [244, 244, 245], textColor: [63, 63, 70], fontStyle: 'bold', fontSize: 9 },
@@ -582,16 +582,16 @@ export function PedagogyMaquetteSection({
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Sem. calendaire</span>
+            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Module</span>
             <select
-              value={calendarSemesterFilter}
-              onChange={(e) => setCalendarSemesterFilter(e.target.value)}
+              value={moduleFilter}
+              onChange={(e) => setModuleFilter(e.target.value)}
               className="h-9 rounded-lg border border-zinc-300 bg-white px-3 text-sm outline-none focus:border-brand-500 dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]"
             >
               <option value="">Tous</option>
-              {filterOptions.calendarSemesters.map((semester) => (
-                <option key={semester.id} value={semester.id}>
-                  {semester.label}
+              {filterOptions.calendarModules.map((mod) => (
+                <option key={mod.id} value={mod.id}>
+                  {mod.label}
                 </option>
               ))}
             </select>
@@ -599,12 +599,12 @@ export function PedagogyMaquetteSection({
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Sem. parcours</span>
             <select
-              value={programSemesterFilter}
-              onChange={(e) => setProgramSemesterFilter(e.target.value)}
+              value={parcoursSemesterFilter}
+              onChange={(e) => setParcoursSemesterFilter(e.target.value)}
               className="h-9 rounded-lg border border-zinc-300 bg-white px-3 text-sm outline-none focus:border-brand-500 dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]"
             >
               <option value="">Tous</option>
-              {filterOptions.programSemesters.map((value) => (
+              {filterOptions.parcoursSemesters.map((value) => (
                 <option key={value} value={value}>
                   S{value}
                 </option>
@@ -627,8 +627,8 @@ export function PedagogyMaquetteSection({
                 setDepartmentFilter('')
                 setLevelFilter('')
                 setUnitFilter('')
-                setCalendarSemesterFilter('')
-                setProgramSemesterFilter('')
+                setModuleFilter('')
+                setParcoursSemesterFilter('')
               }}
             >
               Réinitialiser
@@ -715,7 +715,7 @@ export function PedagogyMaquetteSection({
                               <th className="py-1.5 pr-2 font-mono">Code</th>
                               <th className="py-1.5 pr-2">Matière</th>
                               <th className="py-1.5 pr-2 text-center">Cr.</th>
-                              <th className="py-1.5 pr-2">Sem. calendaire</th>
+                              <th className="py-1.5 pr-2">Module</th>
                               <th className="py-1.5 pr-2 text-center">Sem. parcours</th>
                             </tr>
                           </thead>
@@ -725,8 +725,8 @@ export function PedagogyMaquetteSection({
                                 <td className="py-1.5 pr-2 font-mono text-xs">{c.code}</td>
                                 <td className="py-1.5 pr-2">{c.name}</td>
                                 <td className="py-1.5 pr-2 text-center">{c.credits}</td>
-                                <td className="py-1.5 pr-2 text-xs text-zinc-500">{c.semester_label ?? '—'}</td>
-                                <td className="py-1.5 pr-2 text-center text-xs">{c.program_semester != null ? `S${c.program_semester}` : '—'}</td>
+                                <td className="py-1.5 pr-2 text-xs text-zinc-500">{c.module_label ?? '—'}</td>
+                                <td className="py-1.5 pr-2 text-center text-xs">{c.semester != null ? `S${c.semester}` : '—'}</td>
                               </tr>
                             ))}
                           </tbody>

@@ -1,16 +1,11 @@
 import { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowDown, ChevronLeft, ChevronRight, Pencil } from 'lucide-react'
+import { ArrowDown, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
 
 import { BADGE, PAGE_SIZE_OPTIONS, STATUS_UI } from '@/features/teacher/students/studentList.constants'
 import { formatCohortDisplay } from '@/shared/lib/formatCohortDisplay'
 import { cn } from '@/shared/lib/cn'
 import { Spinner } from '@/shared/ui/Spinner'
-
-function initials(first, last) {
-  const a = `${first?.[0] ?? ''}${last?.[0] ?? ''}`.trim()
-  return a ? a.toUpperCase() : '?'
-}
 
 function formatParcours(s) {
   const lvl = s.level_compact ?? '—'
@@ -25,19 +20,45 @@ function formatCohorte(s) {
 
 const GENDER_LABEL = { M: 'M', F: 'F', '': '—' }
 
+function initials(first, last) {
+  const a = `${first?.[0] ?? ''}${last?.[0] ?? ''}`.trim()
+  return a ? a.toUpperCase() : '?'
+}
+
+/** Affichage matricule liste (sans # imposé : identifiant péda courant) */
+function formatMatriculeCell(s) {
+  const m = s.matricule?.trim()
+  return m || '—'
+}
+
+/** Date calendaire (jour, mois, année) — ISO date ou datetime. */
+function formatFrenchCalendarDate(raw) {
+  if (!raw) return '—'
+  const t = new Date(raw)
+  if (Number.isNaN(t.getTime())) return '—'
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(t)
+}
+
 function nextOrdering(current, field) {
   if (current === field) return `-${field}`
   if (current === `-${field}`) return field
   return field
 }
 
-function SortTh({ label, field, ordering, onChange, align = 'left', className }) {
+/** En-tête triable (`--app-*`). `title` = infobulle (nom complet si le libellé est abrégé ou tronqué). */
+function SortTh({ label, title: titleAttr, field, ordering, onChange, align = 'left', className }) {
   const active = ordering === field || ordering === `-${field}`
   const desc = ordering === `-${field}`
+  const tip = titleAttr ?? label
   return (
     <th
+      title={tip}
       className={cn(
-        'border-b border-zinc-200 bg-zinc-100 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-600 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400',
+        'border-b border-[var(--app-border)] px-4 py-3.5 align-top text-[10px] font-semibold uppercase tracking-widest text-[var(--app-muted)]',
         align === 'right' && 'text-right',
         align === 'center' && 'text-center',
         className,
@@ -45,16 +66,22 @@ function SortTh({ label, field, ordering, onChange, align = 'left', className })
     >
       <button
         type="button"
+        title={tip}
         onClick={() => onChange(nextOrdering(ordering, field))}
         className={cn(
           'inline-flex max-w-full items-center gap-1.5 rounded-md text-left outline-none transition-colors',
-          'hover:text-zinc-900 focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:text-zinc-200',
+          'hover:text-[var(--app-fg)] focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--ring-focus)_70%,transparent)]',
           align === 'right' && 'ml-auto flex-row-reverse',
+          align === 'center' && 'mx-auto',
         )}
       >
         <span className="truncate">{label}</span>
         <ArrowDown
-          className={cn('size-3.5 shrink-0 text-zinc-400 transition-transform', active && 'text-brand-600 dark:text-brand-400', desc && 'rotate-180')}
+          className={cn(
+            'size-3 shrink-0 text-[var(--app-muted)] transition-transform',
+            active && 'text-brand-600 dark:text-brand-400',
+            desc && 'rotate-180',
+          )}
           aria-hidden
         />
       </button>
@@ -62,10 +89,10 @@ function SortTh({ label, field, ordering, onChange, align = 'left', className })
   )
 }
 
-const COL_COUNT = 8
+const COL_COUNT = 11
 
 /**
- * Liste étudiants (style annuaire dense) : tri colonnes, pagination, taille de page, sélection, lazy géré par le parent (`listEnabled`).
+ * Annuaire étudiants (enseignant) : colonnes métier, tri, pagination, sélection.
  */
 export function StudentTable({
   loading,
@@ -100,22 +127,28 @@ export function StudentTable({
     if (el) el.indeterminate = someSelected && !allSelected
   }, [someSelected, allSelected])
 
-  const toggleRow = useCallback((id) => {
-    const n = new Set(selected)
+  const toggleRow = useCallback(
+    (id) => {
+      const n = new Set(selected)
       if (n.has(id)) n.delete(id)
       else n.add(id)
-    onSelectedIdsChange?.(Array.from(n))
-  }, [selected, onSelectedIdsChange])
+      onSelectedIdsChange?.(Array.from(n))
+    },
+    [selected, onSelectedIdsChange],
+  )
 
   const toggleAllPage = useCallback(() => {
-      const n = new Set(selected)
-      if (allSelected) {
-        for (const id of allPageIds) n.delete(id)
-      } else {
-        for (const id of allPageIds) n.add(id)
-      }
+    const n = new Set(selected)
+    if (allSelected) {
+      for (const id of allPageIds) n.delete(id)
+    } else {
+      for (const id of allPageIds) n.add(id)
+    }
     onSelectedIdsChange?.(Array.from(n))
   }, [allPageIds, allSelected, selected, onSelectedIdsChange])
+
+  const actionBtnClass =
+    'inline-flex size-9 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-elevated)] text-[var(--app-muted)] transition-colors hover:border-brand-500/40 hover:bg-[color-mix(in_srgb,var(--app-fg)_06%,transparent)] hover:text-[var(--app-fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)]'
 
   return (
     <div
@@ -145,14 +178,19 @@ export function StudentTable({
         </div>
       ) : (
         <>
-          <div className="flex flex-col gap-0 border-b border-zinc-100 bg-white px-4 py-3 dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)] sm:flex-row sm:items-center sm:justify-between">
+          <div
+            className={cn(
+              'flex flex-col gap-0 border-b border-zinc-100 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between',
+              'dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]',
+            )}
+          >
             <div className="flex flex-wrap items-center gap-3">
-              <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <label className="flex items-center gap-2 text-sm text-[var(--app-muted)]">
                 <span className="whitespace-nowrap">Lignes par page</span>
                 <select
                   className={cn(
                     'rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm font-medium text-zinc-800',
-                    'dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_96%,black)] dark:text-zinc-200',
+                    'dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_96%,black)] dark:text-[var(--app-fg)]',
                   )}
                   value={pageSize}
                   onChange={(e) => onPageSizeChange(Number(e.target.value))}
@@ -165,77 +203,150 @@ export function StudentTable({
                 </select>
               </label>
               {someSelected ? (
-                <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                <span className="text-xs font-medium text-[var(--app-muted)]">
                   {selected.size} sélectionné{selected.size > 1 ? 's' : ''}
                 </span>
               ) : null}
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[52rem] table-fixed text-left text-[13px] leading-snug">
+          <div className="overflow-x-auto bg-[var(--app-canvas)]">
+            <table className="w-full min-w-[77rem] table-fixed text-left text-[13px] leading-snug">
               <thead>
-                <tr>
-                  <th className="w-10 border-b border-zinc-200 bg-zinc-100 px-3 py-3 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)]">
+                <tr className="bg-[var(--app-canvas)]">
+                  <th
+                    title="Sélection — cocher les lignes pour les actions groupées"
+                    className="w-11 border-b border-[var(--app-border)] px-3 py-3.5 align-top"
+                  >
                     <input
                       ref={selectAllRef}
                       type="checkbox"
-                      className="size-4 rounded border-zinc-300 text-brand-600 focus:ring-brand-500 dark:border-zinc-600"
+                      className="size-4 rounded border-[var(--app-border)] bg-[var(--app-elevated)] text-brand-600 focus:ring-[var(--ring-focus)] dark:text-brand-500"
                       checked={allSelected}
                       onChange={toggleAllPage}
                       aria-label="Sélectionner tous les étudiants de la page"
                     />
                   </th>
-                  <SortTh label="Étudiant" field="last_name" ordering={ordering} onChange={onOrderingChange} className="min-w-[12rem]" />
-                  <SortTh label="Parcours" field="level__name" ordering={ordering} onChange={onOrderingChange} className="w-[9rem]" />
-                  <SortTh label="INE" field="INE" ordering={ordering} onChange={onOrderingChange} className="w-[7rem]" />
-                  <SortTh label="Genre" field="gender" ordering={ordering} onChange={onOrderingChange} align="center" className="w-16" />
+                  <SortTh
+                    label="Matricule"
+                    title="Matricule institutionnel"
+                    field="matricule"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    className="w-[8rem]"
+                  />
+                  <SortTh
+                    label="Étudiant"
+                    title="Étudiant — identité et contact"
+                    field="last_name"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    className="min-w-[13rem]"
+                  />
+                  <SortTh
+                    label="Parcours"
+                    title="Parcours — niveau et département"
+                    field="level__name"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    className="w-[9rem]"
+                  />
+                  <SortTh
+                    label="INE"
+                    title="Identifiant national étudiant (INE)"
+                    field="INE"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    className="w-[7rem]"
+                  />
+                  <SortTh
+                    label="Genre"
+                    title="Genre"
+                    field="gender"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    align="center"
+                    className="w-[4.25rem]"
+                  />
                   <SortTh
                     label="Cohorte"
+                    title="Cohorte — promotion et entrée"
                     field="cohorte__promotion_number"
                     ordering={ordering}
                     onChange={onOrderingChange}
-                    className="w-[8.5rem]"
+                    className="w-[9rem]"
                   />
-                  <SortTh label="Statut" field="status" ordering={ordering} onChange={onOrderingChange} className="w-[8rem]" />
-                  <th className="w-28 border-b border-zinc-200 bg-zinc-100 px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-zinc-600 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400">
-                    Action
+                  <SortTh
+                    label="Statut"
+                    title="Statut du dossier"
+                    field="status"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    className="w-[8rem]"
+                  />
+                  <SortTh
+                    label="Date d’inscription"
+                    title="Date d’inscription de l’étudiant (jour, mois, année)"
+                    field="created_at"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    className="w-[7rem]"
+                  />
+                  <SortTh
+                    label="Naissance"
+                    title="Date de naissance"
+                    field="birth_date"
+                    ordering={ordering}
+                    onChange={onOrderingChange}
+                    className="w-[7rem]"
+                  />
+                  <th
+                    title="Actions — ouvrir la fiche étudiant"
+                    className="border-b border-[var(--app-border)] px-3 py-3.5 text-right align-top text-[10px] font-semibold uppercase tracking-widest text-[var(--app-muted)]"
+                  >
+                    Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-[var(--app-elevated)]">
+              <tbody className="bg-[var(--app-canvas)]">
                 {results.length === 0 ? (
                   <tr>
-                    <td colSpan={COL_COUNT} className="px-4 py-14 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                    <td colSpan={COL_COUNT} className="px-4 py-14 text-center text-sm text-[var(--app-muted)]">
                       Aucun étudiant ne correspond à ces critères.
                     </td>
                   </tr>
                 ) : (
                   results.map((s) => {
                     const st = STATUS_UI[s.status] ?? {
-                      label: s.status,
+                      label: (s.status ?? '—').toString().toUpperCase(),
                       className:
-                        'border border-zinc-300/80 bg-zinc-100 text-zinc-600 dark:border-[var(--app-border)] dark:bg-white/5 dark:text-zinc-300',
+                        'border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-muted)_12%,var(--app-elevated))] text-[var(--app-muted)]',
                     }
+                    const email = (s.email || '').trim()
                     return (
                       <tr
                         key={s.id}
-                        className="border-b border-zinc-100 transition-colors hover:bg-zinc-50/80 dark:border-[var(--app-border)] dark:hover:bg-white/[0.03]"
+                        className="border-b border-[var(--app-border)] transition-colors hover:bg-[color-mix(in_srgb,var(--app-fg)_04%,transparent)]"
                       >
-                        <td className="px-3 py-3 align-middle">
+                        <td className="px-3 py-4 align-middle">
                           <input
                             type="checkbox"
-                            className="size-4 rounded border-zinc-300 text-brand-600 focus:ring-brand-500 dark:border-zinc-600"
+                            className="size-4 rounded border-[var(--app-border)] bg-[var(--app-elevated)] text-brand-600 focus:ring-[var(--ring-focus)] dark:text-brand-500"
                             checked={selected.has(s.id)}
                             onChange={() => toggleRow(s.id)}
                             aria-label={`Sélectionner ${s.first_name} ${s.last_name}`}
                           />
                         </td>
-                        <td className="px-4 py-3 align-middle">
+                        <td className="px-4 py-4 align-middle">
+                          <span className="font-mono text-[12px] tabular-nums text-[var(--app-fg)]">
+                            {formatMatriculeCell(s)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 align-middle">
                           <div className="flex min-w-0 items-center gap-3">
                             {s.photo_url ? (
                               <img
-                                className="size-9 shrink-0 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-zinc-600"
+                                className="size-9 shrink-0 rounded-full object-cover ring-1 ring-[var(--app-border)]"
                                 src={s.photo_url}
                                 alt=""
                               />
@@ -245,43 +356,58 @@ export function StudentTable({
                               </span>
                             )}
                             <div className="min-w-0">
-                              <p className="truncate font-semibold text-zinc-900 dark:text-zinc-50">
+                              <p className="truncate font-semibold text-[var(--app-fg)]">
                                 {s.first_name} {s.last_name}
                               </p>
-                              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{s.email || s.matricule}</p>
+                              <p className="truncate text-[12px] text-[var(--app-muted)]">
+                                {email || 'Pas d’e-mail renseigné'}
+                              </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 align-middle">
-                          <span className="font-mono text-[12px] font-medium tabular-nums text-zinc-800 dark:text-zinc-200">
+                        <td className="px-4 py-4 align-middle">
+                          <span className="font-mono text-[12px] font-medium tabular-nums text-[var(--app-fg)]">
                             {formatParcours(s)}
                           </span>
                         </td>
-                        <td className="px-4 py-3 align-middle">
-                          <span className="font-mono text-[11px] tabular-nums text-zinc-600 dark:text-zinc-400">{s.INE ?? '—'}</span>
+                        <td className="px-4 py-4 align-middle">
+                          <span className="font-mono text-[11px] tabular-nums text-[var(--app-muted)]">
+                            {s.INE ?? '—'}
+                          </span>
                         </td>
-                        <td className="px-4 py-3 text-center align-middle text-[12px] text-zinc-600 dark:text-zinc-400">
+                        <td className="px-4 py-4 text-center align-middle text-[12px] text-[var(--app-muted)]">
                           {GENDER_LABEL[s.gender] ?? (s.gender || '—')}
                         </td>
-                        <td className="max-w-[11rem] px-4 py-3 align-middle">
-                          <span className="block truncate text-[12px] text-zinc-800 dark:text-zinc-200" title={formatCohorte(s)}>
+                        <td className="max-w-[11rem] px-4 py-4 align-middle">
+                          <span className="block truncate text-[12px] text-[var(--app-fg)]" title={formatCohorte(s)}>
                             {formatCohorte(s)}
                           </span>
                         </td>
-                        <td className="px-4 py-3 align-middle">
-                          <span className={cn(BADGE, 'text-[10px] py-0.5 px-2', st.className)}>{st.label}</span>
-                        </td>
-                        <td className="px-3 py-3 text-right align-middle">
-                          <Link
-                            to={`/teacher/students/${s.id}`}
+                        <td className="px-4 py-4 align-middle">
+                          <span
                             className={cn(
-                              'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors',
-                              'bg-cyan-600 hover:bg-cyan-700 active:bg-cyan-800',
-                              'dark:bg-cyan-600 dark:hover:bg-cyan-500',
+                              BADGE,
+                              'rounded font-mono text-[9px] tracking-wider',
+                              st.className,
                             )}
                           >
-                            <Pencil size={14} strokeWidth={2} aria-hidden />
-                            Modifier
+                            {st.label.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 align-middle text-[12px] text-[var(--app-muted)]">
+                          {formatFrenchCalendarDate(s.created_at)}
+                        </td>
+                        <td className="px-4 py-4 align-middle text-[12px] tabular-nums text-[var(--app-muted)]">
+                          {formatFrenchCalendarDate(s.birth_date)}
+                        </td>
+                        <td className="px-3 py-4 text-right align-middle">
+                          <Link
+                            to={`/teacher/students/${s.id}`}
+                            className={cn(actionBtnClass)}
+                            aria-label={`Ouvrir la fiche de ${s.first_name} ${s.last_name}`}
+                            title="Ouvrir la fiche"
+                          >
+                            <Eye className="size-[18px] text-brand-600 dark:text-brand-400" strokeWidth={2} aria-hidden />
                           </Link>
                         </td>
                       </tr>

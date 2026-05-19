@@ -56,9 +56,9 @@ function TeacherCourseMiniCard({ course: c }) {
         ) : null}
         <span className="inline-flex items-center gap-1 rounded-md border border-zinc-200/80 bg-zinc-50/90 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400">
           <BookOpen size={11} strokeWidth={2} className="shrink-0 opacity-70" aria-hidden />
-          <span className="truncate">{c.semester_label ?? '—'}</span>
-          {c.program_semester != null ? (
-            <span className="font-mono tabular-nums text-zinc-500 dark:text-zinc-500">· S{c.program_semester}</span>
+          <span className="truncate">{c.module_label ?? '—'}</span>
+          {c.semester != null ? (
+            <span className="font-mono tabular-nums text-zinc-500 dark:text-zinc-500">· S{c.semester}</span>
           ) : null}
         </span>
         {credits != null && !Number.isNaN(credits) ? (
@@ -115,7 +115,7 @@ export function TeacherMyCoursesPage() {
     const q = search.trim().toLowerCase()
     if (!q) return rows
     return rows.filter((c) =>
-      [c.code, c.name, c.teaching_unit_code, c.teaching_unit_name, c.level_name, c.semester_label]
+      [c.code, c.name, c.teaching_unit_code, c.teaching_unit_name, c.level_name, c.module_label]
         .filter(Boolean)
         .join(' ')
         .toLowerCase()

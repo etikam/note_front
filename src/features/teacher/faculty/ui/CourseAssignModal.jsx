@@ -5,7 +5,7 @@ import { useAuth } from '@/features/auth/model/AuthContext'
 import { fetchDepartments } from '@/features/academicYear/api/academicsApi'
 import {
   fetchCourseAssignmentCandidates,
-  fetchCourseAssignmentSemesters,
+  fetchCourseAssignmentModules,
   fetchCourseAssignmentTeacherPreview,
   fetchCourseAssignmentTeachers,
   postCourseAssignment,
@@ -42,21 +42,24 @@ function SectionTitle({ step, label, done, titleId }) {
 
 export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) {
   const { user } = useAuth()
-  const lockedDeptId = user?.scope?.managed_department_id ?? null
+  const managedDeptId = user?.scope?.managed_department_id ?? null
+  const institutionWide = Boolean(user?.scope?.institution_wide)
+  /** Cantonné à un département (chef, etc.) ; DG / DE choisissent le département dans le flux. */
+  const lockedDeptId = managedDeptId != null && !institutionWide ? managedDeptId : null
 
   const [departmentId, setDepartmentId] = useState('')
-  const [semesterId, setSemesterId] = useState('')
+  const [moduleId, setModuleId] = useState('')
   const [courseId, setCourseId] = useState('')
   const [teacherId, setTeacherId] = useState('')
   const [teacherQuery, setTeacherQuery] = useState('')
 
   const [departments, setDepartments] = useState([])
-  const [semesters, setSemesters] = useState([])
+  const [modules, setModules] = useState([])
   const [candidates, setCandidates] = useState([])
   const [teachers, setTeachers] = useState([])
   const [preview, setPreview] = useState(null)
 
-  const [loadingSemesters, setLoadingSemesters] = useState(false)
+  const [loadingModules, setLoadingModules] = useState(false)
   const [loadingCourses, setLoadingCourses] = useState(false)
   const [loadingTeachers, setLoadingTeachers] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -64,23 +67,23 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
 
   const showDepartmentPicker = lockedDeptId == null
   const deptChosen = lockedDeptId != null || Boolean(departmentId)
-  const semesterChosen = Boolean(semesterId)
+  const moduleChosen = Boolean(moduleId)
   const courseChosen = Boolean(courseId)
   const teacherChosen = Boolean(teacherId)
 
   const reset = useCallback(() => {
     setDepartmentId(lockedDeptId != null ? String(lockedDeptId) : '')
-    setSemesterId('')
+    setModuleId('')
     setCourseId('')
     setTeacherId('')
     setTeacherQuery('')
     setDepartments([])
-    setSemesters([])
+    setModules([])
     setCandidates([])
     setTeachers([])
     setPreview(null)
     setError(null)
-    setLoadingSemesters(false)
+    setLoadingModules(false)
     setLoadingCourses(false)
     setLoadingTeachers(false)
     setSubmitting(false)
@@ -89,22 +92,22 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
   /** Réinitialise le formulaire sans fermer la modale (conserve la liste des départements déjà chargée). */
   const clearForm = useCallback(() => {
     setDepartmentId(lockedDeptId != null ? String(lockedDeptId) : '')
-    setSemesterId('')
+    setModuleId('')
     setCourseId('')
     setTeacherId('')
     setTeacherQuery('')
-    setSemesters([])
+    setModules([])
     setCandidates([])
     setTeachers([])
     setPreview(null)
     setError(null)
-    setLoadingSemesters(false)
+    setLoadingModules(false)
     setLoadingCourses(false)
     setLoadingTeachers(false)
   }, [lockedDeptId])
 
   const hasFormProgress = Boolean(
-    semesterId || courseId || teacherId || teacherQuery.trim() || (showDepartmentPicker && departmentId),
+    moduleId || courseId || teacherId || teacherQuery.trim() || (showDepartmentPicker && departmentId),
   )
 
   useEffect(() => {
@@ -120,36 +123,36 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
     })()
   }, [open, lockedDeptId, reset])
 
-  const loadSemesters = useCallback(async () => {
+  const loadModules = useCallback(async () => {
     if (!academicYearId || !departmentId) return
-    setLoadingSemesters(true)
+    setLoadingModules(true)
     setError(null)
     try {
       const params = { academic_year_id: academicYearId, department_id: departmentId }
-      const rows = await fetchCourseAssignmentSemesters(params)
-      setSemesters(Array.isArray(rows) ? rows : [])
+      const rows = await fetchCourseAssignmentModules(params)
+      setModules(Array.isArray(rows) ? rows : [])
     } catch (e) {
-      setError(e?.message ?? 'Semestres indisponibles.')
-      setSemesters([])
+      setError(e?.message ?? 'Modules indisponibles.')
+      setModules([])
     } finally {
-      setLoadingSemesters(false)
+      setLoadingModules(false)
     }
   }, [academicYearId, departmentId])
 
   useEffect(() => {
     if (!open || !deptChosen) return
-    loadSemesters()
-  }, [open, deptChosen, loadSemesters])
+    loadModules()
+  }, [open, deptChosen, loadModules])
 
   const loadCandidates = useCallback(async () => {
-    if (!academicYearId || !departmentId || !semesterId) return
+    if (!academicYearId || !departmentId || !moduleId) return
     setLoadingCourses(true)
     setError(null)
     try {
       const rows = await fetchCourseAssignmentCandidates({
         academic_year_id: academicYearId,
         department_id: departmentId,
-        semester_id: semesterId,
+        module_id: moduleId,
       })
       setCandidates(Array.isArray(rows) ? rows : [])
     } catch (e) {
@@ -158,12 +161,12 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
     } finally {
       setLoadingCourses(false)
     }
-  }, [academicYearId, departmentId, semesterId])
+  }, [academicYearId, departmentId, moduleId])
 
   useEffect(() => {
-    if (!open || !semesterChosen) return
+    if (!open || !moduleChosen) return
     loadCandidates()
-  }, [open, semesterChosen, loadCandidates])
+  }, [open, moduleChosen, loadCandidates])
 
   const loadTeachers = useCallback(async () => {
     if (!courseId) return
@@ -249,7 +252,7 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
                   Nouvelle affectation
                 </h2>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                  Choisissez le département, le semestre, la matière puis l’enseignant — tout sur ce formulaire.
+                  Choisissez le département, le module, la matière puis l’enseignant — tout sur ce formulaire.
                 </p>
               </div>
             </div>
@@ -292,7 +295,7 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
                     value={departmentId}
                     onChange={(e) => {
                       setDepartmentId(e.target.value)
-                      setSemesterId('')
+                      setModuleId('')
                       setCourseId('')
                       setTeacherId('')
                       setPreview(null)
@@ -310,46 +313,46 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
             ) : null}
 
             {deptChosen ? (
-              <section className="border-t border-zinc-100 pt-6 dark:border-[var(--app-border)]" aria-labelledby="assign-sem-title">
+              <section className="border-t border-zinc-100 pt-6 dark:border-[var(--app-border)]" aria-labelledby="assign-mod-title">
                 <SectionTitle
                   step={showDepartmentPicker ? 2 : 1}
-                  label="Semestre"
-                  done={semesterChosen}
-                  titleId="assign-sem-title"
+                  label="Module"
+                  done={moduleChosen}
+                  titleId="assign-mod-title"
                 />
-                {loadingSemesters ? (
+                {loadingModules ? (
                   <div className="flex justify-center py-10">
-                    <Spinner label="Chargement des semestres" />
+                    <Spinner label="Chargement des modules" />
                   </div>
                 ) : (
-                  <Field label="Semestre" htmlFor="assign-sem-select">
+                  <Field label="Module" htmlFor="assign-mod-select">
                     <select
-                      id="assign-sem-select"
+                      id="assign-mod-select"
                       className={selectClass}
-                      value={semesterId}
+                      value={moduleId}
                       onChange={(e) => {
-                        setSemesterId(e.target.value)
+                        setModuleId(e.target.value)
                         setCourseId('')
                         setTeacherId('')
                         setPreview(null)
                       }}
                     >
                       <option value="">Sélectionner…</option>
-                      {semesters.map((s) => (
+                      {modules.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.label}
                         </option>
                       ))}
                     </select>
-                    {semesters.length === 0 ? (
-                      <p className="text-xs text-zinc-500 mt-2">Aucun semestre avec cours pour ce département.</p>
+                    {modules.length === 0 ? (
+                      <p className="text-xs text-zinc-500 mt-2">Aucun module avec cours pour ce département.</p>
                     ) : null}
                   </Field>
                 )}
               </section>
             ) : null}
 
-            {deptChosen && semesterChosen ? (
+            {deptChosen && moduleChosen ? (
               <section className="border-t border-zinc-100 pt-6 dark:border-[var(--app-border)]" aria-labelledby="assign-course-title">
                 <SectionTitle step={showDepartmentPicker ? 3 : 2} label="Matière" done={courseChosen} titleId="assign-course-title" />
                 {loadingCourses ? (
@@ -376,14 +379,14 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
                       ))}
                     </select>
                     {candidates.length === 0 ? (
-                      <p className="text-xs text-zinc-500 mt-2">Aucun cours libre pour ce semestre.</p>
+                      <p className="text-xs text-zinc-500 mt-2">Aucun cours libre pour ce module.</p>
                     ) : null}
                   </Field>
                 )}
               </section>
             ) : null}
 
-            {deptChosen && semesterChosen && courseChosen ? (
+            {deptChosen && moduleChosen && courseChosen ? (
               <section className="border-t border-zinc-100 pt-6 dark:border-[var(--app-border)]" aria-labelledby="assign-teacher-title">
                 <SectionTitle step={showDepartmentPicker ? 4 : 3} label="Enseignant" done={teacherChosen} titleId="assign-teacher-title" />
                 <div className="space-y-4">
@@ -423,7 +426,7 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
               </section>
             ) : null}
 
-            {deptChosen && semesterChosen && courseChosen && teacherChosen ? (
+            {deptChosen && moduleChosen && courseChosen && teacherChosen ? (
               <section className="border-t border-zinc-100 pt-6 dark:border-[var(--app-border)]" aria-labelledby="assign-review-title">
                 <SectionTitle
                   step={showDepartmentPicker ? 5 : 4}
@@ -437,7 +440,7 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
                     <p className="mt-1 font-medium text-zinc-900 dark:text-zinc-100">
                       {selectedCourse?.code} — {selectedCourse?.name}
                     </p>
-                    <p className="text-xs text-zinc-500 mt-1">{selectedCourse?.semester_label}</p>
+                    <p className="text-xs text-zinc-500 mt-1">{selectedCourse?.module_label}</p>
                   </div>
                   {preview ? (
                     <div className="rounded-xl border border-secondary-200/80 bg-secondary-50/50 p-4 dark:border-secondary-800/50 dark:bg-secondary-950/20">

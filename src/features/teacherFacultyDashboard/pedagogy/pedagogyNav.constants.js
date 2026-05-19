@@ -1,4 +1,4 @@
-import { BookOpen, Building2, CalendarDays, FileText, Layers } from 'lucide-react'
+import { BookOpen, Building2, CalendarDays, FileText, Layers, School } from 'lucide-react'
 import { canAccessRule } from '@/core/accessControl'
 
 /**
@@ -37,6 +37,15 @@ export const PEDAGOGY_SECTION_TABS = [
     id: 'maquette',
     label: 'Maquette',
     icon: FileText,
+    accessRule: {
+      anyCapabilities: ['can_manage_academic_calendar', 'can_manage_academic_structure'],
+      denyTeacherRoles: ['department_head'],
+    },
+  },
+  {
+    id: 'levels',
+    label: 'Niveaux',
+    icon: School,
     accessRule: {
       anyCapabilities: ['can_manage_academic_calendar', 'can_manage_academic_structure'],
       denyTeacherRoles: ['department_head'],

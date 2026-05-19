@@ -17,7 +17,7 @@ import { dispatchToast } from '@/shared/notifications/toastBridge'
  *   tier: 'offered' | 'catalog'
  *   academicYearId: number | null
  *   canStructure: boolean
- *   semesters: Array<{ id: number; number: number; start_date?: string; end_date?: string; academic_year_label?: string }>
+ *   modules: Array<{ id: number; number: number; start_date?: string; end_date?: string; academic_year_label?: string }>
  *   unitsForOfferSelect: Array<{ id: number; code: string; name: string; total_credits?: number }>
  *   onOfferSaved?: () => void | Promise<void>
  * }} props
@@ -29,7 +29,7 @@ export function TeachingUnitDetailModal({
   tier,
   academicYearId,
   canStructure,
-  semesters,
+  modules,
   unitsForOfferSelect,
   onOfferSaved,
 }) {
@@ -135,7 +135,7 @@ export function TeachingUnitDetailModal({
           </div>
           {!academicYearId ? (
             <p className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50/60 px-4 py-3 text-sm text-zinc-500 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_90%,black)] dark:text-zinc-400">
-              Choisissez une année académique dans l’onglet « Années & semestres » pour lister les matières rattachées à
+              Choisissez une année académique dans l’onglet « Années & modules » pour lister les matières rattachées à
               cette UE.
             </p>
           ) : courses.length === 0 && !coursesLoading ? (
@@ -151,7 +151,7 @@ export function TeachingUnitDetailModal({
                     <th className="py-2.5 pl-3 pr-2 font-mono">Code</th>
                     <th className="py-2.5 pr-2">Matière</th>
                     <th className="py-2.5 pr-2 w-12 text-center">Cr.</th>
-                    <th className="py-2.5 pr-2">Semestre</th>
+                    <th className="py-2.5 pr-2">Module</th>
                     <th className="py-2.5 pr-2">Dépt.</th>
                     <th className="py-2.5 pr-2">Niveau</th>
                     <th className="py-2.5 pr-3 w-[5.5rem] text-right">Action</th>
@@ -163,7 +163,7 @@ export function TeachingUnitDetailModal({
                       <td className="py-2 pl-3 pr-2 font-mono text-xs text-zinc-700 dark:text-zinc-300">{c.code}</td>
                       <td className="py-2 pr-2 text-zinc-900 dark:text-zinc-100">{c.name}</td>
                       <td className="py-2 pr-2 text-center tabular-nums text-zinc-600 dark:text-zinc-400">{c.credits}</td>
-                      <td className="py-2 pr-2 text-xs text-zinc-500 dark:text-zinc-400">{c.semester_label ?? '—'}</td>
+                      <td className="py-2 pr-2 text-xs text-zinc-500 dark:text-zinc-400">{c.module_label ?? '—'}</td>
                       <td className="py-2 pr-2 text-xs font-mono text-zinc-600 dark:text-zinc-400">
                         {c.department_code ?? '—'}
                       </td>
@@ -206,12 +206,13 @@ export function TeachingUnitDetailModal({
           <CourseOfferingFormBlock
             formId={formId}
             active={open}
-            semesters={semesters}
+            modules={modules}
             unitsForOfferSelect={unitsForOfferSelect}
             existingCourses={courses}
             forcedUeId={unit.id}
             onStateChange={handleFormState}
             onSuccess={async () => {
+              setCoursesReloadKey((k) => k + 1)
               await onOfferSaved?.()
               onClose()
             }}

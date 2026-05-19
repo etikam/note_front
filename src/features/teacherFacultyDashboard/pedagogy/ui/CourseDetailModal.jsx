@@ -11,7 +11,7 @@ import { cn } from '@/shared/lib/cn'
  *   onClose: () => void
  *   onSaved: () => void
  *   canStructure: boolean
- *   semesters: Array<{ id: number; number: number; start_date?: string; end_date?: string; academic_year_label?: string }>
+ *   modules: Array<{ id: number; number: number; start_date?: string; end_date?: string; academic_year_label?: string }>
  *   teachingUnits: Array<{ id: number; code: string; name: string }>
  *   overlayClassName?: string
  * }} props
@@ -22,7 +22,7 @@ export function CourseDetailModal({
   onClose,
   onSaved,
   canStructure,
-  semesters,
+  modules,
   teachingUnits,
   overlayClassName = 'z-[120]',
 }) {
@@ -75,7 +75,7 @@ export function CourseDetailModal({
             courseId={courseId}
             active={open && Boolean(courseId)}
             canStructure={canStructure}
-            semesters={semesters}
+            modules={modules}
             teachingUnits={teachingUnits}
             onSaved={() => {
               onSaved()

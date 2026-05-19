@@ -7,10 +7,10 @@ import { fetchDepartments } from '@/features/academicYear/api/academicsApi'
 import { useAuth } from '@/features/auth/model/AuthContext'
 import {
   deleteAcademicYear,
-  deleteSemester,
+  deleteModule,
   deleteTeachingUnit,
   fetchAcademicYearsFull,
-  fetchSemesters,
+  fetchModules,
   fetchTeachingUnits,
   patchAcademicYear,
 } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
@@ -23,12 +23,12 @@ import { TeachingUnitDetailModal } from '@/features/teacherFacultyDashboard/peda
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { ConfirmModal } from '@/shared/ui/ConfirmModal'
-import { Spinner } from '@/shared/ui/Spinner'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
 import { cn } from '@/shared/lib/cn'
 import { PedagogyDepartmentsSection } from '@/features/teacherFacultyDashboard/pedagogy/ui/PedagogyDepartmentsSection'
 import { SemesterBlockPanel } from '@/features/teacherFacultyDashboard/pedagogy/ui/SemesterBlockPanel'
 import { PEDAGOGY_TAB_IDS, filterPedagogyTabsForUser } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyNav.constants'
+import { PedagogyLevelsSection } from '@/features/teacherFacultyDashboard/pedagogy/ui/PedagogyLevelsSection'
 import { PedagogyMaquetteSection } from '@/features/teacherFacultyDashboard/pedagogy/ui/PedagogyMaquetteSection'
 
 export function PedagogyReferencePanel({ syncUrl = false }) {
@@ -39,6 +39,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
   const canStructure = Boolean(user?.capabilities?.can_manage_academic_structure)
   const canViewStudents = Boolean(user?.capabilities?.can_view_students)
   const managedDeptId = user?.scope?.managed_department_id ?? null
+  const institutionWide = Boolean(user?.scope?.institution_wide)
 
   const sections = useMemo(() => filterPedagogyTabsForUser(user), [user])
 
@@ -49,7 +50,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
     return t && PEDAGOGY_TAB_IDS.has(t) ? t : 'calendar'
   })
   const [years, setYears] = useState([])
-  const [semesters, setSemesters] = useState([])
+  const [modules, setModules] = useState([])
   const [units, setUnits] = useState([])
   /** UE du catalogue sans aucun cours sur l’année focalisée (complément de `units`). */
   const [unitsUnoffered, setUnitsUnoffered] = useState([])
@@ -81,15 +82,15 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
 
       if (yid) {
         const [s, u, uu] = await Promise.all([
-          fetchSemesters(yid),
+          fetchModules(yid),
           fetchTeachingUnits({ academic_year_id: yid }),
           fetchTeachingUnits({ unoffered_for_academic_year_id: yid }),
         ])
-        setSemesters(s)
+        setModules(s)
         setUnits(u)
         setUnitsUnoffered(uu)
       } else {
-        setSemesters([])
+        setModules([])
         const u = await fetchTeachingUnits()
         setUnits(u)
         setUnitsUnoffered([])
@@ -175,7 +176,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
       <div className="flex flex-col gap-3">
         <div className="flex flex-col overflow-hidden rounded-xl bg-brand-600 shadow-sm ring-1 ring-brand-700/30 dark:bg-brand-600 dark:ring-white/10 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 flex-1" role="tablist" aria-label="Sections Académie">
-            <div className="-mb-px flex flex-wrap divide-x divide-secondary-400/50 px-1 sm:px-2">
+            <div className="-mb-px flex min-w-0 flex-nowrap touch-pan-x divide-x divide-secondary-400/50 overflow-x-auto overflow-y-hidden overscroll-x-contain px-1 sm:px-2 [scrollbar-width:thin]">
               {sections.map((s) => {
                 const Icon = s.icon
                 return (
@@ -186,7 +187,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
                     aria-selected={section === s.id}
                     onClick={() => setSectionFromUi(s.id)}
                     className={cn(
-                      'inline-flex min-w-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none sm:px-4',
+                      'inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none sm:px-4',
                       'rounded-t-md focus-visible:ring-2 focus-visible:ring-secondary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600',
                       section === s.id
                         ? 'border-secondary-400 text-secondary-50 shadow-[inset_0_-8px_12px_-10px_rgba(249,115,22,0.35)] dark:border-secondary-300 dark:text-secondary-50'
@@ -194,7 +195,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
                     )}
                   >
                     <Icon size={17} strokeWidth={2} aria-hidden />
-                    <span className="truncate">{s.label}</span>
+                    <span>{s.label}</span>
                   </button>
                 )
               })}
@@ -216,7 +217,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
         </div>
       </div>
 
-      {!canCalendar && !canStructure && (section === 'calendar' || section === 'ue' || section === 'courses' || section === 'maquette') ? (
+      {!canCalendar && !canStructure && (section === 'calendar' || section === 'ue' || section === 'courses' || section === 'maquette' || section === 'levels') ? (
         <p className="rounded-lg border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_96%,var(--app-canvas))] px-3 py-2 text-sm text-[var(--app-muted)] dark:bg-white/[0.03]">
           Consultation du référentiel : connectez-vous avec un profil autorisé pour modifier les données.
         </p>
@@ -313,12 +314,12 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <h3 className="flex items-center gap-2 font-heading text-sm font-semibold text-[var(--app-fg)]">
                 <CalendarDays size={18} aria-hidden />
-                Semestres calendaires
+                Modules (calendrier)
               </h3>
               {canCalendar && yearFocusId ? (
                 <Button type="button" variant="primary" size="sm" className="shrink-0 shadow-sm" onClick={() => setModalSemOpen(true)}>
                   <Plus size={14} aria-hidden />
-                  Nouveau semestre
+                  Nouveau module
                 </Button>
               ) : null}
             </div>
@@ -327,13 +328,13 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
             ) : (
               <>
                 <p className="mt-1 text-xs text-[var(--app-muted)]">
-                  Périodes S1/S2 dans l’année (dates) — distinctes du parcours licence S1–S6 ci-dessous.
+                  Périodes M1/M2 dans l’année (dates) — distinctes du parcours licence S1–S6 ci-dessous.
                 </p>
                 <ul className="mt-3 space-y-2 text-sm max-h-48 overflow-y-auto">
-                  {semesters.map((s) => (
+                  {modules.map((s) => (
                     <li key={s.id} className="flex items-center justify-between gap-2 border-b border-[var(--app-border)] py-1">
                       <span>
-                        S{s.number} — {s.start_date} → {s.end_date}
+                        M{s.number} — {s.start_date} → {s.end_date}
                       </span>
                       {canCalendar ? (
                         <Button
@@ -343,14 +344,14 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
                           className="text-red-600"
                           onClick={() =>
                             setConfirmDelete({
-                              title: 'Supprimer ce semestre ?',
+                              title: 'Supprimer ce module ?',
                               message: 'Impossible si des cours ou offres y sont encore rattachés.',
                               confirmLabel: 'Supprimer',
                               action: async () => {
                                 try {
-                                  await deleteSemester(s.id)
-                                  dispatchToast({ type: 'success', message: 'Semestre supprimé.' })
-                                  setSemesters(await fetchSemesters(yearFocusId))
+                                  await deleteModule(s.id)
+                                  dispatchToast({ type: 'success', message: 'Module supprimé.' })
+                                  setModules(await fetchModules(yearFocusId))
                                 } catch (err) {
                                   dispatchToast({
                                     type: 'error',
@@ -507,10 +508,11 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
             </h3>
             <PedagogyCoursesSection
               yearFocusId={yearFocusId}
-              semesters={semesters}
+              modules={modules}
               departments={departments}
               unitsForUeFilter={unitsForOfferSelect}
               managedDeptId={managedDeptId}
+              institutionWide={institutionWide}
               canStructure={canStructure}
               reloadKey={coursesReloadKey}
             />
@@ -518,9 +520,9 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
           <Card className="h-fit rounded-2xl border border-[var(--app-border)] p-5 shadow-sm xl:sticky xl:top-4">
             <h3 className="font-heading text-sm font-semibold text-[var(--app-fg)]">Rappel</h3>
             <p className="mt-2 text-xs leading-relaxed text-[var(--app-muted)]">
-              Chaque cours doit appartenir à une UE. Renseignez aussi le <strong className="font-semibold text-[var(--app-fg)]">semestre programme</strong>{' '}
-              (S1–S6) sur la fiche cours pour l’activation des blocs. Créez une UE puis ouvrez <strong>Détails</strong> (onglet « UE & offres »)
-              pour déposer l’offre sur un semestre calendaire.
+              Chaque cours doit appartenir à une UE. Renseignez aussi le <strong className="font-semibold text-[var(--app-fg)]">semestre</strong>{' '}
+              (parcours S1–S6) sur la fiche cours pour l’activation des blocs. Créez une UE puis ouvrez <strong>Détails</strong> (onglet « UE & offres »)
+              pour déposer l’offre sur un <strong>module</strong> calendaire.
             </p>
             {yearFocusId && unitsUnoffered.length > 0 ? (
               <p className="mt-3 text-xs font-medium rounded-lg border-2 border-red-600 bg-red-50 px-3 py-2.5 text-red-900 shadow-sm dark:border-red-500 dark:bg-red-950/70 dark:text-red-50 dark:shadow-none">
@@ -542,6 +544,10 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
           onCreateTeachingUnit={() => setModalUeOpen(true)}
           onOpenTeachingUnit={(unit, tier = 'offered') => setDetailUnit({ unit, tier })}
         />
+      ) : null}
+
+      {section === 'levels' ? (
+        <PedagogyLevelsSection departments={departments} canStructure={canStructure} />
       ) : null}
 
       {section === 'departments' && canViewStudents ? (
@@ -567,7 +573,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
         academicYearId={yearFocusId}
         yearLabel={yearFocusLabel}
         onCreated={async () => {
-          if (yearFocusId) setSemesters(await fetchSemesters(yearFocusId))
+          if (yearFocusId) setModules(await fetchModules(yearFocusId))
         }}
       />
       <TeachingUnitCreateModal
@@ -591,7 +597,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
         tier={detailUnit?.tier ?? 'catalog'}
         academicYearId={yearFocusId}
         canStructure={canStructure}
-        semesters={semesters}
+        modules={modules}
         unitsForOfferSelect={unitsForOfferSelect}
         onOfferSaved={async () => {
           await refreshTeachingUnitLists()
