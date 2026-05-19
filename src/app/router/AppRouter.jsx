@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import Home from '@/pages/Home'
 
 
 import { DashboardLayout } from '@/app/layouts/DashboardLayout'
@@ -64,7 +65,7 @@ export function AppRouter() {
     <Routes>
       <Route element={<PublicLayout />}>
         <Route element={<GuestRoute />}>
-          <Route path="/" element={<LoginPage />} />
+          <Route path="/" element={<Home/>} />
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/activate" element={<ActivationPage />} />
           <Route path="/auth/activate/*" element={<Navigate to="/auth/activate" replace />} />
@@ -109,5 +110,6 @@ export function AppRouter() {
       <Route path="/dashboard" element={<Navigate to="/teacher/dashboard" replace />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    
   )
 }
