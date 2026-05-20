@@ -49,7 +49,7 @@ function nextOrdering(current, field) {
   return field
 }
 
-/** En-tête triable (`--app-*`). `title` = infobulle (nom complet si le libellé est abrégé ou tronqué). */
+/** En-tête triable (`--app-*`). `title` = infobulle descriptive. */
 function SortTh({ label, title: titleAttr, field, ordering, onChange, align = 'left', className }) {
   const active = ordering === field || ordering === `-${field}`
   const desc = ordering === `-${field}`
@@ -75,7 +75,7 @@ function SortTh({ label, title: titleAttr, field, ordering, onChange, align = 'l
           align === 'center' && 'mx-auto',
         )}
       >
-        <span className="truncate">{label}</span>
+        <span className="whitespace-nowrap">{label}</span>
         <ArrowDown
           className={cn(
             'size-3 shrink-0 text-[var(--app-muted)] transition-transform',
@@ -211,7 +211,7 @@ export function StudentTable({
           </div>
 
           <div className="overflow-x-auto bg-[var(--app-canvas)]">
-            <table className="w-full min-w-[77rem] table-fixed text-left text-[13px] leading-snug">
+            <table className="w-max min-w-full table-auto text-left text-[13px] leading-snug">
               <thead>
                 <tr className="bg-[var(--app-canvas)]">
                   <th
@@ -233,7 +233,7 @@ export function StudentTable({
                     field="matricule"
                     ordering={ordering}
                     onChange={onOrderingChange}
-                    className="w-[8rem]"
+                    className="whitespace-nowrap"
                   />
                   <SortTh
                     label="Étudiant"
@@ -241,7 +241,7 @@ export function StudentTable({
                     field="last_name"
                     ordering={ordering}
                     onChange={onOrderingChange}
-                    className="min-w-[13rem]"
+                    className="whitespace-nowrap"
                   />
                   <SortTh
                     label="Parcours"
@@ -249,7 +249,7 @@ export function StudentTable({
                     field="level__name"
                     ordering={ordering}
                     onChange={onOrderingChange}
-                    className="w-[9rem]"
+                    className="whitespace-nowrap"
                   />
                   <SortTh
                     label="INE"
@@ -257,7 +257,7 @@ export function StudentTable({
                     field="INE"
                     ordering={ordering}
                     onChange={onOrderingChange}
-                    className="w-[7rem]"
+                    className="whitespace-nowrap"
                   />
                   <SortTh
                     label="Genre"
@@ -266,7 +266,7 @@ export function StudentTable({
                     ordering={ordering}
                     onChange={onOrderingChange}
                     align="center"
-                    className="w-[4.25rem]"
+                    className="whitespace-nowrap"
                   />
                   <SortTh
                     label="Cohorte"
@@ -274,7 +274,7 @@ export function StudentTable({
                     field="cohorte__promotion_number"
                     ordering={ordering}
                     onChange={onOrderingChange}
-                    className="w-[9rem]"
+                    className="whitespace-nowrap"
                   />
                   <SortTh
                     label="Statut"
@@ -282,7 +282,7 @@ export function StudentTable({
                     field="status"
                     ordering={ordering}
                     onChange={onOrderingChange}
-                    className="w-[8rem]"
+                    className="whitespace-nowrap"
                   />
                   <SortTh
                     label="Date d’inscription"
@@ -290,7 +290,7 @@ export function StudentTable({
                     field="created_at"
                     ordering={ordering}
                     onChange={onOrderingChange}
-                    className="w-[7rem]"
+                    className="whitespace-nowrap"
                   />
                   <SortTh
                     label="Naissance"
@@ -298,7 +298,7 @@ export function StudentTable({
                     field="birth_date"
                     ordering={ordering}
                     onChange={onOrderingChange}
-                    className="w-[7rem]"
+                    className="whitespace-nowrap"
                   />
                   <th
                     title="Actions — ouvrir la fiche étudiant"
@@ -337,13 +337,13 @@ export function StudentTable({
                             aria-label={`Sélectionner ${s.first_name} ${s.last_name}`}
                           />
                         </td>
-                        <td className="px-4 py-4 align-middle">
+                        <td className="whitespace-nowrap px-4 py-4 align-middle">
                           <span className="font-mono text-[12px] tabular-nums text-[var(--app-fg)]">
                             {formatMatriculeCell(s)}
                           </span>
                         </td>
-                        <td className="px-4 py-4 align-middle">
-                          <div className="flex min-w-0 items-center gap-3">
+                        <td className="whitespace-nowrap px-4 py-4 align-middle">
+                          <div className="flex items-center gap-3">
                             {s.photo_url ? (
                               <img
                                 className="size-9 shrink-0 rounded-full object-cover ring-1 ring-[var(--app-border)]"
@@ -355,35 +355,33 @@ export function StudentTable({
                                 {initials(s.first_name, s.last_name)}
                               </span>
                             )}
-                            <div className="min-w-0">
-                              <p className="truncate font-semibold text-[var(--app-fg)]">
+                            <div>
+                              <p className="font-semibold text-[var(--app-fg)]">
                                 {s.first_name} {s.last_name}
                               </p>
-                              <p className="truncate text-[12px] text-[var(--app-muted)]">
+                              <p className="text-[12px] text-[var(--app-muted)]">
                                 {email || 'Pas d’e-mail renseigné'}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-4 align-middle">
+                        <td className="whitespace-nowrap px-4 py-4 align-middle">
                           <span className="font-mono text-[12px] font-medium tabular-nums text-[var(--app-fg)]">
                             {formatParcours(s)}
                           </span>
                         </td>
-                        <td className="px-4 py-4 align-middle">
+                        <td className="whitespace-nowrap px-4 py-4 align-middle">
                           <span className="font-mono text-[11px] tabular-nums text-[var(--app-muted)]">
                             {s.INE ?? '—'}
                           </span>
                         </td>
-                        <td className="px-4 py-4 text-center align-middle text-[12px] text-[var(--app-muted)]">
+                        <td className="whitespace-nowrap px-4 py-4 text-center align-middle text-[12px] text-[var(--app-muted)]">
                           {GENDER_LABEL[s.gender] ?? (s.gender || '—')}
                         </td>
-                        <td className="max-w-[11rem] px-4 py-4 align-middle">
-                          <span className="block truncate text-[12px] text-[var(--app-fg)]" title={formatCohorte(s)}>
-                            {formatCohorte(s)}
-                          </span>
+                        <td className="whitespace-nowrap px-4 py-4 align-middle">
+                          <span className="text-[12px] text-[var(--app-fg)]">{formatCohorte(s)}</span>
                         </td>
-                        <td className="px-4 py-4 align-middle">
+                        <td className="whitespace-nowrap px-4 py-4 align-middle">
                           <span
                             className={cn(
                               BADGE,
@@ -394,10 +392,10 @@ export function StudentTable({
                             {st.label.toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-4 py-4 align-middle text-[12px] text-[var(--app-muted)]">
+                        <td className="whitespace-nowrap px-4 py-4 align-middle text-[12px] text-[var(--app-muted)]">
                           {formatFrenchCalendarDate(s.created_at)}
                         </td>
-                        <td className="px-4 py-4 align-middle text-[12px] tabular-nums text-[var(--app-muted)]">
+                        <td className="whitespace-nowrap px-4 py-4 align-middle text-[12px] tabular-nums text-[var(--app-muted)]">
                           {formatFrenchCalendarDate(s.birth_date)}
                         </td>
                         <td className="px-3 py-4 text-right align-middle">

@@ -26,7 +26,10 @@ export function CsvRequirementsDetails() {
       <div className="border-t border-zinc-200 px-4 py-3 text-sm leading-relaxed text-zinc-600 dark:border-[var(--app-border)] dark:text-zinc-400">
         <ul className="list-disc space-y-2 pl-4">
           <li>
-            Encodage <strong className="text-zinc-800 dark:text-zinc-200">UTF-8</strong> obligatoire (caractères accentués). Sous Excel&nbsp;: Fichier → Enregistrer sous → CSV UTF-8 (délimité par des virgules).
+            Encodage <strong className="text-zinc-800 dark:text-zinc-200">UTF-8</strong> obligatoire (caractères accentués).
+            Séparateur <strong className="text-zinc-800 dark:text-zinc-200">virgule</strong> ou{' '}
+            <strong className="text-zinc-800 dark:text-zinc-200">point-virgule</strong> (export Excel régional).
+            Sous Excel&nbsp;: Fichier → Enregistrer sous → CSV UTF-8.
           </li>
           <li>
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">level_cycle</code>
@@ -44,16 +47,17 @@ export function CsvRequirementsDetails() {
             Colonnes facultatives&nbsp;:{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">gender</code>,{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">phone</code>,{' '}
-            <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">birth_date</code> (YYYY-MM-DD),{' '}
+            <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">birth_date</code>{' '}
+            (YYYY-MM-DD ou JJ/MM/AAAA),{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">dad_name</code> /{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">mum_name</code>{' '}
             (filiation — nom du père et de la mère ; alias acceptés&nbsp;:{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">nom_pere</code>,{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">nom_mere</code>),{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">cohorte_promotion</code>{' '}
-            (numéro métier de la cohorte ex.&nbsp;18, 15) et{' '}
+            (numéro métier de la cohorte ex.&nbsp;18, 15). La colonne{' '}
             <code className="rounded bg-white px-1 py-0.5 font-mono text-xs dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)]">cohorte_annee_entree</code>{' '}
-            (année académique exacte «&nbsp;2024-2025&nbsp;»)&nbsp;: à fournir si plusieurs cohortes partagent le même numéro.
+            est ignorée si elle est encore présente dans le fichier.
           </li>
         </ul>
       </div>

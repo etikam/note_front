@@ -4,6 +4,8 @@ export { HeaderIssuesAlert } from '@/features/teacher/students/ui/import/HeaderI
 export { ImportPageHeader } from '@/features/teacher/students/ui/import/ImportPageHeader'
 export { ImportProgressBlock } from '@/features/teacher/students/ui/import/ImportProgressBlock'
 export { ImportResultPanel, getImportDisabledHint } from '@/features/teacher/students/ui/import/ImportResultPanel'
+export { ImportResultAlertModal } from '@/features/teacher/students/ui/import/ImportResultAlertModal'
+export { getImportResultSummary } from '@/features/teacher/students/ui/import/importResultSummary'
 export { ImportSidebar } from '@/features/teacher/students/ui/import/ImportSidebar'
 export { ImportStepCard } from '@/features/teacher/students/ui/import/ImportStepCard'
 export { PreviewTablePanel } from '@/features/teacher/students/ui/import/PreviewTablePanel'

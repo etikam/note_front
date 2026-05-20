@@ -4,6 +4,8 @@ import { Play } from 'lucide-react'
 
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { buildCsvPreview } from '@/features/teacher/students/csvPreview'
+import { validateStudentImportCsv } from '@/features/teacher/students/studentCsvValidation'
+import { TeacherImportRowIssuesPanel } from '@/features/teacher/faculty/ui/TeacherImportRowIssuesPanel'
 import {
   fetchStudentImportTemplateBlob,
   postStudentImport,
@@ -15,6 +17,7 @@ import {
   ImportPageHeader,
   ImportProgressBlock,
   ImportResultPanel,
+  ImportResultAlertModal,
   ImportSidebar,
   ImportStepCard,
   PreviewTablePanel,
@@ -31,10 +34,12 @@ export function TeacherStudentsImportPage() {
   const canImport = Boolean(user?.capabilities?.can_import_data)
   const canViewReports = Boolean(user?.capabilities?.can_view_reports)
   const inputRef = useRef(null)
+  const resultRef = useRef(null)
   const [drag, setDrag] = useState(false)
   const [busy, setBusy] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(null)
   const [result, setResult] = useState(null)
+  const [resultModalOpen, setResultModalOpen] = useState(false)
   const [error, setError] = useState(null)
 
   const [pendingFile, setPendingFile] = useState(null)
@@ -47,11 +52,14 @@ export function TeacherStudentsImportPage() {
     }
     setError(null)
     setResult(null)
+    setResultModalOpen(false)
     setPendingFile(file)
     const reader = new FileReader()
     reader.onload = () => {
       const text = typeof reader.result === 'string' ? reader.result : ''
-      setPreview(buildCsvPreview(text, PREVIEW_ROW_CAP))
+      const base = buildCsvPreview(text, PREVIEW_ROW_CAP)
+      const rowValidation = validateStudentImportCsv(text)
+      setPreview({ ...base, rowValidation })
     }
     reader.onerror = () => {
       setError('Lecture du fichier impossible.')
@@ -66,6 +74,7 @@ export function TeacherStudentsImportPage() {
     setPreview(null)
     setError(null)
     setResult(null)
+    setResultModalOpen(false)
     if (inputRef.current) inputRef.current.value = ''
   }, [])
 
@@ -91,6 +100,7 @@ export function TeacherStudentsImportPage() {
     setBusy(true)
     setError(null)
     setResult(null)
+    setResultModalOpen(false)
     setUploadProgress(0)
     try {
       const form = new FormData()
@@ -106,7 +116,11 @@ export function TeacherStudentsImportPage() {
         },
       })
       setResult(data)
+      setResultModalOpen(true)
       setUploadProgress(100)
+      requestAnimationFrame(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
     } catch (e) {
       setError(e?.message ?? 'Import impossible.')
     } finally {
@@ -123,10 +137,22 @@ export function TeacherStudentsImportPage() {
     if (f) readFilePreview(f)
   }
 
+  const rowIssuesCount = preview?.rowValidation?.totalIssueCount ?? 0
+  const importAlreadyDone = Boolean(result)
   const canStartImport =
-    Boolean(pendingFile && preview && preview.headerIssues.length === 0 && preview.totalDataRows > 0)
+    Boolean(pendingFile && preview && preview.headerIssues.length === 0 && preview.totalDataRows > 0 && rowIssuesCount === 0) &&
+    !importAlreadyDone
 
-  const importHint = preview && pendingFile && !busy ? getImportDisabledHint(preview) : null
+  const importHint =
+    preview && pendingFile && !busy
+      ? importAlreadyDone
+        ? 'Import déjà effectué pour ce fichier — chargez un nouveau CSV pour importer à nouveau.'
+        : preview.headerIssues.length > 0 || preview.totalDataRows === 0
+          ? getImportDisabledHint(preview)
+          : rowIssuesCount > 0
+            ? 'Corrigez le rapport ci-dessus : les lignes en erreur doivent être corrigées avant l’import serveur.'
+            : null
+      : null
 
   if (!canImport) {
     return <Navigate to="/teacher/students/list" replace />
@@ -175,6 +201,9 @@ export function TeacherStudentsImportPage() {
               {preview && pendingFile && !busy ? (
                 <Stack size="md">
                   <HeaderIssuesAlert messages={preview.headerIssues} />
+                  {preview.headerIssues.length === 0 && preview.rowValidation ? (
+                    <TeacherImportRowIssuesPanel rowValidation={preview.rowValidation} />
+                  ) : null}
                   <PreviewTablePanel
                     headers={preview.headers}
                     dataRows={preview.dataRows}
@@ -202,7 +231,9 @@ export function TeacherStudentsImportPage() {
 
           {result ? (
             <ImportStepCard step={3} title="Résultat" accent="brand">
-              <ImportResultPanel result={result} />
+              <div ref={resultRef}>
+                <ImportResultPanel result={result} />
+              </div>
             </ImportStepCard>
           ) : null}
         </div>
@@ -221,6 +252,13 @@ export function TeacherStudentsImportPage() {
           />
         </aside>
       </div>
+
+      <ImportResultAlertModal
+        open={resultModalOpen}
+        result={result}
+        entityLabel="étudiant"
+        onClose={() => setResultModalOpen(false)}
+      />
     </div>
   )
 }

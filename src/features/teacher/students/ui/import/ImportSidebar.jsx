@@ -201,6 +201,26 @@ export function ImportSidebar({
                 </dd>
               </div>
             </dl>
+            {(result.errors?.length ?? 0) > 0 || (result.skipped?.length ?? 0) > 0 ? (
+              <ul className="max-h-40 space-y-1.5 overflow-y-auto rounded-lg border border-orange-200/80 bg-orange-50/50 px-2.5 py-2 dark:border-orange-900/40 dark:bg-orange-950/20">
+                {(result.errors ?? []).slice(0, 8).map((row, i) => (
+                  <li key={`err-${i}`} className="leading-snug text-orange-950 dark:text-orange-100">
+                    <span className="font-mono text-[10px] text-orange-800/80 dark:text-orange-300/80">L.{row.row}</span>{' '}
+                    {row.message}
+                  </li>
+                ))}
+                {(result.skipped ?? []).slice(0, Math.max(0, 8 - (result.errors?.length ?? 0))).map((row, i) => (
+                  <li key={`skip-${i}`} className="leading-snug text-zinc-700 dark:text-zinc-300">
+                    <span className="font-mono text-[10px] text-zinc-500">L.{row.row}</span> Ignoré ({row.matricule}) —{' '}
+                    {row.reason}
+                  </li>
+                ))}
+              </ul>
+            ) : (result.error_count ?? 0) > 0 ? (
+              <p className="leading-relaxed text-orange-900 dark:text-orange-200">
+                Consultez le détail complet dans l&apos;étape « Résultat » ci-dessous.
+              </p>
+            ) : null}
             <div className="flex flex-wrap items-center gap-2">
               {(result.error_count ?? 0) > 0 ? (
                 <Badge tone="warning">Terminé avec erreurs</Badge>
