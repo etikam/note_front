@@ -4,7 +4,7 @@
 
 | Route | Page | API |
 |-------|------|-----|
-| `/student/dashboard` | KPI + raccourcis | `GET /students/me/stats/`, `GET /students/me/` |
+| `/student/dashboard` | KPI, alertes/notifications, raccourcis | `GET /students/me/stats/` (`alerts`, `notifications`), `GET /students/me/` |
 | `/student/courses` | Liste cours | `GET /students/me/courses/` |
 | `/student/courses/:courseId` | Détail (onglets) | `GET /academics/courses/:id/`, `GET .../archives/` |
 | `/student/grades` | Notes publiées | `GET /students/me/grades/` |

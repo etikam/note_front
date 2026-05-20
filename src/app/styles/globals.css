@@ -280,6 +280,95 @@ html[data-theme="dark"] .tfd-line-chart {
 .tfd-histogram__grad-stop--tertiary-0 { stop-color: var(--color-secondary-400); }
 .tfd-histogram__grad-stop--tertiary-1 { stop-color: var(--color-secondary-600); }
 
+/* ─── Histogramme groupé (vue d'ensemble dashboard) ─── */
+.tfd-grouped-bar {
+  --tfd-chart-fg: var(--color-zinc-700);
+  --tfd-chart-muted: var(--color-zinc-400);
+  --tfd-chart-axis: var(--color-zinc-300);
+  --tfd-chart-grid: var(--color-zinc-200);
+}
+html[data-theme="dark"] .tfd-grouped-bar {
+  --tfd-chart-fg: var(--color-zinc-200);
+  --tfd-chart-muted: var(--color-zinc-500);
+  --tfd-chart-axis: #64748b;
+  --tfd-chart-grid: color-mix(in srgb, #64748b 28%, transparent);
+}
+.tfd-grouped-bar__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tfd-chart-fg);
+  margin: 0;
+}
+.tfd-grouped-bar__subtitle {
+  font-size: 0.75rem;
+  color: var(--tfd-chart-muted);
+}
+.tfd-grouped-bar__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.tfd-grouped-bar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  font-size: 0.75rem;
+  color: var(--tfd-chart-muted);
+}
+.tfd-grouped-bar__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.tfd-grouped-bar__legend-swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+}
+.tfd-grouped-bar__legend-swatch--enrolled { background: var(--color-brand-500); }
+.tfd-grouped-bar__legend-swatch--passed { background: #22c55e; }
+.tfd-grouped-bar__legend-swatch--debt { background: #f59e0b; }
+.tfd-grouped-bar__empty,
+.tfd-grouped-bar__loading {
+  padding: 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--tfd-chart-muted);
+}
+.tfd-grouped-bar__svg-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.tfd-grouped-bar__svg {
+  display: block;
+  width: 100%;
+  min-width: 320px;
+  height: auto;
+}
+.tfd-grouped-bar__grid {
+  stroke: var(--tfd-chart-grid);
+  stroke-width: 1;
+}
+.tfd-grouped-bar__axis {
+  stroke: var(--tfd-chart-axis);
+  stroke-width: 1.25;
+}
+.tfd-grouped-bar__y-tick,
+.tfd-grouped-bar__x-label,
+.tfd-grouped-bar__axis-label {
+  fill: var(--tfd-chart-muted);
+  font-size: 10px;
+}
+.tfd-grouped-bar__grad-stop--enrolled-0 { stop-color: var(--color-brand-400); }
+.tfd-grouped-bar__grad-stop--enrolled-1 { stop-color: var(--color-brand-600); }
+.tfd-grouped-bar__grad-stop--passed-0 { stop-color: #4ade80; }
+.tfd-grouped-bar__grad-stop--passed-1 { stop-color: #16a34a; }
+.tfd-grouped-bar__grad-stop--debt-0 { stop-color: #fbbf24; }
+.tfd-grouped-bar__grad-stop--debt-1 { stop-color: #d97706; }
+
 .tfd-line-chart--accent { --tfd-chart-line: var(--color-brand-500); }
 .tfd-line-chart--secondary { --tfd-chart-line: var(--color-brand-400); }
 .tfd-line-chart--tertiary { --tfd-chart-line: var(--color-secondary-500); }
