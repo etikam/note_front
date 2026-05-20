@@ -65,6 +65,7 @@ export const endpoints = {
   reporting: {
     statistics: `${API_PREFIX}/reporting/statistics/`,
     teacherDashboardOverview: `${API_PREFIX}/reporting/dashboard/overview/`,
+    teacherDashboardStatistics: `${API_PREFIX}/reporting/dashboard/statistics/`,
   },
   students: {
     list: `${API_PREFIX}/students/`,
@@ -74,6 +75,14 @@ export const endpoints = {
     bulkEnroll: `${API_PREFIX}/students/bulk-enroll/`,
     import: `${API_PREFIX}/students/import/`,
     importTemplate: `${API_PREFIX}/students/import/template/`,
+    me: `${API_PREFIX}/students/me/`,
+    meCourses: `${API_PREFIX}/students/me/courses/`,
+    meGrades: `${API_PREFIX}/students/me/grades/`,
+    meStats: `${API_PREFIX}/students/me/stats/`,
+    meEnrollments: `${API_PREFIX}/students/me/enrollments/`,
+    meEnrollmentCandidates: `${API_PREFIX}/students/me/enrollment-candidates/`,
+    meCohort: `${API_PREFIX}/students/me/cohort/`,
+    profile: `${API_PREFIX}/students/profile/`,
   },
   teachers: {
     list: `${API_PREFIX}/teachers/`,

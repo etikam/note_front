@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Bell, Globe, Mail, MessageSquare, Palette, Save, Trash2, Upload, User2 } from 'lucide-react'
 
 import { useAuth } from '@/features/auth/model/AuthContext'
+import { StudentProfileSection } from '@/features/profile/ui/StudentProfileSection'
+import { useStudentProfile } from '@/features/student/hooks/useStudentResources'
 import { ThemeModeToggle } from '@/features/theme/ui/ThemeControls'
 import { deleteMyPhoto, fetchMyPreferences, patchMyPhoto, patchMyPreferences } from '@/features/auth/api/authApi'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
@@ -22,6 +24,9 @@ const defaultPrefs = {
 
 export function ProfilePage() {
   const { user, refreshMe } = useAuth()
+  const isStudent = user?.role === 'student'
+  const { data: studentProfile, loading: studentProfileLoading, reload: reloadStudentProfile } =
+    useStudentProfile(isStudent)
   const [prefs, setPrefs] = useState(defaultPrefs)
   const [loadingPrefs, setLoadingPrefs] = useState(true)
   const [savingPrefs, setSavingPrefs] = useState(false)
@@ -54,11 +59,16 @@ export function ProfilePage() {
   }
 
   const roleLabel = useMemo(() => {
+    if (user.role === 'student') return 'Étudiant'
     if (user.role !== 'teacher') return user.role
     const codes = Array.isArray(user.teacher_role_codes) ? user.teacher_role_codes : []
     const priority = ['general_director', 'study_director', 'department_head', 'program_director', 'teacher']
     return priority.find((code) => codes.includes(code)) ?? 'teacher'
   }, [user])
+
+  const displayName = isStudent && studentProfile
+    ? `${studentProfile.first_name} ${studentProfile.last_name}`.trim()
+    : user.full_name
 
   const savePrefs = () => {
     setSavingPrefs(true)
@@ -111,11 +121,14 @@ export function ProfilePage() {
       <header className="rounded-2xl border border-brand-200/70 bg-gradient-to-r from-brand-50 to-secondary-50 px-5 py-5 dark:border-brand-500/30 dark:from-brand-900/35 dark:to-secondary-900/20">
         <h1 className="font-heading text-2xl font-bold text-zinc-900 dark:text-zinc-50">Mon profil</h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-          Gérez vos informations de compte et vos préférences d’affichage/notifications.
+          {isStudent
+            ? 'Votre dossier étudiant, coordonnées modifiables et préférences d’interface.'
+            : 'Gérez vos informations de compte et vos préférences d’affichage/notifications.'}
         </p>
       </header>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_1fr]">
+        <div className="space-y-6">
         <Card className="border-zinc-300/90 p-5 dark:border-[var(--app-border)]">
           <div className="mb-4 flex items-center gap-2">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200">
@@ -156,15 +169,19 @@ export function ProfilePage() {
           <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
             <div className="rounded-lg border border-zinc-200/90 bg-zinc-50 px-3 py-2 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_90%,black)]">
               <dt className="text-xs uppercase tracking-wide text-zinc-500">Nom complet</dt>
-              <dd className="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{user.full_name || '—'}</dd>
+              <dd className="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{displayName || '—'}</dd>
             </div>
             <div className="rounded-lg border border-zinc-200/90 bg-zinc-50 px-3 py-2 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_90%,black)]">
               <dt className="text-xs uppercase tracking-wide text-zinc-500">Matricule</dt>
-              <dd className="mt-1 font-mono text-zinc-900 dark:text-zinc-100">{user.matricule || '—'}</dd>
+              <dd className="mt-1 font-mono text-zinc-900 dark:text-zinc-100">
+                {studentProfile?.matricule ?? user.matricule ?? '—'}
+              </dd>
             </div>
             <div className="rounded-lg border border-zinc-200/90 bg-zinc-50 px-3 py-2 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_90%,black)] sm:col-span-2">
               <dt className="text-xs uppercase tracking-wide text-zinc-500">Email</dt>
-              <dd className="mt-1 text-zinc-900 dark:text-zinc-100">{user.email || '—'}</dd>
+              <dd className="mt-1 text-zinc-900 dark:text-zinc-100">
+                {studentProfile?.email ?? user.email ?? '—'}
+              </dd>
             </div>
             <div className="rounded-lg border border-zinc-200/90 bg-zinc-50 px-3 py-2 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_90%,black)]">
               <dt className="text-xs uppercase tracking-wide text-zinc-500">Rôle</dt>
@@ -172,10 +189,25 @@ export function ProfilePage() {
             </div>
             <div className="rounded-lg border border-zinc-200/90 bg-zinc-50 px-3 py-2 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_90%,black)]">
               <dt className="text-xs uppercase tracking-wide text-zinc-500">Statut</dt>
-              <dd className="mt-1 text-zinc-900 dark:text-zinc-100">{user.is_active ? 'Actif' : 'Inactif'}</dd>
+              <dd className="mt-1 text-zinc-900 dark:text-zinc-100">
+                {isStudent && studentProfile?.status
+                  ? studentProfile.status
+                  : user.is_active
+                    ? 'Actif'
+                    : 'Inactif'}
+              </dd>
             </div>
           </dl>
         </Card>
+
+        {isStudent ? (
+          <StudentProfileSection
+            profile={studentProfile}
+            loading={studentProfileLoading}
+            onReload={reloadStudentProfile}
+          />
+        ) : null}
+        </div>
 
         <Card className="border-zinc-300/90 p-5 dark:border-[var(--app-border)]">
           <div className="mb-4 flex items-center gap-2">
@@ -210,20 +242,22 @@ export function ProfilePage() {
                     <option value="en">English</option>
                   </select>
                 </label>
-                <label className="flex flex-col gap-1">
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                    <Palette size={14} /> Accent dashboard
-                  </span>
-                  <select
-                    value={prefs.dashboard_accent}
-                    onChange={(e) => setPrefs((p) => ({ ...p, dashboard_accent: e.target.value }))}
-                    className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm outline-none focus:border-brand-500 dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]"
-                  >
-                    <option value="navy">Navy</option>
-                    <option value="indigo">Indigo</option>
-                    <option value="orange">Orange</option>
-                  </select>
-                </label>
+                {!isStudent ? (
+                  <label className="flex flex-col gap-1">
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                      <Palette size={14} /> Accent dashboard
+                    </span>
+                    <select
+                      value={prefs.dashboard_accent}
+                      onChange={(e) => setPrefs((p) => ({ ...p, dashboard_accent: e.target.value }))}
+                      className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm outline-none focus:border-brand-500 dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]"
+                    >
+                      <option value="navy">Navy</option>
+                      <option value="indigo">Indigo</option>
+                      <option value="orange">Orange</option>
+                    </select>
+                  </label>
+                ) : null}
               </div>
 
               <div className="rounded-xl border border-zinc-200/90 p-3 dark:border-[var(--app-border)]">

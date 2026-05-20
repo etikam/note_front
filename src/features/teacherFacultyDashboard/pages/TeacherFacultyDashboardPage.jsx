@@ -14,8 +14,7 @@ import {
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { useAuth } from '@/features/auth/model/AuthContext'
-import { useTeacherDashboardOverview } from '@/features/teacherFacultyDashboard/model/useTeacherDashboardOverview'
-import { OverviewRadarChart } from '@/features/teacherFacultyDashboard/ui/OverviewRadarChart'
+import { OverviewTab } from '@/features/teacherFacultyDashboard/overview/OverviewTab'
 import { LineChart } from '@/features/teacherFacultyDashboard/ui/LineChart'
 import { cn } from '@/shared/lib/cn'
 import { Badge, Button } from '@/shared/ui'
@@ -23,7 +22,7 @@ import { Badge, Button } from '@/shared/ui'
 const DASHBOARD_TAB_KEY = 'gestion_ci.dashboard.facultyTab'
 
 const DASHBOARD_TABS = [
-  { id: 'overview',    label: "Vue d'ensemble",       description: "Indicateurs réels (API) pour l'année sélectionnée : effectifs, synthèse radar et alertes." },
+  { id: 'overview',    label: "Vue d'ensemble",       description: "Statistiques filtrées : effectifs, graphique par niveau et répartitions." },
   { id: 'enrollment',  label: 'Effectifs & inscriptions', description: "Flux d'inscriptions, validations et files d'attente." },
   { id: 'operations',  label: 'Opérations & qualité', description: 'Imports, complétude des données et résolution d\'alertes.' },
 ]
@@ -263,7 +262,6 @@ export function TeacherFacultyDashboardPage() {
   })
 
   const [liveTick, setLiveTick] = useState(0)
-  const overviewQw = useTeacherDashboardOverview(academicYearId, activeTab === 'overview' && canViewAggregatedStats)
 
   useEffect(() => {
     if (!dashboardTabs.some((t) => t.id === activeTab)) setActiveTab('overview')
@@ -282,9 +280,7 @@ export function TeacherFacultyDashboardPage() {
   )
 
   const tabMeta = dashboardTabs.find((t) => t.id === activeTab) ?? dashboardTabs[0]
-  const yearLabel = activeTab === 'overview' && overviewQw.data?.academic_year_label
-    ? overviewQw.data.academic_year_label
-    : academicYearId ?? 'courante'
+  const yearLabel = academicYearId ?? 'courante'
 
   const onTabKeyDown = useCallback((e, id) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
@@ -330,17 +326,6 @@ export function TeacherFacultyDashboardPage() {
                 </>
               )}
             </p>
-            {activeTab === 'overview' && overviewQw.error && (
-              <p
-                className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-100"
-                role="alert"
-              >
-                {overviewQw.error}{' '}
-                <button className="ml-1 font-semibold underline underline-offset-2" type="button" onClick={() => overviewQw.reload()}>
-                  Réessayer
-                </button>
-              </p>
-            )}
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <span className="rounded-full border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_92%,var(--app-canvas))] px-3 py-1.5 text-xs font-semibold text-[var(--app-fg)] dark:bg-white/[0.05]">
@@ -393,85 +378,27 @@ export function TeacherFacultyDashboardPage() {
       </div>
 
       <div role="tabpanel" id={`tfd-panel-${activeTab}`} aria-labelledby={`tfd-tab-${activeTab}`}>
-        {/* KPIs */}
-        <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {activeTab === 'overview' ? (
-            overviewQw.loading ? (
-              <><KpiSkeleton /><KpiSkeleton /><KpiSkeleton /><KpiSkeleton /></>
-            ) : overviewQw.data?.kpis?.length ? (
-              overviewQw.data.kpis.map((k) => {
-                const Icon = KPI_ICONS[k.key] ?? Activity
-                return (
-                  <KpiCard
-                    key={k.key}
-                    label={k.label}
-                    value={formatNumber(k.value)}
-                    yearValue={k.value_year}
-                    deltaLabel={k.delta_label}
-                    deltaTone={k.delta_tone ?? 'neutral'}
-                    icon={Icon}
-                    hint={k.hint}
-                  />
-                )
-              })
-            ) : overviewQw.error ? null : (
-              <><KpiSkeleton /><KpiSkeleton /><KpiSkeleton /><KpiSkeleton /></>
-            )
-          ) : (
-            mock.kpis.map((k) => (
-              <KpiCard
-                key={`${activeTab}-${k.label}`}
-                label={k.label}
-                value={k.value}
-                deltaLabel={k.delta}
-                deltaTone={k.tone}
-                icon={k.icon}
-              />
-            ))
-          )}
-        </div>
-
-        {/* Grille principale */}
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-          {activeTab === 'overview' ? (
-            <>
-              {/* Histogramme */}
-              <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-sm xl:col-span-2">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--app-border)] px-5 py-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-700 ring-1 ring-brand-500/15 dark:text-brand-300 dark:ring-brand-500/20">
-                      <Activity size={17} strokeWidth={2} aria-hidden />
-                    </span>
-                    <h2 className="text-sm font-semibold text-[var(--app-fg)]">Synthèse année (radar)</h2>
-                  </div>
-                  {overviewQw.data?.academic_year_label && (
-                    <Badge tone="secondary">{overviewQw.data.academic_year_label}</Badge>
-                  )}
-                </div>
-                <div className="p-5">
-                  <OverviewRadarChart
-                    bars={overviewQw.data?.histogram}
-                    title=""
-                    subtitle="Valeurs normalisées sur le maximum des quatre indicateurs ; détail chiffré sous le graphique."
-                    loading={overviewQw.loading}
-                    emptyMessage="Aucune donnée pour cette année ou ce périmètre."
-                  />
-                </div>
-              </div>
-              {/* Actions rapides */}
-              <div>
-                <QuickActions canImport={canImport} canReports={canReports} canViewStudents={canViewStudents} canViewGrades={canViewGrades} />
-              </div>
-              {/* Alertes */}
-              {overviewQw.data && !overviewQw.error && (
-                <div className="xl:col-span-3">
-                  <AlertsPanel alerts={overviewQw.data.alerts} />
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              {/* Courbes */}
+        {activeTab === 'overview' ? (
+          <OverviewTab
+            enabled={canViewAggregatedStats}
+            managedDeptId={managedDeptId}
+            institutionWide={institutionWide}
+          />
+        ) : (
+          <>
+            <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {mock.kpis.map((k) => (
+                <KpiCard
+                  key={`${activeTab}-${k.label}`}
+                  label={k.label}
+                  value={k.value}
+                  deltaLabel={k.delta}
+                  deltaTone={k.tone}
+                  icon={k.icon}
+                />
+              ))}
+            </div>
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
               <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-sm xl:col-span-2">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--app-border)] px-5 py-4">
                   <div className="flex items-center gap-2.5">
@@ -484,20 +411,31 @@ export function TeacherFacultyDashboardPage() {
                 </div>
                 <div className="grid grid-cols-1 gap-6 p-5 sm:grid-cols-2">
                   {mock.charts.map((c) => (
-                    <LineChart key={`${activeTab}-${c.title}`} values={c.values} variant={c.variant} title={c.title} subtitle={c.subtitle} animate />
+                    <LineChart
+                      key={`${activeTab}-${c.title}`}
+                      values={c.values}
+                      variant={c.variant}
+                      title={c.title}
+                      subtitle={c.subtitle}
+                      animate
+                    />
                   ))}
                 </div>
               </div>
-              {/* Actions */}
               <div>
-                <QuickActions canImport={canImport} canReports={canReports} canViewStudents={canViewStudents} canViewGrades={canViewGrades} />
+                <QuickActions
+                  canImport={canImport}
+                  canReports={canReports}
+                  canViewStudents={canViewStudents}
+                  canViewGrades={canViewGrades}
+                />
               </div>
               <div className="xl:col-span-3">
                 <AlertsPanel alerts={mock.alerts} />
               </div>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
         </>
       ) : (
