@@ -14,6 +14,8 @@ import {
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { useAuth } from '@/features/auth/model/AuthContext'
+import { canAdminGradeImport } from '@/core/accessControl'
+import { TeacherGradesImportPage } from '@/features/teacher/students/TeacherGradesImportPage'
 import { OverviewTab } from '@/features/teacherFacultyDashboard/overview/OverviewTab'
 import { LineChart } from '@/features/teacherFacultyDashboard/ui/LineChart'
 import { cn } from '@/shared/lib/cn'
@@ -248,12 +250,26 @@ export function TeacherFacultyDashboardPage() {
   const institutionWide = Boolean(user?.scope?.institution_wide)
   /** KPI dashboard + stats annuaires : directeur des études ou directeur général (cumulable avec chef de département). */
   const canViewAggregatedStats = Boolean(caps.can_view_directory_aggregated_stats)
+  const showGradesImportTab = canAdminGradeImport(user)
+
+  const GRADES_IMPORT_TAB = {
+    id: 'grades-import',
+    label: 'Import des notes',
+    description:
+      'Import Excel des notes par cours : inscription automatique des étudiants du fichier, prévisualisation et résolution des conflits.',
+  }
 
   /** Onglet « Opérations » : masqué seulement pour un périmètre strictement cantonné à un département. */
   const dashboardTabs = useMemo(() => {
-    if (managedDeptId != null && !institutionWide) return DASHBOARD_TABS.filter((t) => t.id !== 'operations')
-    return DASHBOARD_TABS
-  }, [managedDeptId, institutionWide])
+    let tabs = DASHBOARD_TABS
+    if (managedDeptId != null && !institutionWide) {
+      tabs = tabs.filter((t) => t.id !== 'operations')
+    }
+    if (showGradesImportTab) {
+      tabs = [...tabs, GRADES_IMPORT_TAB]
+    }
+    return tabs
+  }, [managedDeptId, institutionWide, showGradesImportTab])
 
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window === 'undefined') return 'overview'
@@ -378,7 +394,9 @@ export function TeacherFacultyDashboardPage() {
       </div>
 
       <div role="tabpanel" id={`tfd-panel-${activeTab}`} aria-labelledby={`tfd-tab-${activeTab}`}>
-        {activeTab === 'overview' ? (
+        {activeTab === 'grades-import' ? (
+          <TeacherGradesImportPage embedded />
+        ) : activeTab === 'overview' ? (
           <OverviewTab
             enabled={canViewAggregatedStats}
             managedDeptId={managedDeptId}

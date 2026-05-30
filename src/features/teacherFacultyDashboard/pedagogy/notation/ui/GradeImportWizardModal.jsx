@@ -22,9 +22,20 @@ function rowKey(c) {
  *   fileName?: string
  *   preview: Record<string, unknown> | null
  *   onCommitted: () => Promise<void>
+ *   showEnrollmentStats?: boolean
+ *   onCommit?: (courseId: string, body: Record<string, unknown>) => Promise<unknown>
  * }} props
  */
-export function GradeImportWizardModal({ open, onClose, courseId, fileName = '', preview, onCommitted }) {
+export function GradeImportWizardModal({
+  open,
+  onClose,
+  courseId,
+  fileName = '',
+  preview,
+  onCommitted,
+  showEnrollmentStats = false,
+  onCommit,
+}) {
   const titleId = useId()
   const [submitting, setSubmitting] = useState(false)
   /** @type {Record<string, 'keep'|'overwrite'>} */
@@ -78,7 +89,11 @@ export function GradeImportWizardModal({ open, onClose, courseId, fileName = '',
           decision: choice[rowKey(c)] ?? 'keep',
         }))
       }
-      await postCourseGradesImportCommit(courseId, body)
+      if (onCommit) {
+        await onCommit(courseId, body)
+      } else {
+        await postCourseGradesImportCommit(courseId, body)
+      }
       dispatchToast({ type: 'success', message: 'Import des notes enregistré.' })
       await onCommitted?.()
       onClose()
@@ -156,7 +171,30 @@ export function GradeImportWizardModal({ open, onClose, courseId, fileName = '',
           ) : null}
 
           {!fileErrors.length ? (
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div
+              className={cn(
+                'grid gap-3',
+                showEnrollmentStats ? 'sm:grid-cols-2 lg:grid-cols-5' : 'sm:grid-cols-3',
+              )}
+            >
+              {showEnrollmentStats ? (
+                <>
+                  <div className="rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_92%,var(--app-canvas))] px-3 py-3 text-center">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--app-muted)]">À inscrire</p>
+                    <p className="mt-1 font-mono text-2xl font-bold text-brand-700 dark:text-brand-300">
+                      {Number(preview?.to_enroll_count ?? 0)}
+                    </p>
+                    <p className="text-[11px] text-[var(--app-muted)]">nouvelle(s) inscription(s)</p>
+                  </div>
+                  <div className="rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_92%,var(--app-canvas))] px-3 py-3 text-center">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--app-muted)]">Déjà inscrits</p>
+                    <p className="mt-1 font-mono text-2xl font-bold text-zinc-700 dark:text-zinc-300">
+                      {Number(preview?.already_enrolled_count ?? 0)}
+                    </p>
+                    <p className="text-[11px] text-[var(--app-muted)]">dans le cours</p>
+                  </div>
+                </>
+              ) : null}
               <div className="rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_92%,var(--app-canvas))] px-3 py-3 text-center">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--app-muted)]">Sans conflit</p>
                 <p className="mt-1 font-mono text-2xl font-bold text-brand-700 dark:text-brand-300">{pendingN}</p>

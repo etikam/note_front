@@ -36,6 +36,13 @@ export function canEditStudentDossier(user) {
   return hasTeacherRole(user, 'study_director') || hasTeacherRole(user, 'general_director')
 }
 
+/** Import administratif des notes (inscription sans éligibilité) — DE / DG. */
+export function canAdminGradeImport(user) {
+  if (!user || user.role !== 'teacher') return false
+  if (Boolean(user?.scope?.institution_wide)) return true
+  return hasTeacherRole(user, 'study_director') || hasTeacherRole(user, 'general_director')
+}
+
 export function isSimpleTeacherProfile(user) {
   if (!user || user.role !== 'teacher') return false
   const codes = roleCodesOf(user)

@@ -6,7 +6,7 @@ import { Button } from '@/shared/ui/Button'
 /**
  * @param {{
  *   file: File
- *   dataRowCount: number
+ *   dataRowCount?: number | null
  *   busy: boolean
  *   onClear: () => void
  * }} props
@@ -24,7 +24,8 @@ export function SelectedFileRow({ file, dataRowCount, busy, onClear }) {
         <div className="min-w-0">
           <div className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">{file.name}</div>
           <div className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-            {(file.size / 1024).toFixed(1)} Ko · {dataRowCount} ligne(s) de données
+            {(file.size / 1024).toFixed(1)} Ko
+            {dataRowCount != null ? ` · ${dataRowCount} ligne(s) de données` : ''}
           </div>
         </div>
       </div>
