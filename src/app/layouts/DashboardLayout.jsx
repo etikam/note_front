@@ -122,7 +122,9 @@ function buildTeacherNavItems(capabilities = {}, user = null) {
           icon: Users,
           required: 'can_view_students',
           isActive: ({ pathname }) =>
-            pathname.startsWith('/teacher/students') && !pathname.includes('/import-export'),
+            pathname.startsWith('/teacher/students') &&
+            !pathname.includes('/import-export') &&
+            !pathname.includes('/grades-import'),
         },
         {
           to: '/teacher/students/import-export',
@@ -130,6 +132,17 @@ function buildTeacherNavItems(capabilities = {}, user = null) {
           icon: Upload,
           required: 'can_import_data',
           isActive: ({ pathname }) => pathname.startsWith('/teacher/students/import-export'),
+        },
+        {
+          to: '/teacher/students/grades-import',
+          label: 'Import des notes',
+          icon: Upload,
+          requiredAny: ['can_edit_grades'],
+          accessRule: {
+            requireTeacherRoles: ['study_director', 'general_director'],
+            anyCapabilities: ['can_edit_grades'],
+          },
+          isActive: ({ pathname }) => pathname.startsWith('/teacher/students/grades-import'),
         },
       ],
     },

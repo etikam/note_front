@@ -226,6 +226,34 @@ export async function postCourseGradesImportCommit(courseId, body, config = {}) 
 }
 
 /**
+ * Import administratif des notes (directeur des études / directeur général).
+ * @param {string} courseId
+ * @param {FormData} formData champ `file`
+ * @param {import('axios').AxiosRequestConfig} [config]
+ */
+export async function postCourseAdminGradesImport(courseId, formData, config = {}) {
+  const { data } = await apiClient.post(endpoints.academics.courseAdminGradeImport(courseId), formData, {
+    headers: { 'Content-Type': undefined },
+    skipErrorToast: true,
+    ...config,
+  })
+  return data
+}
+
+/**
+ * @param {string} courseId
+ * @param {{ batch_public_id: string, decisions?: Array<{ student_id: number, field: string, decision: 'keep'|'overwrite' }>, apply_to_remaining?: 'keep'|'overwrite', validation_status: string, published: boolean }} body
+ * @param {import('axios').AxiosRequestConfig} [config]
+ */
+export async function postCourseAdminGradesImportCommit(courseId, body, config = {}) {
+  const { data } = await apiClient.post(endpoints.academics.courseAdminGradeImportCommit(courseId), body, {
+    skipErrorToast: true,
+    ...config,
+  })
+  return data
+}
+
+/**
  * @param {string} courseId
  * @param {string} batchPublicId UUID
  * @param {{ decisions?: Array<{ student_id: number, field: string, decision: 'keep'|'overwrite' }>, apply_to_remaining?: 'keep'|'overwrite' }} body

@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/features/auth/model/AuthContext'
-import { hasAnyCapability } from '@/core/accessControl'
+import { canAdminGradeImport, hasAnyCapability } from '@/core/accessControl'
 import { cn } from '@/shared/lib/cn'
 
 const studentsTabClass = ({ isActive }) =>
@@ -16,6 +16,7 @@ const studentsTabClass = ({ isActive }) =>
 export function TeacherStudentsLayout() {
   const { user } = useAuth()
   const canImport = hasAnyCapability(user, ['can_import_data'])
+  const showGradesImportTab = canAdminGradeImport(user)
   const location = useLocation()
   const isDetail = /^\/teacher\/students\/\d+\/?$/.test(location.pathname)
 
@@ -43,6 +44,19 @@ export function TeacherStudentsLayout() {
                   aria-disabled="true"
                 >
                   Import / Export
+                </span>
+              )}
+              {showGradesImportTab ? (
+                <NavLink to="/teacher/students/grades-import" className={studentsTabClass} role="tab">
+                  Import des notes
+                </NavLink>
+              ) : (
+                <span
+                  className="inline-flex cursor-not-allowed items-center border-b-2 border-transparent px-4 py-3 text-sm font-semibold tracking-tight text-secondary-200/50 opacity-80"
+                  title="Réservé au directeur des études ou au directeur général"
+                  aria-disabled="true"
+                >
+                  Import des notes
                 </span>
               )}
             </nav>

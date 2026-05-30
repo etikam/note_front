@@ -41,6 +41,9 @@ export const endpoints = {
     courseGradeImportTemplate: (id) => `${API_PREFIX}/academics/courses/${id}/grades/import-template/`,
     courseGradeImport: (id) => `${API_PREFIX}/academics/courses/${id}/grades/import/`,
     courseGradeImportCommit: (id) => `${API_PREFIX}/academics/courses/${id}/grades/import/commit/`,
+    courseAdminGradeImport: (id) => `${API_PREFIX}/academics/courses/${id}/grades/admin-import/`,
+    courseAdminGradeImportCommit: (id) =>
+      `${API_PREFIX}/academics/courses/${id}/grades/admin-import/commit/`,
     courseGradeImportResolve: (courseId, batchPublicId) =>
       `${API_PREFIX}/academics/courses/${courseId}/grades/import/${batchPublicId}/resolve/`,
     courseGradeExport: (id) => `${API_PREFIX}/academics/courses/${id}/grades-export/`,

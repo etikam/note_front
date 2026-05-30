@@ -25,6 +25,7 @@ import { StudentPromotionPage } from '@/features/student/pages/StudentPromotionP
 import { TeacherReportsPage } from '@/features/teacher/pages/TeacherReportsPage'
 import { TeacherMyCoursesPage } from '@/features/teacher/courses/TeacherMyCoursesPage'
 import { TeacherStudentDetailPage } from '@/features/teacher/students/TeacherStudentDetailPage'
+import { TeacherGradesImportPage } from '@/features/teacher/students/TeacherGradesImportPage'
 import { TeacherStudentsImportPage } from '@/features/teacher/students/TeacherStudentsImportPage'
 import { TeacherStudentsLayout } from '@/features/teacher/students/TeacherStudentsLayout'
 import { TeacherStudentsListPage } from '@/features/teacher/students/TeacherStudentsListPage'
@@ -95,6 +96,7 @@ export function AppRouter() {
               <Route index element={<Navigate to="list" replace />} />
               <Route path="list" element={<TeacherStudentsListPage />} />
               <Route path="import-export" element={<TeacherStudentsImportPage />} />
+              <Route path="grades-import" element={<TeacherGradesImportPage />} />
               <Route path=":studentId" element={<TeacherStudentDetailPage />} />
             </Route>
             <Route path="/teacher/faculty" element={<TeacherFacultyLayout />}>
