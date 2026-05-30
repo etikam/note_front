@@ -69,6 +69,7 @@ export const endpoints = {
     statistics: `${API_PREFIX}/reporting/statistics/`,
     teacherDashboardOverview: `${API_PREFIX}/reporting/dashboard/overview/`,
     teacherDashboardStatistics: `${API_PREFIX}/reporting/dashboard/statistics/`,
+    teacherDashboardReport: `${API_PREFIX}/reporting/dashboard/report/`,
   },
   students: {
     list: `${API_PREFIX}/students/`,

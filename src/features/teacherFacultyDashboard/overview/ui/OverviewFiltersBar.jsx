@@ -15,13 +15,13 @@ export function OverviewFiltersBar({
   levels,
   metaLoading,
   deptScoped,
+  title = "Vue d'ensemble",
+  description = "Filtrez par semestre, département et niveau. L'année académique suit le sélecteur global du tableau de bord.",
 }) {
   return (
     <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-5 shadow-sm">
-      <h2 className="text-sm font-semibold text-[var(--app-fg)]">Vue d&apos;ensemble</h2>
-      <p className="mt-1 text-xs text-[var(--app-muted)]">
-        Filtrez par semestre, département et niveau. L&apos;année académique suit le sélecteur global du tableau de bord.
-      </p>
+      <h2 className="text-sm font-semibold text-[var(--app-fg)]">{title}</h2>
+      <p className="mt-1 text-xs text-[var(--app-muted)]">{description}</p>
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="flex flex-col gap-1.5">
