@@ -1,144 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  Activity,
-  AlertTriangle,
-  ArrowUpRight,
-  BookOpen,
-  Download,
-  Upload,
-  Users,
-  UsersRound,
-  Waypoints,
-} from 'lucide-react'
+import { Activity, BookOpen, Download, Upload, Users, Waypoints } from 'lucide-react'
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { canAdminGradeImport } from '@/core/accessControl'
 import { TeacherGradesImportPage } from '@/features/teacher/students/TeacherGradesImportPage'
 import { OverviewTab } from '@/features/teacherFacultyDashboard/overview/OverviewTab'
-import { LineChart } from '@/features/teacherFacultyDashboard/ui/LineChart'
 import { cn } from '@/shared/lib/cn'
-import { Badge, Button } from '@/shared/ui'
+import { Button } from '@/shared/ui'
 
 const DASHBOARD_TAB_KEY = 'gestion_ci.dashboard.facultyTab'
 
 const DASHBOARD_TABS = [
-  { id: 'overview',    label: "Vue d'ensemble",       description: "Statistiques filtrées : effectifs, graphique par niveau et répartitions." },
-  { id: 'enrollment',  label: 'Effectifs & inscriptions', description: "Flux d'inscriptions, validations et files d'attente." },
-  { id: 'operations',  label: 'Opérations & qualité', description: 'Imports, complétude des données et résolution d\'alertes.' },
+  { id: 'overview', label: "Vue d'ensemble", description: "Statistiques filtrées : effectifs, graphique par niveau et répartitions." },
 ]
-
-const KPI_ICONS = { students: Users, teachers: UsersRound, departments: Waypoints, levels: Activity }
-
-function clamp(n, a, b) { return Math.max(a, Math.min(b, n)) }
-
-function formatNumber(value) {
-  const n = Number(value ?? 0)
-  if (!Number.isFinite(n)) return '--'
-  return new Intl.NumberFormat('fr-FR').format(n)
-}
-
-function seededRnd(seed, i) { return ((seed + i * 7919) % 9973) / 9973 }
-
-function wobbleSeries(values, tick) {
-  return values.map((v, i) => {
-    const w = Math.sin(tick * 0.35 + i * 0.52) * 3.2 + Math.cos(tick * 0.22 + i * 0.31) * 2.1
-    return Math.max(0, Math.round(v + w))
-  })
-}
-
-function KpiCard({ label, value, yearValue, yearHint = "Sur l'année", deltaLabel, deltaTone = 'neutral', icon: Icon, hint }) {
-  const showYear = yearValue !== null && yearValue !== undefined && Number.isFinite(Number(yearValue))
-  const deltaToneClass = {
-    positive: 'text-brand-700 bg-brand-100 dark:text-brand-200 dark:bg-[color-mix(in_srgb,var(--app-elevated)_76%,white)]',
-    warning:  'text-secondary-800 bg-secondary-100 dark:text-secondary-200 dark:bg-secondary-950/35',
-    neutral:  'text-[var(--app-muted)] bg-[color-mix(in_srgb,var(--app-elevated)_88%,var(--app-canvas))] dark:bg-white/[0.06]',
-  }[deltaTone] ?? 'text-[var(--app-muted)] bg-[color-mix(in_srgb,var(--app-elevated)_88%,var(--app-canvas))] dark:bg-white/[0.06]'
-
-  return (
-    <div className="group relative overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-5 shadow-sm transition-shadow duration-200 hover:shadow-md">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary-500/35 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-        aria-hidden
-      />
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--app-muted)]">{label}</p>
-        {Icon && (
-          <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary-500/10 text-secondary-700 ring-1 ring-secondary-500/15 dark:text-secondary-300 dark:ring-secondary-500/20"
-            title={hint}
-          >
-            <Icon size={17} strokeWidth={2} aria-hidden />
-          </span>
-        )}
-      </div>
-      <p className="mt-3 font-heading text-3xl font-bold tabular-nums tracking-tight text-[var(--app-fg)]">{value}</p>
-      {showYear && (
-        <p className="mt-1 text-xs text-[var(--app-muted)]">
-          {yearHint}: <strong className="font-semibold text-[var(--app-fg)]">{formatNumber(yearValue)}</strong>
-        </p>
-      )}
-      {deltaLabel && (
-        <span className={cn('mt-2 inline-flex self-start rounded-full px-2.5 py-0.5 text-xs font-semibold', deltaToneClass)}>
-          {deltaLabel}
-        </span>
-      )}
-    </div>
-  )
-}
-
-function KpiSkeleton() {
-  return (
-    <div className="flex animate-pulse flex-col gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-5 shadow-sm">
-      <div className="h-3 w-1/2 rounded bg-[color-mix(in_srgb,var(--app-elevated)_82%,var(--app-canvas))] dark:bg-white/[0.08]" />
-      <div className="h-9 w-1/3 rounded bg-[color-mix(in_srgb,var(--app-elevated)_82%,var(--app-canvas))] dark:bg-white/[0.08]" />
-      <div className="h-3 w-2/3 rounded bg-[color-mix(in_srgb,var(--app-elevated)_82%,var(--app-canvas))] dark:bg-white/[0.08]" />
-    </div>
-  )
-}
-
-function AlertsPanel({ alerts }) {
-  const toneClass = {
-    danger: 'bg-red-600 text-white dark:bg-red-600 dark:text-white',
-    warning: 'bg-secondary-500/15 text-secondary-900 ring-1 ring-secondary-500/25 dark:text-secondary-200 dark:ring-secondary-500/30',
-    neutral: 'bg-[color-mix(in_srgb,var(--app-elevated)_90%,var(--app-canvas))] text-[var(--app-muted)] dark:bg-white/[0.06]',
-  }
-  return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--app-border)] px-5 py-4">
-        <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary-500/10 text-secondary-700 dark:text-secondary-300">
-            <AlertTriangle size={17} strokeWidth={2} aria-hidden />
-          </span>
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-[var(--app-fg)]">Alertes</h2>
-            <p className="text-xs text-[var(--app-muted)]">Ce qui mérite attention maintenant.</p>
-          </div>
-        </div>
-        <Badge tone="secondary">{formatNumber(alerts?.length ?? 0)} priorité(s)</Badge>
-      </div>
-      <div className="divide-y divide-[var(--app-border)]">
-        {(alerts ?? []).length ? alerts.slice(0, 6).map((a) => (
-          <div key={a.id} className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-[var(--app-nav-hover)]/40">
-            <span className={cn('inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide', toneClass[a.tone ?? 'neutral'] ?? toneClass.neutral)}>
-              {a.tone === 'danger' ? 'Critique' : a.tone === 'warning' ? 'Attention' : 'Info'}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-[var(--app-fg)]">{a.title}</p>
-              <p className="truncate text-xs text-[var(--app-muted)]">{a.detail}</p>
-            </div>
-            <Button variant="ghost" size="sm" disabled>
-              Voir <ArrowUpRight size={13} />
-            </Button>
-          </div>
-        )) : (
-          <p className="px-5 py-8 text-center text-sm text-[var(--app-muted)]">Aucune alerte.</p>
-        )}
-      </div>
-    </div>
-  )
-}
 
 function QuickActionGridItem({ ok, to, icon: Icon, label, desc }) {
   return ok ? (
@@ -190,54 +66,6 @@ function QuickActions({ canImport, canReports, canViewStudents, canViewGrades })
   )
 }
 
-function buildMockBundle({ tab, academicYearId, canImport, liveTick }) {
-  const seed = (academicYearId ? Number(academicYearId) : 1) * 9973 + tab.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
-  const rnd = (i) => seededRnd(seed, i)
-  const students = Math.round(900 + rnd(1) * 1200)
-  const teachers = Math.round(40 + rnd(2) * 90)
-  const departments = clamp(6 + Math.round(rnd(3) * 8), 2, 18)
-  const levels = departments * (2 + Math.round(rnd(4) * 2))
-  const enrollBase = Array.from({ length: 12 }, (_, i) => Math.round(50 + rnd(10 + i) * 140))
-  const activityBase = Array.from({ length: 12 }, (_, i) => Math.round(20 + rnd(30 + i) * 70))
-  const enrollments = wobbleSeries(enrollBase, liveTick)
-  const activity = wobbleSeries(activityBase, liveTick)
-  const validation = Array.from({ length: 12 }, (_, i) => Math.round(12 + rnd(50 + i) * 55 + Math.sin(liveTick * 0.2 + i) * 6))
-  const backlog = Array.from({ length: 12 }, (_, i) => Math.round(5 + rnd(60 + i) * 28 + Math.cos(liveTick * 0.25 + i) * 4))
-  const quality = Array.from({ length: 12 }, (_, i) => clamp(Math.round(72 + rnd(90 + i) * 22 + Math.sin(liveTick * 0.18 + i) * 3), 0, 100))
-  const resolved = Array.from({ length: 12 }, (_, i) => Math.round(4 + rnd(100 + i) * 18 + (liveTick % 7)))
-  const alerts = [
-    { id: 'a1', tone: 'warning', title: 'Inscriptions en attente', detail: 'Certaines demandes dépassent 7 jours sans traitement.' },
-    { id: 'a2', tone: 'neutral', title: 'Données incomplètes', detail: "Des étudiants n'ont pas de niveau renseigné." },
-    ...(canImport ? [{ id: 'a3', tone: 'danger', title: 'Import à vérifier', detail: 'Un import récent contient des lignes rejetées.' }] : []),
-  ]
-  const kpisByTab = {
-    overview:   [
-      { label: 'Étudiants', value: formatNumber(students), delta: '+2.1% vs N-1', tone: 'positive', icon: Users },
-      { label: 'Enseignants', value: formatNumber(teachers), delta: 'Stable', tone: 'neutral', icon: UsersRound },
-      { label: 'Départements', value: formatNumber(departments), delta: 'Cartographie OK', tone: 'neutral', icon: Waypoints },
-      { label: 'Niveaux', value: formatNumber(levels), delta: 'Catalogues', tone: 'neutral', icon: Activity },
-    ],
-    enrollment: [
-      { label: 'Demandes (mois)', value: formatNumber(enrollments[11]), delta: 'Glissant 12 mois', tone: 'neutral', icon: Users },
-      { label: 'Validations', value: formatNumber(validation[11]), delta: 'Traitées', tone: 'positive', icon: Activity },
-      { label: "File d'attente", value: formatNumber(backlog[11]), delta: 'À traiter', tone: 'warning', icon: AlertTriangle },
-      { label: 'Taux conversion', value: '68%', delta: 'Estim.', tone: 'neutral', icon: Waypoints },
-    ],
-    operations: [
-      { label: 'Complétude données', value: `${quality[11]}%`, delta: 'Score qualité', tone: 'positive', icon: Activity },
-      { label: 'Alertes résolues', value: formatNumber(resolved[11]), delta: '30 jours', tone: 'neutral', icon: AlertTriangle },
-      { label: 'Imports OK', value: formatNumber(12 + rnd(7) * 6), delta: 'Lots', tone: 'neutral', icon: Upload },
-      { label: 'Écarts détectés', value: formatNumber(3 + rnd(8) * 4), delta: 'À corriger', tone: 'warning', icon: AlertTriangle },
-    ],
-  }
-  const chartsByTab = {
-    overview:   [{ title: 'Inscriptions', subtitle: 'demandes / mois', values: enrollments, variant: 'accent' }, { title: 'Activité', subtitle: 'actions / mois', values: activity, variant: 'secondary' }],
-    enrollment: [{ title: 'Demandes reçues', subtitle: 'flux mensuel', values: enrollments, variant: 'accent' }, { title: 'Validations', subtitle: 'traitées / mois', values: validation, variant: 'tertiary' }],
-    operations: [{ title: 'Qualité des données', subtitle: 'score %', values: quality, variant: 'tertiary' }, { title: 'Alertes résolues', subtitle: 'cumul / mois', values: resolved, variant: 'accent' }],
-  }
-  return { kpis: kpisByTab[tab] ?? kpisByTab.overview, charts: chartsByTab[tab] ?? chartsByTab.overview, alerts }
-}
-
 export function TeacherFacultyDashboardPage() {
   const { user } = useAuth()
   const { academicYearId } = useAcademicYear()
@@ -259,17 +87,13 @@ export function TeacherFacultyDashboardPage() {
       'Import Excel des notes par cours : inscription automatique des étudiants du fichier, prévisualisation et résolution des conflits.',
   }
 
-  /** Onglet « Opérations » : masqué seulement pour un périmètre strictement cantonné à un département. */
   const dashboardTabs = useMemo(() => {
-    let tabs = DASHBOARD_TABS
-    if (managedDeptId != null && !institutionWide) {
-      tabs = tabs.filter((t) => t.id !== 'operations')
-    }
+    const tabs = [...DASHBOARD_TABS]
     if (showGradesImportTab) {
-      tabs = [...tabs, GRADES_IMPORT_TAB]
+      tabs.push(GRADES_IMPORT_TAB)
     }
     return tabs
-  }, [managedDeptId, institutionWide, showGradesImportTab])
+  }, [showGradesImportTab])
 
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window === 'undefined') return 'overview'
@@ -277,23 +101,11 @@ export function TeacherFacultyDashboardPage() {
     return DASHBOARD_TABS.some((t) => t.id === saved) ? saved : 'overview'
   })
 
-  const [liveTick, setLiveTick] = useState(0)
-
   useEffect(() => {
     if (!dashboardTabs.some((t) => t.id === activeTab)) setActiveTab('overview')
   }, [dashboardTabs, activeTab])
 
   useEffect(() => { window.localStorage.setItem(DASHBOARD_TAB_KEY, activeTab) }, [activeTab])
-
-  useEffect(() => {
-    const id = window.setInterval(() => setLiveTick((t) => t + 1), 4500)
-    return () => window.clearInterval(id)
-  }, [])
-
-  const mock = useMemo(
-    () => buildMockBundle({ tab: activeTab, academicYearId, canImport, liveTick }),
-    [activeTab, academicYearId, canImport, liveTick]
-  )
 
   const tabMeta = dashboardTabs.find((t) => t.id === activeTab) ?? dashboardTabs[0]
   const yearLabel = academicYearId ?? 'courante'
@@ -396,63 +208,12 @@ export function TeacherFacultyDashboardPage() {
       <div role="tabpanel" id={`tfd-panel-${activeTab}`} aria-labelledby={`tfd-tab-${activeTab}`}>
         {activeTab === 'grades-import' ? (
           <TeacherGradesImportPage embedded />
-        ) : activeTab === 'overview' ? (
+        ) : (
           <OverviewTab
             enabled={canViewAggregatedStats}
             managedDeptId={managedDeptId}
             institutionWide={institutionWide}
           />
-        ) : (
-          <>
-            <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {mock.kpis.map((k) => (
-                <KpiCard
-                  key={`${activeTab}-${k.label}`}
-                  label={k.label}
-                  value={k.value}
-                  deltaLabel={k.delta}
-                  deltaTone={k.tone}
-                  icon={k.icon}
-                />
-              ))}
-            </div>
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-              <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-sm xl:col-span-2">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--app-border)] px-5 py-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-700 ring-1 ring-brand-500/15 dark:text-brand-300 dark:ring-brand-500/20">
-                      <Activity size={17} strokeWidth={2} aria-hidden />
-                    </span>
-                    <h2 className="text-sm font-semibold text-[var(--app-fg)]">Courbes</h2>
-                  </div>
-                  <Badge tone="secondary">12 mois · tick {liveTick}</Badge>
-                </div>
-                <div className="grid grid-cols-1 gap-6 p-5 sm:grid-cols-2">
-                  {mock.charts.map((c) => (
-                    <LineChart
-                      key={`${activeTab}-${c.title}`}
-                      values={c.values}
-                      variant={c.variant}
-                      title={c.title}
-                      subtitle={c.subtitle}
-                      animate
-                    />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <QuickActions
-                  canImport={canImport}
-                  canReports={canReports}
-                  canViewStudents={canViewStudents}
-                  canViewGrades={canViewGrades}
-                />
-              </div>
-              <div className="xl:col-span-3">
-                <AlertsPanel alerts={mock.alerts} />
-              </div>
-            </div>
-          </>
         )}
       </div>
         </>
