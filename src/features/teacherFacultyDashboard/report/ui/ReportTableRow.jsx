@@ -14,6 +14,7 @@ export function ReportTableRow({ row, isTotal = false }) {
   const evaluated = row.evaluated ?? {}
   const admitted = row.admitted ?? {}
   const debts = row.debts ?? {}
+  const pending = row.pending ?? {}
   const abandon = row.abandon ?? {}
 
   const rowClass = isTotal
@@ -40,6 +41,8 @@ export function ReportTableRow({ row, isTotal = false }) {
       <Cell value={fmtInt(debts['3'])} />
       <Cell value={fmtInt(debts['4'])} />
       <Cell value={fmtInt(debts['5plus'])} />
+      <Cell value={fmtInt(pending.total)} />
+      <Cell value={fmtInt(pending.female)} />
       <Cell value={fmtInt(abandon.total)} />
       <Cell value={fmtInt(abandon.female)} />
     </tr>

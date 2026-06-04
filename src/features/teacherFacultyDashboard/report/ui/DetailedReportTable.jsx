@@ -33,7 +33,7 @@ export function DetailedReportTable({ levels = [], totals, loading }) {
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1100px] border-collapse text-sm">
+        <table className="w-full min-w-[1200px] border-collapse text-sm">
           <ReportTableHeader />
           <tbody>
             {levels.map((row) => (

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { CalendarDays, GraduationCap, Plus, RefreshCw, Trash2 } from 'lucide-react'
+import { CalendarDays, GraduationCap, Plus, RefreshCw, Search, Trash2 } from 'lucide-react'
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { fetchDepartments } from '@/features/academicYear/api/academicsApi'
@@ -67,6 +67,8 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
   const [editUnit, setEditUnit] = useState(null)
   const [detailUnit, setDetailUnit] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
+  const [ueSearch, setUeSearch] = useState('')
+  const [ueDeptFilter, setUeDeptFilter] = useState('')
 
   const loadAll = useCallback(async () => {
     setLoading(true)
@@ -145,6 +147,43 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
       if (first) setSectionFromUi(first)
     }
   }, [section, sectionIds, sections, setSectionFromUi])
+
+  const ueDeptOptions = useMemo(() => {
+    const map = new Map()
+    for (const u of [...units, ...unitsUnoffered]) {
+      if (u.department != null)
+        map.set(u.department, { id: u.department, code: u.department_code, name: u.department_name })
+    }
+    return Array.from(map.values()).sort((a, b) =>
+      String(a.name ?? '').localeCompare(String(b.name ?? ''), 'fr'),
+    )
+  }, [units, unitsUnoffered])
+
+  const filteredUnits = useMemo(() => {
+    const q = ueSearch.trim().toLowerCase()
+    return units.filter((u) => {
+      if (ueDeptFilter && String(u.department ?? '') !== ueDeptFilter) return false
+      if (!q) return true
+      return [u.code, u.name, u.department_code, u.department_name]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(q)
+    })
+  }, [units, ueSearch, ueDeptFilter])
+
+  const filteredUnitsUnoffered = useMemo(() => {
+    const q = ueSearch.trim().toLowerCase()
+    return unitsUnoffered.filter((u) => {
+      if (ueDeptFilter && String(u.department ?? '') !== ueDeptFilter) return false
+      if (!q) return true
+      return [u.code, u.name, u.department_code, u.department_name]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(q)
+    })
+  }, [unitsUnoffered, ueSearch, ueDeptFilter])
 
   const unitsForOfferSelect = useMemo(() => {
     const m = new Map()
@@ -408,17 +447,64 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
             ) : null}
           </div>
 
+          {(units.length > 0 || unitsUnoffered.length > 0) ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative min-w-[200px] flex-1">
+                <Search
+                  size={15}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-muted)]"
+                  aria-hidden
+                />
+                <input
+                  type="search"
+                  value={ueSearch}
+                  onChange={(e) => setUeSearch(e.target.value)}
+                  placeholder="Code, nom de l’UE…"
+                  className="h-9 w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-canvas)] pl-8 pr-3 text-sm text-[var(--app-fg)] placeholder:text-[var(--app-muted)] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                />
+              </div>
+              {ueDeptOptions.length > 1 ? (
+                <select
+                  value={ueDeptFilter}
+                  onChange={(e) => setUeDeptFilter(e.target.value)}
+                  className="h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-canvas)] px-3 text-sm text-[var(--app-fg)] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                >
+                  <option value="">Tous les départements</option>
+                  {ueDeptOptions.map((d) => (
+                    <option key={d.id} value={String(d.id)}>
+                      {d.code ? `${d.code} – ` : ‘’}{d.name}
+                    </option>
+                  ))}
+                </select>
+              ) : null}
+              {(ueSearch || ueDeptFilter) ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { setUeSearch(‘’); setUeDeptFilter(‘’) }}
+                    className="h-9 rounded-lg border border-[var(--app-border)] px-3 text-sm text-[var(--app-muted)] transition-colors hover:text-[var(--app-fg)]"
+                  >
+                    Réinitialiser
+                  </button>
+                  <span className="text-sm text-[var(--app-muted)]">
+                    {filteredUnits.length + filteredUnitsUnoffered.length} résultat{filteredUnits.length + filteredUnitsUnoffered.length !== 1 ? ‘s’ : ‘’}
+                  </span>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+
           <section className="space-y-3">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--app-muted)]">
               UE avec au moins un cours sur l’année
             </p>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {units.length === 0 ? (
+              {filteredUnits.length === 0 ? (
                 <p className="col-span-full rounded-xl border border-dashed border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_94%,var(--app-canvas))] px-4 py-8 text-center text-sm text-[var(--app-muted)] dark:bg-white/[0.03]">
-                  Aucune UE avec des cours sur cette année.
+                  {units.length === 0 ? ‘Aucune UE avec des cours sur cette année.’ : ‘Aucun résultat pour ce filtre.’}
                 </p>
               ) : (
-                units.map((u) => (
+                filteredUnits.map((u) => (
                   <TeachingUnitCard
                     key={u.id}
                     unit={u}
@@ -458,12 +544,12 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
               Catalogue : sans cours sur cette année
             </p>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {unitsUnoffered.length === 0 ? (
+              {filteredUnitsUnoffered.length === 0 ? (
                 <p className="col-span-full rounded-xl border border-dashed border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_94%,var(--app-canvas))] px-4 py-8 text-center text-sm text-[var(--app-muted)] dark:bg-white/[0.03]">
-                  Aucune UE dans cette catégorie.
+                  {unitsUnoffered.length === 0 ? 'Aucune UE dans cette catégorie.' : 'Aucun résultat pour ce filtre.'}
                 </p>
               ) : (
-                unitsUnoffered.map((u) => (
+                filteredUnitsUnoffered.map((u) => (
                   <TeachingUnitCard
                     key={u.id}
                     unit={u}

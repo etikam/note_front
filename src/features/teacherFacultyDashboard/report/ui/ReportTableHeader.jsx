@@ -5,6 +5,7 @@ const thBase =
 const thGroup = 'bg-brand-600/90 text-white dark:bg-brand-700'
 const thSub = 'bg-[color-mix(in_srgb,var(--app-elevated)_92%,var(--app-canvas))] text-[var(--app-muted)]'
 const thDebt = 'bg-secondary-500/15 text-secondary-900 dark:text-secondary-100'
+const thPending = 'bg-amber-500/12 text-amber-950 dark:text-amber-100'
 
 /** En-têtes groupés du tableau de rapport détaillé (3 lignes). */
 export function ReportTableHeader() {
@@ -25,6 +26,9 @@ export function ReportTableHeader() {
         </th>
         <th colSpan={5} className={cn(thBase, thDebt)}>
           Admis avec dette
+        </th>
+        <th colSpan={2} className={cn(thBase, thPending)}>
+          Autres / rattrapage
         </th>
         <th colSpan={2} className={cn(thBase, thGroup)}>
           Abandon
@@ -47,13 +51,16 @@ export function ReportTableHeader() {
           Nombre
         </th>
         <th colSpan={2} className={cn(thBase, thSub)}>
-          Pourcentage
+          % / évalués
         </th>
         <th className={cn(thBase, thDebt)}>1</th>
         <th className={cn(thBase, thDebt)}>2</th>
         <th className={cn(thBase, thDebt)}>3</th>
         <th className={cn(thBase, thDebt)}>4</th>
         <th className={cn(thBase, thDebt)}>≥5</th>
+        <th colSpan={2} className={cn(thBase, thPending)}>
+          Effectif
+        </th>
         <th colSpan={2} className={cn(thBase, thSub)}>
           Effectif
         </th>
@@ -72,6 +79,8 @@ export function ReportTableHeader() {
         <th className={cn(thBase, thDebt)}>Dettes</th>
         <th className={cn(thBase, thDebt)}>Dettes</th>
         <th className={cn(thBase, thDebt)}>Dettes</th>
+        <th className={cn(thBase, thPending)}>Total</th>
+        <th className={cn(thBase, thPending)}>Fille</th>
         <th className={cn(thBase, thSub)}>Total</th>
         <th className={cn(thBase, thSub)}>Fille</th>
       </tr>
