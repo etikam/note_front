@@ -472,7 +472,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
                   <option value="">Tous les départements</option>
                   {ueDeptOptions.map((d) => (
                     <option key={d.id} value={String(d.id)}>
-                      {d.code ? `${d.code} – ` : ‘’}{d.name}
+                      {[d.code, d.name].filter(Boolean).join(‘ – ‘)}
                     </option>
                   ))}
                 </select>
