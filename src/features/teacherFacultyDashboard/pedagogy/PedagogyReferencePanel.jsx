@@ -472,7 +472,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
                   <option value="">Tous les départements</option>
                   {ueDeptOptions.map((d) => (
                     <option key={d.id} value={String(d.id)}>
-                      {[d.code, d.name].filter(Boolean).join(‘ – ‘)}
+                      {d.name}{d.code ? <> ({d.code})</> : null}
                     </option>
                   ))}
                 </select>
@@ -481,13 +481,13 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
                 <>
                   <button
                     type="button"
-                    onClick={() => { setUeSearch(‘’); setUeDeptFilter(‘’) }}
+                    onClick={() => { setUeSearch(""); setUeDeptFilter("") }}
                     className="h-9 rounded-lg border border-[var(--app-border)] px-3 text-sm text-[var(--app-muted)] transition-colors hover:text-[var(--app-fg)]"
                   >
                     Réinitialiser
                   </button>
                   <span className="text-sm text-[var(--app-muted)]">
-                    {filteredUnits.length + filteredUnitsUnoffered.length} résultat{filteredUnits.length + filteredUnitsUnoffered.length !== 1 ? ‘s’ : ‘’}
+                    {filteredUnits.length + filteredUnitsUnoffered.length} résultat{filteredUnits.length + filteredUnitsUnoffered.length !== 1 ? "s" : ""}
                   </span>
                 </>
               ) : null}
@@ -501,7 +501,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filteredUnits.length === 0 ? (
                 <p className="col-span-full rounded-xl border border-dashed border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_94%,var(--app-canvas))] px-4 py-8 text-center text-sm text-[var(--app-muted)] dark:bg-white/[0.03]">
-                  {units.length === 0 ? ‘Aucune UE avec des cours sur cette année.’ : ‘Aucun résultat pour ce filtre.’}
+                  {units.length === 0 ? "Aucune UE avec des cours sur cette année." : "Aucun résultat pour ce filtre."}
                 </p>
               ) : (
                 filteredUnits.map((u) => (
@@ -546,7 +546,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filteredUnitsUnoffered.length === 0 ? (
                 <p className="col-span-full rounded-xl border border-dashed border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_94%,var(--app-canvas))] px-4 py-8 text-center text-sm text-[var(--app-muted)] dark:bg-white/[0.03]">
-                  {unitsUnoffered.length === 0 ? 'Aucune UE dans cette catégorie.' : 'Aucun résultat pour ce filtre.'}
+                  {unitsUnoffered.length === 0 ? "Aucune UE dans cette catégorie." : "Aucun résultat pour ce filtre."}
                 </p>
               ) : (
                 filteredUnitsUnoffered.map((u) => (
