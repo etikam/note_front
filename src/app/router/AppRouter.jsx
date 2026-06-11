@@ -40,6 +40,7 @@ import { TeacherFacultyImportPage } from '@/features/teacher/faculty/TeacherFacu
 import { TeacherFacultyLayout } from '@/features/teacher/faculty/TeacherFacultyLayout'
 import { TeacherFacultyListPage } from '@/features/teacher/faculty/TeacherFacultyListPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { StudentOnboardingPage } from '@/features/onboarding/pages/StudentOnboardingPage'
 
 /** Ancienne URL `/teacher/pedagogy` → `/teacher/academie` (conserve la query `?tab=`). */
 function RedirectPedagogyToAcademie() {
@@ -84,6 +85,9 @@ export function AppRouter() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
+        <Route element={<StudentRoute />}>
+          <Route path="/student/onboarding" element={<StudentOnboardingPage />} />
+        </Route>
         <Route element={<DashboardLayout />}>
           <Route element={<TeacherRoute />}>
             <Route path="/teacher/dashboard" element={<TeacherDashboardEntry />} />

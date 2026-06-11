@@ -3,10 +3,12 @@ function roleCodesOf(user) {
   return Array.isArray(user.teacher_role_codes) ? user.teacher_role_codes : []
 }
 
-/** Chemin d’accueil après connexion ou redirection « dashboard ». */
 export function getRoleHomePath(user) {
   if (!user) return '/auth/login'
-  if (user.role === 'student') return '/student/dashboard'
+  if (user.role === 'student') {
+    if (!user.onboarding_completed) return '/student/onboarding'
+    return '/student/dashboard'
+  }
   if (user.role === 'teacher') {
     if (isSimpleTeacherProfile(user)) return '/teacher/my-courses'
     return '/teacher/dashboard'
@@ -28,7 +30,6 @@ export function hasAllCapabilities(user, keys = []) {
   return keys.every((key) => Boolean(caps[key]))
 }
 
-/** Édition du dossier étudiant (PATCH fiche) : aligné backend DE / DG + `can_edit_student_dossier`. */
 export function canEditStudentDossier(user) {
   if (!user) return false
   if (Boolean(user.capabilities?.can_edit_student_dossier)) return true
@@ -36,7 +37,6 @@ export function canEditStudentDossier(user) {
   return hasTeacherRole(user, 'study_director') || hasTeacherRole(user, 'general_director')
 }
 
-/** Import administratif des notes (inscription sans éligibilité) — DE / DG. */
 export function canAdminGradeImport(user) {
   if (!user || user.role !== 'teacher') return false
   if (Boolean(user?.scope?.institution_wide)) return true
@@ -50,10 +50,6 @@ export function isSimpleTeacherProfile(user) {
   return !codes.some((c) => elevated.includes(c))
 }
 
-/**
- * Règle centralisée d'accès "espace Académie".
- * Exigence métier : chef de département n'y a pas accès.
- */
 export function canAccessAcademie(user) {
   if (!user || user.role !== 'teacher') return false
   if (hasTeacherRole(user, 'department_head')) return false
@@ -65,10 +61,6 @@ export function canAccessAcademie(user) {
   ])
 }
 
-/**
- * Evaluateur générique pour masquer onglet/composant selon règle.
- * Exemple rule: { anyCapabilities: ['can_manage_courses'], denyTeacherRoles: ['department_head'] }
- */
 export function canAccessRule(user, rule = {}) {
   if (!rule || typeof rule !== 'object') return true
   if (rule.teacherOnly && user?.role !== 'teacher') return false

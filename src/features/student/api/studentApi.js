@@ -16,6 +16,11 @@ export async function patchStudentProfile(body, config) {
   return data
 }
 
+export async function postOnboardingComplete(body, config) {
+  const { data } = await apiClient.post(endpoints.students.onboardingComplete, body, config)
+  return data
+}
+
 export async function fetchStudentStats(config) {
   const { data } = await apiClient.get(endpoints.students.meStats, config)
   return data

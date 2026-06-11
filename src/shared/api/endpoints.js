@@ -87,6 +87,7 @@ export const endpoints = {
     meEnrollmentCandidates: `${API_PREFIX}/students/me/enrollment-candidates/`,
     meCohort: `${API_PREFIX}/students/me/cohort/`,
     profile: `${API_PREFIX}/students/profile/`,
+    onboardingComplete: `${API_PREFIX}/students/profile/onboarding/complete/`,
   },
   teachers: {
     list: `${API_PREFIX}/teachers/`,
