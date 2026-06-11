@@ -50,7 +50,7 @@ const STEPS = [
 
 function StepIndicator({ current }) {
   return (
-    <div className="flex items-center justify-center gap-0">
+    <div className="flex items-center justify-center">
       {STEPS.map((step, idx) => {
         const num = idx + 1
         const done = num < current
@@ -58,30 +58,20 @@ function StepIndicator({ current }) {
         const Icon = step.icon
         return (
           <div key={num} className="flex items-center">
-            <div className="flex flex-col items-center gap-1.5">
-              <div
-                className={cn(
-                  'w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 text-sm font-semibold',
-                  done && 'bg-brand-600 text-white shadow-sm shadow-brand-200 dark:shadow-brand-900/30',
-                  active && 'bg-brand-600 text-white ring-4 ring-brand-100 dark:ring-brand-900/40 shadow-md shadow-brand-200 dark:shadow-brand-900/30',
-                  !done && !active && 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500',
-                )}
-              >
-                {done ? <Check size={16} strokeWidth={2.5} /> : <Icon size={15} />}
-              </div>
-              <span
-                className={cn(
-                  'text-xs font-medium whitespace-nowrap',
-                  active ? 'text-brand-700 dark:text-brand-400' : 'text-zinc-400 dark:text-zinc-500',
-                )}
-              >
-                {step.label}
-              </span>
+            <div
+              className={cn(
+                'w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300',
+                done && 'bg-brand-600 text-white shadow-sm',
+                active && 'bg-brand-600 text-white ring-4 ring-brand-100 dark:ring-brand-900/40 shadow-md',
+                !done && !active && 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500',
+              )}
+            >
+              {done ? <Check size={16} strokeWidth={2.5} /> : <Icon size={15} />}
             </div>
             {idx < STEPS.length - 1 && (
               <div
                 className={cn(
-                  'h-px w-12 sm:w-16 mx-1 mt-[-10px] transition-colors duration-300',
+                  'h-px w-10 sm:w-16 mx-1 transition-colors duration-300',
                   num < current ? 'bg-brand-500' : 'bg-zinc-200 dark:bg-zinc-700',
                 )}
               />
@@ -105,7 +95,14 @@ function Step1Photo({ user, profile, photoPreview, onPhotoChange, uploading }) {
           Bienvenue, {profile?.first_name || user?.full_name?.split(' ')[0]} 👋
         </h2>
         <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400 max-w-sm">
-          Commençons par personnaliser votre profil. Commencez par ajouter une photo de profil.
+          Complétez votre profil en quelques étapes pour finaliser votre inscription.
+        </p>
+      </div>
+
+      <div className="w-full flex items-start gap-2.5 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 px-3.5 py-3">
+        <span className="text-amber-500 dark:text-amber-400 mt-0.5 shrink-0">⚠</span>
+        <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+          Veillez à renseigner vos <strong>vraies informations</strong>. Elles seront utilisées pour votre dossier académique officiel et ne pourront être modifiées que par l'administration.
         </p>
       </div>
 
@@ -181,7 +178,7 @@ function Step2Personal({ form, onChange, errors }) {
       <div className="text-center">
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Vos coordonnées</h2>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Ces informations permettent de compléter votre dossier.
+          Renseignez vos vraies informations pour votre dossier officiel.
         </p>
       </div>
 
@@ -278,9 +275,9 @@ function Step3Family({ form, onChange, errors }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="text-center">
-        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Famille & présentation</h2>
+        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Informations familiales</h2>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Informations complémentaires pour votre dossier étudiant.
+          Renseignez vos vraies informations pour votre dossier officiel.
         </p>
       </div>
 
@@ -308,26 +305,6 @@ function Step3Family({ form, onChange, errors }) {
             maxLength={150}
           />
         </Field>
-
-        <Field
-          label="Présentation personnelle"
-          htmlFor="bio"
-          hint="Décrivez-vous en quelques mots (optionnel, max. 500 caractères)"
-          error={errors.bio}
-        >
-          <textarea
-            id="bio"
-            rows={4}
-            className={cn(inputCls, 'resize-none')}
-            value={form.bio}
-            onChange={(e) => onChange('bio', e.target.value)}
-            placeholder="Ex : Étudiant(e) en informatique, passionné(e) par le développement logiciel…"
-            maxLength={500}
-          />
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 text-right -mt-0.5">
-            {form.bio.length}/500
-          </p>
-        </Field>
       </div>
     </div>
   )
@@ -338,9 +315,9 @@ function Step3Family({ form, onChange, errors }) {
 function SummaryRow({ label, value }) {
   if (!value) return null
   return (
-    <div className="flex items-start justify-between gap-4 py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-      <span className="text-sm text-zinc-500 dark:text-zinc-400 shrink-0 w-36">{label}</span>
-      <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200 text-right">{value}</span>
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-0.5 sm:gap-4 py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+      <span className="text-xs sm:text-sm text-zinc-400 dark:text-zinc-500 sm:shrink-0 sm:w-36">{label}</span>
+      <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200 sm:text-right">{value}</span>
     </div>
   )
 }
@@ -405,12 +382,6 @@ function Step4Summary({ profile, form, photoPreview }) {
         <div className="px-4">
           <SummaryRow label="Nom du père" value={form.dad_name} />
           <SummaryRow label="Nom de la mère" value={form.mum_name} />
-          {form.bio && (
-            <div className="py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">Présentation</p>
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed">{form.bio}</p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -532,9 +503,9 @@ export function StudentOnboardingPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-brand-950/20 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-brand-950/20 flex flex-col items-center justify-center px-3 py-6 sm:p-4">
       {/* header */}
-      <div className="flex items-center gap-2 mb-8">
+      <div className="flex items-center gap-2 mb-5 sm:mb-8">
         <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shadow">
           <GraduationCap size={18} className="text-white" />
         </div>
@@ -544,12 +515,12 @@ export function StudentOnboardingPage() {
       {/* card */}
       <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
         {/* step bar */}
-        <div className="px-6 pt-6 pb-5 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-zinc-100 dark:border-zinc-800">
           <StepIndicator current={step} />
         </div>
 
         {/* content */}
-        <div className="px-6 py-6 min-h-[340px]">
+        <div className="px-4 sm:px-6 py-5 sm:py-6 min-h-[320px] sm:min-h-[340px]">
           {step === 1 && (
             <Step1Photo
               user={user}
@@ -571,7 +542,7 @@ export function StudentOnboardingPage() {
         </div>
 
         {/* footer */}
-        <div className="px-6 pb-6 flex flex-col gap-3">
+        <div className="px-4 sm:px-6 pb-5 sm:pb-6 flex flex-col gap-3">
           {stepError && (
             <p className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-lg px-3 py-2 text-center">
               {stepError}
