@@ -4,7 +4,7 @@ const OTP_REGEX = /^\d{6}$/
 export function validateMatricule(value) {
   const trimmed = String(value ?? '').trim()
   if (!trimmed) return 'Le matricule est requis.'
-  if (trimmed.length < 8 ) return 'Le matricule doit contenir au moins 8 caracteres.'
+  if (trimmed.length < 6 ) return 'Le matricule doit contenir au moins 6 caracteres.'
   return ''
 }
 
