@@ -59,6 +59,19 @@ export function TeacherStudentsLayout() {
                   Import des notes
                 </span>
               )}
+              {showGradesImportTab ? (
+                <NavLink to="/teacher/students/grades" className={studentsTabClass} role="tab">
+                  Notes
+                </NavLink>
+              ) : (
+                <span
+                  className="inline-flex cursor-not-allowed items-center border-b-2 border-transparent px-4 py-3 text-sm font-semibold tracking-tight text-secondary-200/50 opacity-80"
+                  title="Réservé au directeur des études ou au directeur général"
+                  aria-disabled="true"
+                >
+                  Notes
+                </span>
+              )}
             </nav>
           </div>
         </div>

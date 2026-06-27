@@ -59,8 +59,34 @@ export async function deleteLevelManage(id, config = {}) {
   await apiClient.delete(endpoints.academics.levelsManageDetail(id), { skipErrorToast: true, ...config })
 }
 
+/**
+ * @param {string | number} levelId
+ * @param {import('axios').AxiosRequestConfig} [config]
+ */
+export async function fetchLevelGradesReport(levelId, config = {}) {
+  const { data } = await apiClient.get(endpoints.academics.levelGradesReport(levelId), {
+    skipErrorToast: true,
+    ...config,
+  })
+  return data
+}
+
 /** @param {import('axios').AxiosRequestConfig} [config] */
 export async function fetchCohorts(config) {
   const { data } = await apiClient.get(endpoints.academics.cohorts, config)
   return normalizeListPayload(data)
+}
+
+/**
+ * @param {string | number} cohortId
+ * @param {{ department_id?: string | number }} [params]
+ * @param {import('axios').AxiosRequestConfig} [config]
+ */
+export async function fetchCohortGradesReport(cohortId, params = {}, config = {}) {
+  const { data } = await apiClient.get(endpoints.academics.cohortGradesReport(cohortId), {
+    params,
+    skipErrorToast: true,
+    ...config,
+  })
+  return data
 }

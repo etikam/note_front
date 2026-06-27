@@ -5,6 +5,7 @@ import {
   BookOpen,
   Calendar,
   ChevronRight,
+  ClipboardList,
   ChevronsLeft,
   ChevronsRight,
   FileText,
@@ -124,7 +125,8 @@ function buildTeacherNavItems(capabilities = {}, user = null) {
           isActive: ({ pathname }) =>
             pathname.startsWith('/teacher/students') &&
             !pathname.includes('/import-export') &&
-            !pathname.includes('/grades-import'),
+            !pathname.includes('/grades-import') &&
+            !pathname.includes('/students/grades'),
         },
         {
           to: '/teacher/students/import-export',
@@ -143,6 +145,16 @@ function buildTeacherNavItems(capabilities = {}, user = null) {
             anyCapabilities: ['can_edit_grades'],
           },
           isActive: ({ pathname }) => pathname.startsWith('/teacher/students/grades-import'),
+        },
+        {
+          to: '/teacher/students/grades',
+          label: 'Notes',
+          icon: ClipboardList,
+          accessRule: {
+            requireTeacherRoles: ['study_director', 'general_director'],
+            anyCapabilities: ['can_view_directory_aggregated_stats'],
+          },
+          isActive: ({ pathname }) => pathname.startsWith('/teacher/students/grades'),
         },
       ],
     },
