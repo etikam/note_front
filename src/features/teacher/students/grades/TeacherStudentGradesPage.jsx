@@ -128,7 +128,6 @@ export function TeacherStudentGradesPage() {
             <p className="text-sm text-zinc-500 dark:text-zinc-400 -mb-2">
               {g.report.cohort.label}
               {g.report.department ? ` · ${g.report.department.name}` : ''}
-              {g.report.academic_year?.year ? ` · ${g.report.academic_year.year}` : ''}
               {` · ${g.report.students.length} étudiant${g.report.students.length > 1 ? 's' : ''}`}
             </p>
           )}
