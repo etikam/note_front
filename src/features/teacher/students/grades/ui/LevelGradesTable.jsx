@@ -14,6 +14,9 @@ const STICKY_CELL = cn(CELL, 'sticky z-10 bg-[var(--app-elevated)]')
 
 const VERT = 'inline-block [writing-mode:vertical-rl] rotate-180 h-[11rem] break-all mx-auto'
 
+/** Séparateur épais et solide entre deux blocs de semestre. */
+const SEM_DIVIDER = 'border-l-[3px] border-l-zinc-500 dark:border-l-zinc-400'
+
 function formatAverage(value) {
   if (value === null || value === undefined) return '—'
   const n = Number(value)
@@ -92,13 +95,17 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
             <th className={cn(STICKY_HEADER_CELL, 'left-[9.5rem] whitespace-nowrap')} rowSpan={2}>
               Nom et prénom
             </th>
-            {semesters.map((semester) => {
+            {semesters.map((semester, semIdx) => {
               const colCount =
                 semester.teaching_units.reduce((n, tu) => n + tu.courses.length + 1, 0) + 1
               return (
                 <th
                   key={`sem-${semester.number}`}
-                  className={cn(HEADER_CELL, 'text-center bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)]')}
+                  className={cn(
+                    HEADER_CELL,
+                    'text-center bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)]',
+                    semIdx > 0 && SEM_DIVIDER,
+                  )}
                   colSpan={colCount}
                 >
                   Semestre {semester.number}
@@ -110,11 +117,12 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
             </th>
           </tr>
           <tr>
-            {semesters.map((semester) =>
-              semester.teaching_units.map((tu) => (
+            {semesters.map((semester, semIdx) =>
+              semester.teaching_units.map((tu, tuIdx) => (
                 <Fragment key={tu.id}>
-                  {tu.courses.map((course) => {
+                  {tu.courses.map((course, courseIdx) => {
                     const isSelected = selectedCourseId && String(course.id) === String(selectedCourseId)
+                    const isFirstOfSemester = semIdx > 0 && tuIdx === 0 && courseIdx === 0
                     return (
                       <th
                         key={course.id}
@@ -122,20 +130,30 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                           HEADER_CELL,
                           'text-center',
                           isSelected && 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300',
+                          isFirstOfSemester && SEM_DIVIDER,
                         )}
                       >
                         <span className={VERT}>{course.name}</span>
                       </th>
                     )
                   })}
-                  <th className={cn(HEADER_CELL, 'text-center bg-secondary-500/5')}>
+                  <th
+                    className={cn(
+                      HEADER_CELL,
+                      'text-center bg-secondary-500/5',
+                      semIdx > 0 && tuIdx === 0 && tu.courses.length === 0 && SEM_DIVIDER,
+                    )}
+                  >
                     <span className={VERT}>Moy. UE</span>
                   </th>
                 </Fragment>
               )),
             )}
-            {semesters.map((semester) => (
-              <th key={`sem-nonval-${semester.number}`} className={cn(HEADER_CELL, 'text-center')}>
+            {semesters.map((semester, semIdx) => (
+              <th
+                key={`sem-nonval-${semester.number}`}
+                className={cn(HEADER_CELL, 'text-center', semIdx > 0 && SEM_DIVIDER)}
+              >
                 <span className={VERT}>Nb cours non validés</span>
               </th>
             ))}
@@ -151,13 +169,14 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
               <td className={cn(STICKY_CELL, 'left-[9.5rem] whitespace-nowrap')}>
                 {highlight(`${student.last_name} ${student.first_name}`, searchQuery)}
               </td>
-              {semesters.map((semester) =>
-                semester.teaching_units.map((tu) => (
+              {semesters.map((semester, semIdx) =>
+                semester.teaching_units.map((tu, tuIdx) => (
                   <Fragment key={tu.id}>
-                    {tu.courses.map((course) => {
+                    {tu.courses.map((course, courseIdx) => {
                       const grade = student.course_grades?.[String(course.id)]
                       const notValidated = !grade || grade.status !== 'PASSED'
                       const isSelected = selectedCourseId && String(course.id) === String(selectedCourseId)
+                      const isFirstOfSemester = semIdx > 0 && tuIdx === 0 && courseIdx === 0
                       return (
                         <td
                           key={course.id}
@@ -168,6 +187,7 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                             !grade ? 'text-zinc-400 dark:text-zinc-500' : '',
                             grade ? 'cursor-pointer hover:bg-secondary-500/10' : '',
                             isSelected && 'bg-amber-50 dark:bg-amber-900/20',
+                            isFirstOfSemester && SEM_DIVIDER,
                           )}
                           onClick={grade ? () => setSelected({ student, course, grade }) : undefined}
                         >
@@ -175,14 +195,23 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                         </td>
                       )
                     })}
-                    <td className={cn(CELL, 'text-center font-semibold bg-secondary-500/5')}>
+                    <td
+                      className={cn(
+                        CELL,
+                        'text-center font-semibold bg-secondary-500/5',
+                        semIdx > 0 && tuIdx === 0 && tu.courses.length === 0 && SEM_DIVIDER,
+                      )}
+                    >
                       {formatAverage(student.teaching_unit_averages?.[String(tu.id)])}
                     </td>
                   </Fragment>
                 )),
               )}
-              {semesters.map((semester) => (
-                <td key={`sem-nonval-${semester.number}`} className={cn(CELL, 'text-center font-semibold')}>
+              {semesters.map((semester, semIdx) => (
+                <td
+                  key={`sem-nonval-${semester.number}`}
+                  className={cn(CELL, 'text-center font-semibold', semIdx > 0 && SEM_DIVIDER)}
+                >
                   {student.semester_non_validated?.[semester.number] ?? 0}
                 </td>
               ))}
