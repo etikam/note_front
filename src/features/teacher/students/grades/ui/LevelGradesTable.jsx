@@ -17,6 +17,15 @@ const VERT = 'inline-block [writing-mode:vertical-rl] rotate-180 h-[11rem] break
 /** Séparateur épais et solide entre deux blocs de semestre. */
 const SEM_DIVIDER = 'border-l-[3px] border-l-zinc-500 dark:border-l-zinc-400'
 
+/** Séparateur plus fin entre deux UE d'un même semestre. */
+const UE_DIVIDER = 'border-l-2 border-l-zinc-300 dark:border-l-zinc-600'
+
+/** Classe de séparateur à appliquer à la première colonne d'une UE (semestre &gt; UE). */
+function tuDividerClass(semIdx, tuIdx) {
+  if (tuIdx === 0) return semIdx > 0 ? SEM_DIVIDER : ''
+  return UE_DIVIDER
+}
+
 function formatAverage(value) {
   if (value === null || value === undefined) return '—'
   const n = Number(value)
@@ -86,13 +95,13 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
       <table className="w-full border-collapse text-left text-sm">
         <thead>
           <tr>
-            <th className={cn(STICKY_HEADER_CELL, 'left-0 w-10 text-center')} rowSpan={2}>
+            <th className={cn(STICKY_HEADER_CELL, 'left-0 w-10 text-center')} rowSpan={3}>
               N°
             </th>
-            <th className={cn(STICKY_HEADER_CELL, 'left-10 w-[7rem] whitespace-nowrap')} rowSpan={2}>
+            <th className={cn(STICKY_HEADER_CELL, 'left-10 w-[7rem] whitespace-nowrap')} rowSpan={3}>
               Matricule
             </th>
-            <th className={cn(STICKY_HEADER_CELL, 'left-[9.5rem] whitespace-nowrap')} rowSpan={2}>
+            <th className={cn(STICKY_HEADER_CELL, 'left-[9.5rem] whitespace-nowrap')} rowSpan={3}>
               Nom et prénom
             </th>
             {semesters.map((semester, semIdx) => {
@@ -112,9 +121,35 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                 </th>
               )
             })}
-            <th className={cn(HEADER_CELL, 'text-center')} rowSpan={2}>
+            <th className={cn(HEADER_CELL, 'text-center')} rowSpan={3}>
               <span className={VERT}>Nb total de cours non validés</span>
             </th>
+          </tr>
+          <tr>
+            {semesters.map((semester, semIdx) => (
+              <Fragment key={`sem-ue-${semester.number}`}>
+                {semester.teaching_units.map((tu, tuIdx) => (
+                  <th
+                    key={tu.id}
+                    className={cn(
+                      HEADER_CELL,
+                      'text-center bg-[color-mix(in_srgb,var(--app-elevated)_96%,black)]',
+                      tuDividerClass(semIdx, tuIdx),
+                    )}
+                    colSpan={tu.courses.length + 1}
+                  >
+                    {tu.name}
+                  </th>
+                ))}
+                <th
+                  key={`sem-nonval-${semester.number}`}
+                  className={cn(HEADER_CELL, 'text-center', semIdx > 0 && SEM_DIVIDER)}
+                  rowSpan={2}
+                >
+                  <span className={VERT}>Nb cours non validés</span>
+                </th>
+              </Fragment>
+            ))}
           </tr>
           <tr>
             {semesters.map((semester, semIdx) =>
@@ -122,7 +157,7 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                 <Fragment key={tu.id}>
                   {tu.courses.map((course, courseIdx) => {
                     const isSelected = selectedCourseId && String(course.id) === String(selectedCourseId)
-                    const isFirstOfSemester = semIdx > 0 && tuIdx === 0 && courseIdx === 0
+                    const divider = courseIdx === 0 ? tuDividerClass(semIdx, tuIdx) : ''
                     return (
                       <th
                         key={course.id}
@@ -130,7 +165,7 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                           HEADER_CELL,
                           'text-center',
                           isSelected && 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300',
-                          isFirstOfSemester && SEM_DIVIDER,
+                          divider,
                         )}
                       >
                         <span className={VERT}>{course.name}</span>
@@ -141,7 +176,7 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                     className={cn(
                       HEADER_CELL,
                       'text-center bg-secondary-500/5',
-                      semIdx > 0 && tuIdx === 0 && tu.courses.length === 0 && SEM_DIVIDER,
+                      tu.courses.length === 0 && tuDividerClass(semIdx, tuIdx),
                     )}
                   >
                     <span className={VERT}>Moy. UE</span>
@@ -149,14 +184,6 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                 </Fragment>
               )),
             )}
-            {semesters.map((semester, semIdx) => (
-              <th
-                key={`sem-nonval-${semester.number}`}
-                className={cn(HEADER_CELL, 'text-center', semIdx > 0 && SEM_DIVIDER)}
-              >
-                <span className={VERT}>Nb cours non validés</span>
-              </th>
-            ))}
           </tr>
         </thead>
         <tbody>
@@ -176,7 +203,7 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                       const grade = student.course_grades?.[String(course.id)]
                       const notValidated = !grade || grade.status !== 'PASSED'
                       const isSelected = selectedCourseId && String(course.id) === String(selectedCourseId)
-                      const isFirstOfSemester = semIdx > 0 && tuIdx === 0 && courseIdx === 0
+                      const divider = courseIdx === 0 ? tuDividerClass(semIdx, tuIdx) : ''
                       return (
                         <td
                           key={course.id}
@@ -187,7 +214,7 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                             !grade ? 'text-zinc-400 dark:text-zinc-500' : '',
                             grade ? 'cursor-pointer hover:bg-secondary-500/10' : '',
                             isSelected && 'bg-amber-50 dark:bg-amber-900/20',
-                            isFirstOfSemester && SEM_DIVIDER,
+                            divider,
                           )}
                           onClick={grade ? () => setSelected({ student, course, grade }) : undefined}
                         >
@@ -199,7 +226,7 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
                       className={cn(
                         CELL,
                         'text-center font-semibold bg-secondary-500/5',
-                        semIdx > 0 && tuIdx === 0 && tu.courses.length === 0 && SEM_DIVIDER,
+                        tu.courses.length === 0 && tuDividerClass(semIdx, tuIdx),
                       )}
                     >
                       {formatAverage(student.teaching_unit_averages?.[String(tu.id)])}
