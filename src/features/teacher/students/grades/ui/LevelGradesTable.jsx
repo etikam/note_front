@@ -196,51 +196,48 @@ export function LevelGradesTable({ report, selectedCourseId = '', searchQuery = 
               <td className={cn(STICKY_CELL, 'left-[9.5rem] whitespace-nowrap')}>
                 {highlight(`${student.last_name} ${student.first_name}`, searchQuery)}
               </td>
-              {semesters.map((semester, semIdx) =>
-                semester.teaching_units.map((tu, tuIdx) => (
-                  <Fragment key={tu.id}>
-                    {tu.courses.map((course, courseIdx) => {
-                      const grade = student.course_grades?.[String(course.id)]
-                      const notValidated = !grade || grade.status !== 'PASSED'
-                      const isSelected = selectedCourseId && String(course.id) === String(selectedCourseId)
-                      const divider = courseIdx === 0 ? tuDividerClass(semIdx, tuIdx) : ''
-                      return (
-                        <td
-                          key={course.id}
-                          className={cn(
-                            CELL,
-                            'text-center',
-                            notValidated && grade ? 'text-orange-600 dark:text-orange-300' : '',
-                            !grade ? 'text-zinc-400 dark:text-zinc-500' : '',
-                            grade ? 'cursor-pointer hover:bg-secondary-500/10' : '',
-                            isSelected && 'bg-amber-50 dark:bg-amber-900/20',
-                            divider,
-                          )}
-                          onClick={grade ? () => setSelected({ student, course, grade }) : undefined}
-                        >
-                          {formatAverage(grade?.average)}
-                        </td>
-                      )
-                    })}
-                    <td
-                      className={cn(
-                        CELL,
-                        'text-center font-semibold bg-secondary-500/5',
-                        tu.courses.length === 0 && tuDividerClass(semIdx, tuIdx),
-                      )}
-                    >
-                      {formatAverage(student.teaching_unit_averages?.[String(tu.id)])}
-                    </td>
-                  </Fragment>
-                )),
-              )}
               {semesters.map((semester, semIdx) => (
-                <td
-                  key={`sem-nonval-${semester.number}`}
-                  className={cn(CELL, 'text-center font-semibold', semIdx > 0 && SEM_DIVIDER)}
-                >
-                  {student.semester_non_validated?.[semester.number] ?? 0}
-                </td>
+                <Fragment key={`sem-${semester.number}`}>
+                  {semester.teaching_units.map((tu, tuIdx) => (
+                    <Fragment key={tu.id}>
+                      {tu.courses.map((course, courseIdx) => {
+                        const grade = student.course_grades?.[String(course.id)]
+                        const notValidated = !grade || grade.status !== 'PASSED'
+                        const isSelected = selectedCourseId && String(course.id) === String(selectedCourseId)
+                        const divider = courseIdx === 0 ? tuDividerClass(semIdx, tuIdx) : ''
+                        return (
+                          <td
+                            key={course.id}
+                            className={cn(
+                              CELL,
+                              'text-center',
+                              notValidated && grade ? 'text-orange-600 dark:text-orange-300' : '',
+                              !grade ? 'text-zinc-400 dark:text-zinc-500' : '',
+                              grade ? 'cursor-pointer hover:bg-secondary-500/10' : '',
+                              isSelected && 'bg-amber-50 dark:bg-amber-900/20',
+                              divider,
+                            )}
+                            onClick={grade ? () => setSelected({ student, course, grade }) : undefined}
+                          >
+                            {formatAverage(grade?.average)}
+                          </td>
+                        )
+                      })}
+                      <td
+                        className={cn(
+                          CELL,
+                          'text-center font-semibold bg-secondary-500/5',
+                          tu.courses.length === 0 && tuDividerClass(semIdx, tuIdx),
+                        )}
+                      >
+                        {formatAverage(student.teaching_unit_averages?.[String(tu.id)])}
+                      </td>
+                    </Fragment>
+                  ))}
+                  <td className={cn(CELL, 'text-center font-semibold', semIdx > 0 && SEM_DIVIDER)}>
+                    {student.semester_non_validated?.[semester.number] ?? 0}
+                  </td>
+                </Fragment>
               ))}
               <td className={cn(CELL, 'text-center font-bold')}>{student.total_non_validated}</td>
             </tr>
