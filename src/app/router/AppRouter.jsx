@@ -32,7 +32,6 @@ import { TeacherStudentsImportPage } from '@/features/teacher/students/TeacherSt
 import { TeacherStudentsLayout } from '@/features/teacher/students/TeacherStudentsLayout'
 import { TeacherStudentsListPage } from '@/features/teacher/students/TeacherStudentsListPage'
 import { TeacherCourseDetailPage } from '@/features/teacherFacultyDashboard/pages/TeacherCourseDetailPage'
-import { TeacherPedagogyPage } from '@/features/teacherFacultyDashboard/pages/TeacherPedagogyPage'
 import { TeacherFacultyCourseAssignmentDetailPage } from '@/features/teacher/faculty/TeacherFacultyCourseAssignmentDetailPage'
 import { TeacherFacultyCourseAssignmentsPage } from '@/features/teacher/faculty/TeacherFacultyCourseAssignmentsPage'
 import { TeacherFacultyDetailPage } from '@/features/teacher/faculty/TeacherFacultyDetailPage'
@@ -49,6 +48,7 @@ function RedirectPedagogyToAcademie() {
 }
 
 const HomeDashboardPage = lazy(() => import('@/features/dashboard/pages/HomeDashboardPage'))
+const CurriculumPage = lazy(() => import('@/features/curriculum/pages/CurriculumPage'))
 const StructurePage = lazy(() => import('@/features/structure/pages/StructurePage'))
 const NominationsPage = lazy(() => import('@/features/admin/pages/NominationsPage'))
 const RolesPage = lazy(() => import('@/features/admin/pages/RolesPage'))
@@ -105,7 +105,7 @@ export function AppRouter() {
               <Route path="/admin/grade-circuit" element={<Lazy><GradeCircuitPage /></Lazy>} />
             </Route>
             <Route path="/teacher/my-courses" element={<TeacherMyCoursesPage />} />
-            <Route path="/teacher/academie" element={<TeacherPedagogyPage />} />
+            <Route path="/teacher/academie" element={<Lazy><CurriculumPage /></Lazy>} />
             <Route path="/teacher/pedagogy" element={<RedirectPedagogyToAcademie />} />
             <Route path="/teacher/courses/:courseId" element={<TeacherCourseDetailPage />} />
             <Route path="/teacher/departments" element={<Navigate to="/structure" replace />} />
