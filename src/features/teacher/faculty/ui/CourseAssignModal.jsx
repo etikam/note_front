@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Sparkles, X } from 'lucide-react'
 
-import { useAuth } from '@/features/auth/model/AuthContext'
-import { fetchDepartments } from '@/features/academicYear/api/academicsApi'
+import { useScopeOptions } from '@/features/access/model/useScopeOptions'
+import { defaultScope } from '@/features/access/model/scopeFilter'
+import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
 import {
   fetchCourseAssignmentCandidates,
   fetchCourseAssignmentModules,
@@ -40,20 +41,28 @@ function SectionTitle({ step, label, done, titleId }) {
   )
 }
 
-export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) {
-  const { user } = useAuth()
-  const managedDeptId = user?.scope?.managed_department_id ?? null
-  const institutionWide = Boolean(user?.scope?.institution_wide)
-  /** Cantonné à un département (chef, etc.) ; DG / DE choisissent le département dans le flux. */
-  const lockedDeptId = managedDeptId != null && !institutionWide ? managedDeptId : null
+function scopeQuery({ departmentId, programId }) {
+  if (programId) return { program_id: programId }
+  if (departmentId) return { department_id: departmentId }
+  return null
+}
 
-  const [departmentId, setDepartmentId] = useState('')
+const EMPTY_SCOPE = { departmentId: '', programId: '' }
+
+export function CourseAssignModal({ open, onClose, onSuccess, academicYearId, initialScope = EMPTY_SCOPE }) {
+  const scopeOptions = useScopeOptions('courses.assign', { enabled: open })
+  /** Périmètre réduit à une entité (chef de département à programme unique, directeur de programme) : pas de choix. */
+  const lockedScope = useMemo(() => defaultScope(scopeOptions), [scopeOptions])
+  const locked = Boolean(lockedScope.programId || (lockedScope.departmentId && scopeOptions.departments.length === 1))
+  const startScope = initialScope.departmentId || initialScope.programId ? initialScope : lockedScope
+
+  const [scope, setScope] = useState(EMPTY_SCOPE)
+  const query = scopeQuery(scope)
   const [moduleId, setModuleId] = useState('')
   const [courseId, setCourseId] = useState('')
   const [teacherId, setTeacherId] = useState('')
   const [teacherQuery, setTeacherQuery] = useState('')
 
-  const [departments, setDepartments] = useState([])
   const [modules, setModules] = useState([])
   const [candidates, setCandidates] = useState([])
   const [teachers, setTeachers] = useState([])
@@ -65,19 +74,18 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
 
-  const showDepartmentPicker = lockedDeptId == null
-  const deptChosen = lockedDeptId != null || Boolean(departmentId)
+  const showDepartmentPicker = !locked
+  const deptChosen = Boolean(query)
   const moduleChosen = Boolean(moduleId)
   const courseChosen = Boolean(courseId)
   const teacherChosen = Boolean(teacherId)
 
   const reset = useCallback(() => {
-    setDepartmentId(lockedDeptId != null ? String(lockedDeptId) : '')
+    setScope(startScope)
     setModuleId('')
     setCourseId('')
     setTeacherId('')
     setTeacherQuery('')
-    setDepartments([])
     setModules([])
     setCandidates([])
     setTeachers([])
@@ -87,11 +95,12 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
     setLoadingCourses(false)
     setLoadingTeachers(false)
     setSubmitting(false)
-  }, [lockedDeptId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- périmètre de départ figé à l'ouverture
+  }, [startScope.departmentId, startScope.programId])
 
-  /** Réinitialise le formulaire sans fermer la modale (conserve la liste des départements déjà chargée). */
+  /** Réinitialise le formulaire sans fermer la modale. */
   const clearForm = useCallback(() => {
-    setDepartmentId(lockedDeptId != null ? String(lockedDeptId) : '')
+    setScope(locked ? lockedScope : EMPTY_SCOPE)
     setModuleId('')
     setCourseId('')
     setTeacherId('')
@@ -104,32 +113,23 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
     setLoadingModules(false)
     setLoadingCourses(false)
     setLoadingTeachers(false)
-  }, [lockedDeptId])
+  }, [locked, lockedScope])
 
   const hasFormProgress = Boolean(
-    moduleId || courseId || teacherId || teacherQuery.trim() || (showDepartmentPicker && departmentId),
+    moduleId || courseId || teacherId || teacherQuery.trim() || (showDepartmentPicker && query),
   )
 
   useEffect(() => {
     if (!open) return
     reset()
-    ;(async () => {
-      try {
-        const d = await fetchDepartments()
-        setDepartments(d)
-      } catch {
-        setDepartments([])
-      }
-    })()
-  }, [open, lockedDeptId, reset])
+  }, [open, reset])
 
   const loadModules = useCallback(async () => {
-    if (!academicYearId || !departmentId) return
+    if (!academicYearId || !query) return
     setLoadingModules(true)
     setError(null)
     try {
-      const params = { academic_year_id: academicYearId, department_id: departmentId }
-      const rows = await fetchCourseAssignmentModules(params)
+      const rows = await fetchCourseAssignmentModules({ academic_year_id: academicYearId, ...query })
       setModules(Array.isArray(rows) ? rows : [])
     } catch (e) {
       setError(e?.message ?? 'Modules indisponibles.')
@@ -137,7 +137,8 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
     } finally {
       setLoadingModules(false)
     }
-  }, [academicYearId, departmentId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ``query`` dérive de ``scope``
+  }, [academicYearId, scope])
 
   useEffect(() => {
     if (!open || !deptChosen) return
@@ -145,13 +146,13 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
   }, [open, deptChosen, loadModules])
 
   const loadCandidates = useCallback(async () => {
-    if (!academicYearId || !departmentId || !moduleId) return
+    if (!academicYearId || !query || !moduleId) return
     setLoadingCourses(true)
     setError(null)
     try {
       const rows = await fetchCourseAssignmentCandidates({
         academic_year_id: academicYearId,
-        department_id: departmentId,
+        ...query,
         module_id: moduleId,
       })
       setCandidates(Array.isArray(rows) ? rows : [])
@@ -161,7 +162,8 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
     } finally {
       setLoadingCourses(false)
     }
-  }, [academicYearId, departmentId, moduleId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ``query`` dérive de ``scope``
+  }, [academicYearId, scope, moduleId])
 
   useEffect(() => {
     if (!open || !moduleChosen) return
@@ -252,7 +254,7 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
                   Nouvelle affectation
                 </h2>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                  Choisissez le département, le module, la matière puis l’enseignant — tout sur ce formulaire.
+                  Choisissez le programme, le module, la matière puis l’enseignant — tout sur ce formulaire.
                 </p>
               </div>
             </div>
@@ -275,11 +277,13 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
             </p>
           ) : null}
 
-          {lockedDeptId != null ? (
+          {locked ? (
             <p className="mb-6 rounded-lg border border-secondary-200/80 bg-secondary-50/90 px-3 py-2 text-xs text-secondary-950 dark:border-secondary-800/50 dark:bg-secondary-950/25 dark:text-secondary-100">
-              Département :{' '}
+              Périmètre :{' '}
               <span className="font-semibold">
-                {departments.find((d) => String(d.id) === String(lockedDeptId))?.name ?? `ID ${lockedDeptId}`}
+                {lockedScope.programId
+                  ? scopeOptions.programById.get(Number(lockedScope.programId))?.name ?? '—'
+                  : scopeOptions.departments[0]?.name ?? '—'}
               </span>
             </p>
           ) : null}
@@ -287,27 +291,23 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
           <div className="space-y-8">
             {showDepartmentPicker ? (
               <section aria-labelledby="assign-dept-title">
-                <SectionTitle step={1} label="Département" done={Boolean(departmentId)} titleId="assign-dept-title" />
-                <Field label="Département" htmlFor="assign-dept-select">
-                  <select
+                <SectionTitle step={1} label="Programme" done={deptChosen} titleId="assign-dept-title" />
+                <Field label="Programme ou département" htmlFor="assign-dept-select">
+                  <ScopeSelect
                     id="assign-dept-select"
                     className={selectClass}
-                    value={departmentId}
-                    onChange={(e) => {
-                      setDepartmentId(e.target.value)
+                    options={scopeOptions}
+                    departmentId={scope.departmentId}
+                    programId={scope.programId}
+                    allLabel="Sélectionner…"
+                    onChange={(next) => {
+                      setScope(next)
                       setModuleId('')
                       setCourseId('')
                       setTeacherId('')
                       setPreview(null)
                     }}
-                  >
-                    <option value="">Sélectionner…</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.code} — {d.name}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </Field>
               </section>
             ) : null}
@@ -454,10 +454,6 @@ export function CourseAssignModal({ open, onClose, onSuccess, academicYearId }) 
                         <div>
                           <dt className="text-zinc-400">Email</dt>
                           <dd className="truncate">{preview.email}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-zinc-400">Rôle</dt>
-                          <dd>{preview.teacher_role}</dd>
                         </div>
                         <div>
                           <dt className="text-zinc-400">Grade</dt>

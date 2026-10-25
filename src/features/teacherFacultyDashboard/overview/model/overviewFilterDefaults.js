@@ -12,6 +12,7 @@ export function createOverviewFilters() {
   return {
     semester: '',
     departmentId: '',
+    programId: '',
     levelId: '',
     includeInactive: false,
   }

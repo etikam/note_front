@@ -1,16 +1,15 @@
 import { Navigate } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
 
-import { useAuth } from '@/features/auth/model/AuthContext'
-import { canAccessAcademie } from '@/core/accessControl'
+import { useAccess } from '@/features/access/model/useAccess'
 import { PedagogyReferencePanel } from '@/features/teacherFacultyDashboard/pedagogy/PedagogyReferencePanel'
 
 export function TeacherPedagogyPage() {
-  const { user } = useAuth()
-  const canAccess = canAccessAcademie(user)
+  const access = useAccess()
+  const canAccess = access.canManage('curriculum.manage') || access.canGlobal('calendar.manage')
 
   if (!canAccess) {
-    return <Navigate to="/teacher/dashboard" replace />
+    return <Navigate to="/teacher/my-courses" replace />
   }
 
   return (

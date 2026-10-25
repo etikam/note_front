@@ -1,5 +1,4 @@
 import { Spinner } from '@/shared/ui/Spinner'
-import { cn } from '@/shared/lib/cn'
 
 /**
  * @param {{ uploadProgress: number | null }} props

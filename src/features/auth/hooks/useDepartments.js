@@ -13,7 +13,7 @@ export function useDepartments() {
       try {
         const list = await fetchDepartments()
         if (mounted) setDepartments(list)
-      } catch (_error) {
+      } catch {
         if (mounted) setDepartments([])
       } finally {
         if (mounted) setIsLoading(false)

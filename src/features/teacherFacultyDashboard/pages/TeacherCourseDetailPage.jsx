@@ -85,7 +85,6 @@ export function TeacherCourseDetailPage() {
   const { courseId } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const canStructure = Boolean(user?.capabilities?.can_manage_academic_structure)
   /** Tous les onglets : le périmètre cours est déjà imposé par l’API (`courses_for_user` limite l’enseignant « simple » à ses cours assignés). */
   const visibleTabs = TABS
 
@@ -94,6 +93,9 @@ export function TeacherCourseDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [course, setCourse] = useState(null)
+  /** Droits sur ce cours précis, calculés par le serveur (``course.can``). */
+  const rights = course?.can ?? {}
+  const canStructure = Boolean(rights.manage_curriculum)
   const [enrollments, setEnrollments] = useState([])
   const [notationRoster, setNotationRoster] = useState([])
   const [courseArchives, setCourseArchives] = useState([])
@@ -414,8 +416,8 @@ export function TeacherCourseDetailPage() {
           courseCode={course?.code}
           roster={notationRoster}
           onGradeSaved={handleNotationGradeSaved}
-          canPublishGrades={Boolean(user?.capabilities?.can_publish_grades)}
-          canEditGrades={Boolean(user?.capabilities?.can_edit_grades)}
+          canPublishGrades={Boolean(rights.publish_grades)}
+          canEditGrades={Boolean(rights.enter_grades)}
           onRosterReload={reloadNotationRoster}
         />
       ) : null}

@@ -1,3 +1,4 @@
+import { buildAccess } from '@/features/access/model/access'
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { Select } from '@/shared/ui/Field'
 import { cn } from '@/shared/lib/cn'
@@ -8,8 +9,8 @@ export const ADMIN_VALIDATION_STATUS_OPTIONS = [
 ]
 
 export function defaultAdminValidationStatus(user) {
-  const codes = user?.teacher_role_codes ?? []
-  if (codes.includes('general_director')) return 'general_director'
+  // Étape de validation par défaut : celle du niveau institution si l'on publie à ce niveau.
+  if (buildAccess(user).scopeOf('grades.publish')?.institution) return 'general_director'
   return 'study_director'
 }
 

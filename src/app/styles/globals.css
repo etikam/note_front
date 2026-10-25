@@ -121,6 +121,12 @@
   --ring-focus: var(--color-brand-500);
   --accent-secondary: var(--color-secondary-600);
   --accent-secondary-muted: var(--color-secondary-500);
+  /* Design system v2 : surfaces et textes secondaires (outil de gestion dense et calme) */
+  --app-subtle: #f6f7f9;
+  --app-hover: #f1f2f5;
+  --app-border-strong: var(--color-zinc-300);
+  --app-fg-soft: var(--color-zinc-700);
+  --app-overlay: rgb(9 9 11 / 0.45);
 }
 
 html[data-theme="dark"] {
@@ -143,6 +149,11 @@ html[data-theme="dark"] {
   /* Accent secondaire orange : légèrement éclairci en dark */
   --accent-secondary: var(--color-secondary-400);
   --accent-secondary-muted: var(--color-secondary-300);
+  --app-subtle: #0f2447;
+  --app-hover: #132a52;
+  --app-border-strong: #2c4b7d;
+  --app-fg-soft: #dbe5f3;
+  --app-overlay: rgb(2 6 23 / 0.66);
 }
 
 /* Halo icône lune (toggle thème header) */
@@ -1043,4 +1054,21 @@ html[data-theme='dark'] .rdp-root {
 html[data-theme='dark'] .rdp-weekday,
 html[data-theme='dark'] .rdp-caption_label {
   color: var(--app-muted);
+}
+
+/* ─── Design system v2 : animations discrètes ─── */
+@keyframes ds-fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes ds-slide-in-right { from { transform: translateX(16px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes ds-pop-in { from { transform: translateY(6px) scale(0.98); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes ds-shimmer { 0% { background-position: -400px 0 } 100% { background-position: 400px 0 } }
+.ds-fade-in { animation: ds-fade-in 160ms ease-out both }
+.ds-slide-in-right { animation: ds-slide-in-right 220ms cubic-bezier(0.33, 1, 0.68, 1) both }
+.ds-pop-in { animation: ds-pop-in 180ms cubic-bezier(0.33, 1, 0.68, 1) both }
+.ds-skeleton {
+  background: linear-gradient(90deg, var(--app-subtle) 0%, var(--app-hover) 50%, var(--app-subtle) 100%);
+  background-size: 800px 100%;
+  animation: ds-shimmer 1.4s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-fade-in, .ds-slide-in-right, .ds-pop-in, .ds-skeleton { animation: none }
 }

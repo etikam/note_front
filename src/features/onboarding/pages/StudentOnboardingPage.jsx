@@ -102,7 +102,7 @@ function Step1Photo({ user, profile, photoPreview, onPhotoChange, uploading }) {
       <div className="w-full flex items-start gap-2.5 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 px-3.5 py-3">
         <span className="text-amber-500 dark:text-amber-400 mt-0.5 shrink-0">⚠</span>
         <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-          Veillez à renseigner vos <strong>vraies informations</strong>. Elles seront utilisées pour votre dossier académique officiel et ne pourront être modifiées que par l'administration.
+          Veillez à renseigner vos <strong>vraies informations</strong>. Elles seront utilisées pour votre dossier académique officiel et ne pourront être modifiées que par l’administration.
         </p>
       </div>
 
@@ -460,7 +460,7 @@ export function StudentOnboardingPage() {
       const fd = new FormData()
       fd.append('photo', file)
       await patchMyPhoto(fd)
-    } catch (_err) {
+    } catch {
       // photo upload failure is non-blocking
     } finally {
       setUploading(false)

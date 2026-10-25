@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useAuth } from '@/features/auth/model/AuthContext'
+import { useAccess } from '@/features/access/model/useAccess'
 import { fetchTeachersList, fetchTeachersStats } from '@/features/teacher/faculty/api/teachersApi'
 
 const DEFAULT_PAGE_SIZE = 20
@@ -31,8 +31,8 @@ function buildTeacherStatsParams({ debouncedQ, status, teacherRole }) {
  */
 export function useTeacherDirectoryList(opts = {}) {
   const { listEnabled = true } = opts
-  const { user } = useAuth()
-  const canViewAggregatedStats = Boolean(user?.capabilities?.can_view_directory_aggregated_stats)
+  const access = useAccess()
+  const canViewAggregatedStats = access.canManage('stats.view')
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)

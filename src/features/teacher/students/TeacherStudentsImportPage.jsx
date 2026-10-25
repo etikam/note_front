@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Play } from 'lucide-react'
 
-import { useAuth } from '@/features/auth/model/AuthContext'
+import { useAccess } from '@/features/access/model/useAccess'
 import { buildCsvPreview } from '@/features/teacher/students/csvPreview'
 import { validateStudentImportCsv } from '@/features/teacher/students/studentCsvValidation'
 import { TeacherImportRowIssuesPanel } from '@/features/teacher/faculty/ui/TeacherImportRowIssuesPanel'
@@ -30,9 +30,9 @@ import { Button } from '@/shared/ui/Button'
 import { Stack } from '@/shared/ui/Stack'
 
 export function TeacherStudentsImportPage() {
-  const { user } = useAuth()
-  const canImport = Boolean(user?.capabilities?.can_import_data)
-  const canViewReports = Boolean(user?.capabilities?.can_view_reports)
+  const access = useAccess()
+  const canImport = access.canManage('students.import')
+  const canViewReports = access.canManage('reports.view')
   const inputRef = useRef(null)
   const resultRef = useRef(null)
   const [drag, setDrag] = useState(false)

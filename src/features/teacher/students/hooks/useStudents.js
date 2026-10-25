@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
-import { fetchCohorts, fetchDepartments, fetchLevels } from '@/features/academicYear/api/academicsApi'
+import { fetchCohorts, fetchLevels } from '@/features/academicYear/api/academicsApi'
+import { useAccess } from '@/features/access/model/useAccess'
+import { useScopeOptions } from '@/features/access/model/useScopeOptions'
+import { defaultScope, programIdsFor, scopeValue } from '@/features/access/model/scopeFilter'
 import {
   fetchStudentsExportBlob,
   fetchStudentsList,
   fetchStudentsStats,
 } from '@/features/teacher/students/api/studentsApi'
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
-import { useAuth } from '@/features/auth/model/AuthContext'
 import { buildParams, PAGE_SIZE } from '@/features/teacher/students/studentList.constants'
 
 /**
@@ -16,15 +19,16 @@ import { buildParams, PAGE_SIZE } from '@/features/teacher/students/studentList.
  */
 export function useStudents(opts = {}) {
   const { listEnabled = true } = opts
-  const { user } = useAuth()
-  const managedDeptId = user?.scope?.managed_department_id ?? null
-  const institutionWide = Boolean(user?.scope?.institution_wide)
-  const canViewAggregatedStats = Boolean(user?.capabilities?.can_view_directory_aggregated_stats)
+  const access = useAccess()
+  const canViewAggregatedStats = access.can('stats.view')
   const { academicYears, isLoadingYears } = useAcademicYear()
+  const scopeOptions = useScopeOptions('students.view')
+  const [searchParams] = useSearchParams()
 
   const [q, setQ] = useState('')
   const [debouncedQ, setDebouncedQ] = useState('')
   const [departmentId, setDepartmentId] = useState('')
+  const [programId, setProgramId] = useState(() => searchParams.get('program') ?? '')
   const [levelId, setLevelId] = useState('')
   const [status, setStatus] = useState('')
   const [filterAcademicYearId, setFilterAcademicYearId] = useState('')
@@ -39,7 +43,6 @@ export function useStudents(opts = {}) {
   const [data, setData] = useState(null)
   const [stats, setStats] = useState(null)
 
-  const [departments, setDepartments] = useState([])
   const [levels, setLevels] = useState([])
   const [metaLoading, setMetaLoading] = useState(true)
   const [cohorts, setCohorts] = useState([])
@@ -49,40 +52,35 @@ export function useStudents(opts = {}) {
     return () => window.clearTimeout(t)
   }, [q])
 
-  /**
-   * Périmètre liste : aligné sur l’API (chef cantonné ; DG / DE sans filtre département imposé).
-   * `institution_wide` vient de `/me` (Teacher.has_institution_wide_department_scope).
-   */
+  /** Périmètre réduit à une entité (chef de département, directeur de programme) : filtre imposé. */
+  const lockedScope = useMemo(() => defaultScope(scopeOptions), [scopeOptions])
+  const scopeLocked = Boolean(lockedScope.departmentId || lockedScope.programId)
   useEffect(() => {
-    if (institutionWide) return
-    if (managedDeptId != null) setDepartmentId(String(managedDeptId))
-  }, [managedDeptId, institutionWide])
+    if (scopeOptions.loading || !scopeLocked) return
+    if (!programId && !departmentId) {
+      setDepartmentId(lockedScope.departmentId)
+      setProgramId(lockedScope.programId)
+    }
+  }, [scopeOptions.loading, scopeLocked, lockedScope, programId, departmentId])
 
-  /** Changement de compte : éviter de garder le filtre département d’un autre utilisateur (ex. chef → DG). */
-  useEffect(() => {
-    if (user?.id == null) return
-    if (institutionWide) setDepartmentId('')
-  }, [user?.id, institutionWide])
+  const setScope = useCallback(({ departmentId: d, programId: p }) => {
+    setDepartmentId(d)
+    setProgramId(p)
+  }, [])
 
   useEffect(() => {
     setPage(1)
-  }, [debouncedQ, departmentId, levelId, status, filterAcademicYearId, cohorteId, pageSize, ordering])
+  }, [debouncedQ, departmentId, programId, levelId, status, filterAcademicYearId, cohorteId, pageSize, ordering])
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       setMetaLoading(true)
       try {
-        const [deptList, cohortList] = await Promise.all([fetchDepartments(), fetchCohorts()])
-        if (!cancelled) {
-          setDepartments(deptList)
-          setCohorts(cohortList)
-        }
+        const cohortList = await fetchCohorts()
+        if (!cancelled) setCohorts(cohortList)
       } catch {
-        if (!cancelled) {
-          setDepartments([])
-          setCohorts([])
-        }
+        if (!cancelled) setCohorts([])
       } finally {
         if (!cancelled) setMetaLoading(false)
       }
@@ -93,14 +91,14 @@ export function useStudents(opts = {}) {
   }, [])
 
   useEffect(() => {
-    if (!departmentId) {
+    if (!departmentId && !programId) {
       setLevels([])
       return
     }
     let cancelled = false
     ;(async () => {
       try {
-        const list = await fetchLevels({ department: departmentId })
+        const list = await fetchLevels(programId ? { program: programId } : { department: departmentId })
         if (!cancelled) setLevels(list)
       } catch {
         if (!cancelled) setLevels([])
@@ -109,11 +107,17 @@ export function useStudents(opts = {}) {
     return () => {
       cancelled = true
     }
-  }, [departmentId])
+  }, [departmentId, programId])
 
   useEffect(() => {
     setLevelId('')
-  }, [departmentId])
+    setCohorteId('')
+  }, [departmentId, programId])
+
+  const scopedCohorts = useMemo(() => {
+    const ids = programIdsFor(scopeOptions, { departmentId, programId })
+    return cohorts.filter((c) => ids.has(c.program))
+  }, [cohorts, scopeOptions, departmentId, programId])
 
   const listParams = useMemo(
     () =>
@@ -123,12 +127,13 @@ export function useStudents(opts = {}) {
         ordering,
         debouncedQ,
         departmentId,
+        programId,
         levelId,
         status,
         filterAcademicYearId,
         cohorteId,
       }),
-    [page, pageSize, ordering, debouncedQ, departmentId, levelId, status, filterAcademicYearId, cohorteId],
+    [page, pageSize, ordering, debouncedQ, departmentId, programId, levelId, status, filterAcademicYearId, cohorteId],
   )
 
   const statsParams = useMemo(
@@ -139,12 +144,13 @@ export function useStudents(opts = {}) {
         ordering,
         debouncedQ,
         departmentId,
+        programId,
         levelId,
         status,
         filterAcademicYearId,
         cohorteId,
       }),
-    [pageSize, ordering, debouncedQ, departmentId, levelId, status, filterAcademicYearId, cohorteId],
+    [pageSize, ordering, debouncedQ, departmentId, programId, levelId, status, filterAcademicYearId, cohorteId],
   )
 
   const load = useCallback(async () => {
@@ -195,8 +201,6 @@ export function useStudents(opts = {}) {
     }
   }, [statsParams])
 
-  const deptScoped = managedDeptId != null && !institutionWide
-
   const resetFilters = useCallback(() => {
     setQ('')
     setDebouncedQ('')
@@ -204,20 +208,21 @@ export function useStudents(opts = {}) {
     setStatus('')
     setFilterAcademicYearId('')
     setCohorteId('')
-    setDepartmentId(deptScoped ? String(managedDeptId) : '')
+    setDepartmentId(lockedScope.departmentId)
+    setProgramId(lockedScope.programId)
     setPage(1)
-  }, [deptScoped, managedDeptId])
+  }, [lockedScope])
 
   const activeFilterCount = useMemo(() => {
     let n = 0
     if (debouncedQ) n++
-    if ((institutionWide || managedDeptId == null) && departmentId) n++
+    if ((departmentId || programId) && scopeValue({ departmentId, programId }) !== scopeValue(lockedScope)) n++
     if (levelId) n++
     if (status) n++
     if (filterAcademicYearId) n++
     if (cohorteId) n++
     return n
-  }, [debouncedQ, departmentId, levelId, status, filterAcademicYearId, cohorteId, managedDeptId, institutionWide])
+  }, [debouncedQ, departmentId, programId, levelId, status, filterAcademicYearId, cohorteId, lockedScope])
 
   const results = data?.results ?? []
   const count = data?.count ?? 0
@@ -243,7 +248,9 @@ export function useStudents(opts = {}) {
     q,
     setQ,
     departmentId,
-    setDepartmentId,
+    programId,
+    setScope,
+    scopeOptions,
     levelId,
     setLevelId,
     status,
@@ -252,7 +259,7 @@ export function useStudents(opts = {}) {
     setFilterAcademicYearId,
     cohorteId,
     setCohorteId,
-    cohorts,
+    cohorts: scopedCohorts,
     filtersOpen,
     setFiltersOpen,
     page,
@@ -265,7 +272,7 @@ export function useStudents(opts = {}) {
     error,
     load,
     stats,
-    departments,
+    departments: scopeOptions.departments,
     levels,
     metaLoading,
     exportCsv,
@@ -279,8 +286,7 @@ export function useStudents(opts = {}) {
     rangeStart,
     rangeEnd,
     pageNumbers,
-    deptScoped,
-    institutionWide,
-    canImport: Boolean(user?.capabilities?.can_import_data),
+    scopeLocked,
+    canImport: access.canManage('students.import'),
   }
 }

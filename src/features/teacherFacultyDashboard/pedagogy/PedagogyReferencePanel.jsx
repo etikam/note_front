@@ -3,8 +3,6 @@ import { useSearchParams } from 'react-router-dom'
 import { CalendarDays, GraduationCap, Plus, RefreshCw, Search, Trash2 } from 'lucide-react'
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
-import { fetchDepartments } from '@/features/academicYear/api/academicsApi'
-import { useAuth } from '@/features/auth/model/AuthContext'
 import {
   deleteAcademicYear,
   deleteModule,
@@ -25,23 +23,20 @@ import { Card } from '@/shared/ui/Card'
 import { ConfirmModal } from '@/shared/ui/ConfirmModal'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
 import { cn } from '@/shared/lib/cn'
-import { PedagogyDepartmentsSection } from '@/features/teacherFacultyDashboard/pedagogy/ui/PedagogyDepartmentsSection'
 import { SemesterBlockPanel } from '@/features/teacherFacultyDashboard/pedagogy/ui/SemesterBlockPanel'
-import { PEDAGOGY_TAB_IDS, filterPedagogyTabsForUser } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyNav.constants'
+import { PEDAGOGY_TAB_IDS, filterPedagogyTabsForAccess } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyNav.constants'
+import { useAccess } from '@/features/access/model/useAccess'
 import { PedagogyLevelsSection } from '@/features/teacherFacultyDashboard/pedagogy/ui/PedagogyLevelsSection'
 import { PedagogyMaquetteSection } from '@/features/teacherFacultyDashboard/pedagogy/ui/PedagogyMaquetteSection'
 
 export function PedagogyReferencePanel({ syncUrl = false }) {
-  const { user } = useAuth()
   const { academicYearId, refreshAcademicYears } = useAcademicYear()
   const [searchParams, setSearchParams] = useSearchParams()
-  const canCalendar = Boolean(user?.capabilities?.can_manage_academic_calendar)
-  const canStructure = Boolean(user?.capabilities?.can_manage_academic_structure)
-  const canViewStudents = Boolean(user?.capabilities?.can_view_students)
-  const managedDeptId = user?.scope?.managed_department_id ?? null
-  const institutionWide = Boolean(user?.scope?.institution_wide)
+  const access = useAccess()
+  const canCalendar = access.canGlobal('calendar.manage')
+  const canStructure = access.canManage('curriculum.manage')
 
-  const sections = useMemo(() => filterPedagogyTabsForUser(user), [user])
+  const sections = useMemo(() => filterPedagogyTabsForAccess(access), [access])
 
   const [section, setSection] = useState(() => {
     if (typeof window === 'undefined') return 'calendar'
@@ -56,7 +51,6 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
   const [unitsUnoffered, setUnitsUnoffered] = useState([])
   /** Incrémenté après une offre groupée pour rafraîchir l’onglet Cours. */
   const [coursesReloadKey, setCoursesReloadKey] = useState(0)
-  const [departments, setDepartments] = useState([])
 
   const [yearFocusId, setYearFocusId] = useState(() => (academicYearId ? Number(academicYearId) : null))
   const [loading, setLoading] = useState(false)
@@ -78,9 +72,6 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
       const yid =
         yearFocusId ?? (academicYearId ? Number(academicYearId) : null) ?? rows[0]?.id ?? null
       if (yid && !yearFocusId) setYearFocusId(yid)
-
-      const d = await fetchDepartments()
-      setDepartments(d)
 
       if (yid) {
         const [s, u, uu] = await Promise.all([
@@ -151,18 +142,17 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
   const ueDeptOptions = useMemo(() => {
     const map = new Map()
     for (const u of [...units, ...unitsUnoffered]) {
-      if (u.department != null)
-        map.set(u.department, { id: u.department, code: u.department_code, name: u.department_name })
+      if (u.program != null) map.set(u.program, { id: u.program, code: u.program_code, name: u.program_name })
     }
     return Array.from(map.values()).sort((a, b) =>
-      String(a.name ?? '').localeCompare(String(b.name ?? ''), 'fr'),
+      String(a.code ?? '').localeCompare(String(b.code ?? ''), 'fr'),
     )
   }, [units, unitsUnoffered])
 
   const filteredUnits = useMemo(() => {
     const q = ueSearch.trim().toLowerCase()
     return units.filter((u) => {
-      if (ueDeptFilter && String(u.department ?? '') !== ueDeptFilter) return false
+      if (ueDeptFilter && String(u.program ?? '') !== ueDeptFilter) return false
       if (!q) return true
       return [u.code, u.name, u.department_code, u.department_name]
         .filter(Boolean)
@@ -175,7 +165,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
   const filteredUnitsUnoffered = useMemo(() => {
     const q = ueSearch.trim().toLowerCase()
     return unitsUnoffered.filter((u) => {
-      if (ueDeptFilter && String(u.department ?? '') !== ueDeptFilter) return false
+      if (ueDeptFilter && String(u.program ?? '') !== ueDeptFilter) return false
       if (!q) return true
       return [u.code, u.name, u.department_code, u.department_name]
         .filter(Boolean)
@@ -469,7 +459,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
                   onChange={(e) => setUeDeptFilter(e.target.value)}
                   className="h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-canvas)] px-3 text-sm text-[var(--app-fg)] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                 >
-                  <option value="">Tous les départements</option>
+                  <option value="">Tous les programmes</option>
                   {ueDeptOptions.map((d) => (
                     <option key={d.id} value={String(d.id)}>
                       {d.name}{d.code ? <> ({d.code})</> : null}
@@ -595,11 +585,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
             <PedagogyCoursesSection
               yearFocusId={yearFocusId}
               modules={modules}
-              departments={departments}
               unitsForUeFilter={unitsForOfferSelect}
-              managedDeptId={managedDeptId}
-              institutionWide={institutionWide}
-              canStructure={canStructure}
               reloadKey={coursesReloadKey}
             />
           </div>
@@ -634,15 +620,6 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
 
       {section === 'levels' ? (
         <PedagogyLevelsSection canStructure={canStructure} />
-      ) : null}
-
-      {section === 'departments' && canViewStudents ? (
-        <PedagogyDepartmentsSection
-          departments={departments}
-          loading={loading}
-          onRefresh={() => loadAll()}
-          managedDepartmentId={managedDeptId}
-        />
       ) : null}
 
       <AcademicYearCreateModal

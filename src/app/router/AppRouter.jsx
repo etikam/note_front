@@ -1,6 +1,6 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Home from '@/pages/Home'
-
 
 import { DashboardLayout } from '@/app/layouts/DashboardLayout'
 import { PublicLayout } from '@/app/layouts/PublicLayout'
@@ -15,7 +15,8 @@ import {
   StudentRoute,
   TeacherRoute,
 } from '@/features/auth/ui/RouteGuards'
-import { useAuth } from '@/features/auth/model/AuthContext'
+import { RequirePermission } from '@/features/access/ui/RequirePermission'
+import { PageLoading } from '@/shared/ui/Spinner'
 import { StudentCourseDetailPage } from '@/features/student/pages/StudentCourseDetailPage'
 import { StudentCoursesPage } from '@/features/student/pages/StudentCoursesPage'
 import { StudentDashboardPage } from '@/features/student/pages/StudentDashboardPage'
@@ -33,7 +34,6 @@ import { TeacherStudentsListPage } from '@/features/teacher/students/TeacherStud
 import { TeacherCourseDetailPage } from '@/features/teacherFacultyDashboard/pages/TeacherCourseDetailPage'
 import { TeacherFacultyDashboardPage } from '@/features/teacherFacultyDashboard/pages/TeacherFacultyDashboardPage'
 import { TeacherPedagogyPage } from '@/features/teacherFacultyDashboard/pages/TeacherPedagogyPage'
-import { FacultyIndexRedirect } from '@/features/teacher/faculty/FacultyIndexRedirect'
 import { TeacherFacultyCourseAssignmentDetailPage } from '@/features/teacher/faculty/TeacherFacultyCourseAssignmentDetailPage'
 import { TeacherFacultyCourseAssignmentsPage } from '@/features/teacher/faculty/TeacherFacultyCourseAssignmentsPage'
 import { TeacherFacultyDetailPage } from '@/features/teacher/faculty/TeacherFacultyDetailPage'
@@ -49,29 +49,15 @@ function RedirectPedagogyToAcademie() {
   return <Navigate to={`/teacher/academie${search}`} replace />
 }
 
-function TeacherDashboardEntry() {
-  const { user } = useAuth()
-  const codes = Array.isArray(user?.teacher_role_codes) ? user.teacher_role_codes : []
-  const isSimpleTeacher = !codes.some((c) =>
-    ['department_head', 'study_director', 'program_director', 'general_director'].includes(c),
-  )
-  if (user?.role === 'teacher' && isSimpleTeacher) {
-    return <Navigate to="/teacher/my-courses" replace />
-  }
-  return <TeacherFacultyDashboardPage />
+const StructurePage = lazy(() => import('@/features/structure/pages/StructurePage'))
+const NominationsPage = lazy(() => import('@/features/admin/pages/NominationsPage'))
+const RolesPage = lazy(() => import('@/features/admin/pages/RolesPage'))
+
+function Lazy({ children }) {
+  return <Suspense fallback={<PageLoading label="Chargement" />}>{children}</Suspense>
 }
 
-function SettingsEntry() {
-  const { user } = useAuth()
-  const codes = Array.isArray(user?.teacher_role_codes) ? user.teacher_role_codes : []
-  const isSimpleTeacher =
-    user?.role === 'teacher' &&
-    !codes.some((c) => ['department_head', 'study_director', 'program_director', 'general_director'].includes(c))
-  if (isSimpleTeacher) {
-    return <Navigate to="/profile" replace />
-  }
-  return <SettingsPage />
-}
+const STRUCTURE_PERMS = ['structure.manage', 'curriculum.manage', 'students.view', 'courses.view', 'stats.view', 'access.assign_roles']
 
 export function AppRouter() {
   return (
@@ -91,14 +77,29 @@ export function AppRouter() {
         </Route>
         <Route element={<DashboardLayout />}>
           <Route element={<TeacherRoute />}>
-            <Route path="/teacher/dashboard" element={<TeacherDashboardEntry />} />
+            <Route
+              path="/teacher/dashboard"
+              element={
+                <RequirePermission perms="stats.view">
+                  <TeacherFacultyDashboardPage />
+                </RequirePermission>
+              }
+            />
+            <Route element={<RequirePermission perms={STRUCTURE_PERMS} />}>
+              <Route path="/structure" element={<Lazy><StructurePage /></Lazy>} />
+            </Route>
+            <Route element={<RequirePermission perms="access.assign_roles" />}>
+              <Route path="/admin/nominations" element={<Lazy><NominationsPage /></Lazy>} />
+            </Route>
+            <Route element={<RequirePermission perms={['access.manage_roles', 'access.assign_roles']} />}>
+              <Route path="/admin/roles" element={<Lazy><RolesPage /></Lazy>} />
+            </Route>
             <Route path="/teacher/my-courses" element={<TeacherMyCoursesPage />} />
             <Route path="/teacher/academie" element={<TeacherPedagogyPage />} />
             <Route path="/teacher/pedagogy" element={<RedirectPedagogyToAcademie />} />
             <Route path="/teacher/courses/:courseId" element={<TeacherCourseDetailPage />} />
-            <Route path="/teacher/departments" element={<Navigate to="/teacher/academie?tab=departments" replace />} />
+            <Route path="/teacher/departments" element={<Navigate to="/structure" replace />} />
             <Route path="/teacher/students" element={<TeacherStudentsLayout />}>
-              <Route index element={<Navigate to="list" replace />} />
               <Route path="list" element={<TeacherStudentsListPage />} />
               <Route path="import-export" element={<TeacherStudentsImportPage />} />
               <Route path="grades-import" element={<TeacherGradesImportPage />} />
@@ -106,7 +107,6 @@ export function AppRouter() {
               <Route path=":studentId" element={<TeacherStudentDetailPage />} />
             </Route>
             <Route path="/teacher/faculty" element={<TeacherFacultyLayout />}>
-              <Route index element={<FacultyIndexRedirect />} />
               <Route path="course-assignments/:courseId" element={<TeacherFacultyCourseAssignmentDetailPage />} />
               <Route path="course-assignments" element={<TeacherFacultyCourseAssignmentsPage />} />
               <Route path="list" element={<TeacherFacultyListPage />} />
@@ -117,7 +117,14 @@ export function AppRouter() {
               path="/teacher/import-export"
               element={<Navigate to="/teacher/students/import-export" replace />}
             />
-            <Route path="/teacher/reports" element={<TeacherReportsPage />} />
+            <Route
+              path="/teacher/reports"
+              element={
+                <RequirePermission perms="reports.view">
+                  <TeacherReportsPage />
+                </RequirePermission>
+              }
+            />
             <Route path="/teacher/grades" element={<Navigate to="/teacher/dashboard" replace />} />
           </Route>
           <Route element={<StudentRoute />}>
@@ -130,7 +137,7 @@ export function AppRouter() {
             <Route path="/student/promotion" element={<StudentPromotionPage />} />
           </Route>
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/settings" element={<SettingsEntry />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>
 

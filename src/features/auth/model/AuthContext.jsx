@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
       const me = await fetchMe()
       setUser(me)
       return me
-    } catch (_error) {
+    } catch {
       clearAuthTokens()
       setUser(null)
       return null
@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
   const signOut = useCallback(async () => {
     try {
       await logout()
-    } catch (_error) {
+    } catch {
       // Le backend peut déjà avoir expiré la session.
     } finally {
       setUser(null)
@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
       try {
         const me = await fetchMe()
         if (mounted) setUser(me)
-      } catch (_error) {
+      } catch {
         if (mounted) {
           clearAuthTokens()
           setUser(null)

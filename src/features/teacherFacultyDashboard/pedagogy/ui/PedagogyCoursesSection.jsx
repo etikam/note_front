@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, LayoutGrid, ListOrdered, PanelRight, Search } from 'lucide-react'
 
-import { fetchCoursesList, fetchTeachingUnits } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
-import { useAuth } from '@/features/auth/model/AuthContext'
+import { useScopeOptions } from '@/features/access/model/useScopeOptions'
+import { defaultScope } from '@/features/access/model/scopeFilter'
+import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
+import { fetchCoursesList } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { Field, Input } from '@/shared/ui/Field'
@@ -42,34 +44,24 @@ function groupCoursesByTeachingUnit(rows) {
  * @param {{
  *   yearFocusId: number | null
  *   modules: Array<{ id: number; number: number; start_date?: string; end_date?: string; academic_year_label?: string }>
- *   departments: Array<{ id: number; code: string; name: string }>
  *   unitsForUeFilter: Array<{ id: number; code: string; name: string }>
- *   managedDeptId: number | null
- *   institutionWide?: boolean
- *   canStructure: boolean
  *   reloadKey: number
  * }} props
  */
 export function PedagogyCoursesSection({
   yearFocusId,
   modules,
-  departments,
   unitsForUeFilter,
-  managedDeptId,
-  institutionWide = false,
-  canStructure,
   reloadKey,
 }) {
-  const { user } = useAuth()
-  const deptScoped = managedDeptId != null && !institutionWide
+  const scopeOptions = useScopeOptions('curriculum.manage')
+  const [searchParams] = useSearchParams()
   const [viewMode, setViewMode] = useState(/** @type {'byUe' | 'flat'} */ ('byUe'))
   const [flatSort, setFlatSort] = useState(/** @type {'asc' | 'desc'} */ ('asc'))
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filterModule, setFilterModule] = useState('')
-  const [filterDepartment, setFilterDepartment] = useState(() =>
-    managedDeptId != null && !institutionWide ? String(managedDeptId) : '',
-  )
+  const [scope, setScope] = useState(() => ({ departmentId: '', programId: searchParams.get('program') ?? '' }))
   const [filterUe, setFilterUe] = useState('')
   const [page, setPage] = useState(1)
   const pageSizeFlat = 20
@@ -77,7 +69,6 @@ export function PedagogyCoursesSection({
 
   const [payload, setPayload] = useState({ results: [], count: 0, next: null, previous: null })
   const [loading, setLoading] = useState(false)
-  const [teachingUnitsCatalog, setTeachingUnitsCatalog] = useState([])
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
@@ -85,30 +76,10 @@ export function PedagogyCoursesSection({
   }, [search])
 
   useEffect(() => {
-    if (deptScoped) setFilterDepartment(String(managedDeptId))
-  }, [deptScoped, managedDeptId])
-
-  /** Changement de compte (ex. chef → DG) : ne pas garder le filtre département imposé. */
-  useEffect(() => {
-    if (user?.id == null) return
-    if (institutionWide) setFilterDepartment('')
-  }, [user?.id, institutionWide])
-
-  useEffect(() => {
-    if (!yearFocusId) return
-    let cancelled = false
-    ;(async () => {
-      try {
-        const u = await fetchTeachingUnits()
-        if (!cancelled) setTeachingUnitsCatalog(u.sort((a, b) => String(a.code).localeCompare(String(b.code))))
-      } catch {
-        if (!cancelled) setTeachingUnitsCatalog([])
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [yearFocusId])
+    if (scopeOptions.loading) return
+    const locked = defaultScope(scopeOptions)
+    if (locked.departmentId || locked.programId) setScope((s) => (s.departmentId || s.programId ? s : locked))
+  }, [scopeOptions])
 
   const loadCourses = useCallback(async () => {
     if (!yearFocusId) {
@@ -121,7 +92,7 @@ export function PedagogyCoursesSection({
         academic_year_id: yearFocusId,
         ...(debouncedSearch ? { search: debouncedSearch } : {}),
         ...(filterModule ? { module_id: Number(filterModule) } : {}),
-        ...(filterDepartment ? { department_id: Number(filterDepartment) } : {}),
+        ...(scope.programId ? { program_id: Number(scope.programId) } : scope.departmentId ? { department_id: Number(scope.departmentId) } : {}),
         ...(filterUe ? { teaching_unit_id: Number(filterUe) } : {}),
       }
       if (viewMode === 'byUe') {
@@ -152,7 +123,7 @@ export function PedagogyCoursesSection({
     yearFocusId,
     debouncedSearch,
     filterModule,
-    filterDepartment,
+    scope,
     filterUe,
     viewMode,
     flatSort,
@@ -166,7 +137,7 @@ export function PedagogyCoursesSection({
 
   useEffect(() => {
     setPage(1)
-  }, [viewMode, flatSort, debouncedSearch, filterModule, filterDepartment, filterUe, yearFocusId])
+  }, [viewMode, flatSort, debouncedSearch, filterModule, scope, filterUe, yearFocusId])
 
   const groups = useMemo(() => groupCoursesByTeachingUnit(payload.results ?? []), [payload.results])
 
@@ -251,20 +222,15 @@ export function PedagogyCoursesSection({
               ))}
             </select>
           </Field>
-          <Field label="Département" className="mb-0">
-            <select
+          <Field label="Programme" className="mb-0">
+            <ScopeSelect
               className={inputCls}
-              value={filterDepartment}
-              onChange={(e) => setFilterDepartment(e.target.value)}
-              disabled={deptScoped}
-            >
-              <option value="">Tous</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.code} — {d.name}
-                </option>
-              ))}
-            </select>
+              options={scopeOptions}
+              departmentId={scope.departmentId}
+              programId={scope.programId}
+              onChange={setScope}
+              allLabel="Tous"
+            />
           </Field>
           <Field label="UE" className="mb-0 lg:col-span-2">
             <select className={inputCls} value={filterUe} onChange={(e) => setFilterUe(e.target.value)}>

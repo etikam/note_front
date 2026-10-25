@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, BookOpen, Unlink } from 'lucide-react'
 
-import { useAuth } from '@/features/auth/model/AuthContext'
+import { useAccess } from '@/features/access/model/useAccess'
 import {
   deleteCourseAssignment,
   fetchCourseAssignmentDetail,
@@ -48,8 +48,8 @@ function Row({ label, value }) {
 export function TeacherFacultyCourseAssignmentDetailPage() {
   const { courseId } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
-  const canManageCourses = Boolean(user?.capabilities?.can_manage_courses)
+  const access = useAccess()
+  const canManageCourses = access.canManage('courses.assign')
 
   const [detail, setDetail] = useState(null)
   const [loading, setLoading] = useState(true)

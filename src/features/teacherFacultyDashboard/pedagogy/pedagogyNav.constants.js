@@ -1,70 +1,20 @@
-import { BookOpen, Building2, CalendarDays, FileText, Layers, School } from 'lucide-react'
-import { canAccessRule } from '@/core/accessControl'
+import { BookOpen, CalendarDays, FileText, Layers, School } from 'lucide-react'
 
 /**
- * Onglets du référentiel Académie.
- * `requiredAny` / `required` : capacités pour afficher l’onglet (aligné sidebar + page).
+ * Onglets du référentiel académique, visibles selon les permissions (``buildAccess``).
+ * Le calendrier est une ressource commune : il exige un périmètre faculté ou institution.
+ * Départements et programmes se gèrent dans « Structure » (``/structure``).
  */
 export const PEDAGOGY_SECTION_TABS = [
-  {
-    id: 'calendar',
-    label: 'Années & semestres',
-    icon: CalendarDays,
-    accessRule: {
-      anyCapabilities: ['can_manage_academic_calendar', 'can_manage_academic_structure'],
-      denyTeacherRoles: ['department_head'],
-    },
-  },
-  {
-    id: 'ue',
-    label: 'UE & offres',
-    icon: Layers,
-    accessRule: {
-      anyCapabilities: ['can_manage_academic_calendar', 'can_manage_academic_structure'],
-      denyTeacherRoles: ['department_head'],
-    },
-  },
-  {
-    id: 'courses',
-    label: 'Cours',
-    icon: BookOpen,
-    accessRule: {
-      anyCapabilities: ['can_manage_academic_calendar', 'can_manage_academic_structure'],
-      denyTeacherRoles: ['department_head'],
-    },
-  },
-  {
-    id: 'maquette',
-    label: 'Maquette',
-    icon: FileText,
-    accessRule: {
-      anyCapabilities: ['can_manage_academic_calendar', 'can_manage_academic_structure'],
-      denyTeacherRoles: ['department_head'],
-    },
-  },
-  {
-    id: 'levels',
-    label: 'Niveaux',
-    icon: School,
-    accessRule: {
-      anyCapabilities: ['can_manage_academic_calendar', 'can_manage_academic_structure'],
-      denyTeacherRoles: ['department_head'],
-    },
-  },
-  {
-    id: 'departments',
-    label: 'Départements',
-    icon: Building2,
-    accessRule: {
-      anyCapabilities: ['can_view_students'],
-      denyTeacherRoles: ['department_head'],
-    },
-  },
+  { id: 'calendar', label: 'Années & semestres', icon: CalendarDays, visible: (a) => a.canGlobal('calendar.manage') },
+  { id: 'ue', label: 'UE & offres', icon: Layers, visible: (a) => a.canManage('curriculum.manage') },
+  { id: 'courses', label: 'Cours', icon: BookOpen, visible: (a) => a.canManage('curriculum.manage') },
+  { id: 'maquette', label: 'Maquette', icon: FileText, visible: (a) => a.canManage('curriculum.manage') },
+  { id: 'levels', label: 'Niveaux', icon: School, visible: (a) => a.canManage('curriculum.manage') },
 ]
 
 export const PEDAGOGY_TAB_IDS = new Set(PEDAGOGY_SECTION_TABS.map((t) => t.id))
 
-/** Filtre les onglets selon règles centralisées (rôles + capabilities). */
-export function filterPedagogyTabsForUser(user = null) {
-  return PEDAGOGY_SECTION_TABS.filter((t) => canAccessRule(user, t.accessRule))
+export function filterPedagogyTabsForAccess(access) {
+  return PEDAGOGY_SECTION_TABS.filter((t) => t.visible(access))
 }

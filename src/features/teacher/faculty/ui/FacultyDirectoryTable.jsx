@@ -4,20 +4,13 @@ import { ArrowDown, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
 
 import { TEACHER_PAGE_SIZE_OPTIONS } from '@/features/teacher/faculty/hooks/useTeacherDirectoryList'
 import { BADGE } from '@/features/teacher/students/studentList.constants'
+import { TeacherMandates } from '@/features/teacher/faculty/ui/TeacherMandates'
 import { cn } from '@/shared/lib/cn'
 import { Spinner } from '@/shared/ui/Spinner'
 
 function initials(first, last) {
   const a = `${first?.[0] ?? ''}${last?.[0] ?? ''}`.trim()
   return a ? a.toUpperCase() : '?'
-}
-
-const ROLE_LABEL = {
-  teacher: 'Enseignant',
-  department_head: 'Chef de département',
-  study_director: 'Directeur des études',
-  program_director: 'Directeur de programme',
-  general_director: 'Directeur général',
 }
 
 function nextOrdering(current, field) {
@@ -84,7 +77,7 @@ function formatFrenchCalendarDate(raw) {
   }).format(t)
 }
 
-const COL_COUNT = 11
+const COL_COUNT = 10
 
 export function FacultyDirectoryTable({
   listEnabled,
@@ -247,22 +240,12 @@ export function FacultyDirectoryTable({
                     onChange={onOrderingChange}
                     className="min-w-[9rem]"
                   />
-                  <SortTh
-                    label="Rôle"
-                    title="Fonction institutionnelle"
-                    field="teacher_role"
-                    ordering={ordering}
-                    onChange={onOrderingChange}
-                    className="w-[9rem]"
-                  />
-                  <SortTh
-                    label="Département"
-                    title="Département géré (code)"
-                    field="managed_department__code"
-                    ordering={ordering}
-                    onChange={onOrderingChange}
-                    className="w-[7rem]"
-                  />
+                  <th
+                    title="Mandats actifs (rôle et périmètre)"
+                    className="min-w-[12rem] border-b border-[var(--app-border)] px-4 py-3.5 align-top text-[10px] font-semibold uppercase tracking-widest text-[var(--app-muted)]"
+                  >
+                    Mandats
+                  </th>
                   <SortTh
                     label="Genre"
                     title="Genre"
@@ -303,7 +286,6 @@ export function FacultyDirectoryTable({
                   </tr>
                 ) : (
                   results.map((row) => {
-                    const roleLabel = ROLE_LABEL[row.teacher_role] ?? row.teacher_role
                     const accountLinked = Boolean(row.is_active)
                     const email = (row.email || '').trim()
                     return (
@@ -361,15 +343,8 @@ export function FacultyDirectoryTable({
                             {row.grade_name ?? (row.grade_code ? row.grade_code : '—')}
                           </span>
                         </td>
-                        <td className="px-4 py-4 align-middle">
-                          <span className="line-clamp-2 text-[12px] text-[var(--app-fg)]" title={roleLabel}>
-                            {roleLabel}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          <span className="font-mono text-[11px] tabular-nums text-[var(--app-muted)]">
-                            {row.managed_department_code ?? '—'}
-                          </span>
+                        <td className="max-w-[16rem] px-4 py-4 align-middle text-[12px]">
+                          <TeacherMandates mandates={row.mandates} compact />
                         </td>
                         <td className="px-4 py-4 text-center align-middle text-[12px] text-[var(--app-muted)]">
                           {GENDER_LABEL[row.gender] ?? (row.gender || '—')}

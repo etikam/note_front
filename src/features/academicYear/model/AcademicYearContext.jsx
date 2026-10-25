@@ -80,7 +80,7 @@ export function AcademicYearProvider({ children }) {
       const rows = await fetchAcademicYears()
       setAcademicYears(rows)
       return rows
-    } catch (_error) {
+    } catch {
       setAcademicYears([])
       return []
     } finally {

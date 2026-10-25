@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom'
 
-import { getRoleHomePath } from '@/core/accessControl'
+import { homePathFor as getRoleHomePath } from '@/features/access/model/access'
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { PageLoading } from '@/shared/ui/Spinner'
 

@@ -1,4 +1,6 @@
-export { API_PREFIX } from '@/shared/api/endpoints'
+import { API_PREFIX } from '@/shared/api/endpoints'
+
+export { API_PREFIX }
 
 export const AUTH_API_PREFIX = `${API_PREFIX}/auth/`
 

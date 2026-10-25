@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Bell, Globe, Mail, MessageSquare, Palette, Save, Trash2, Upload, User2 } from 'lucide-react'
 
 import { useAuth } from '@/features/auth/model/AuthContext'
+import { primaryRole } from '@/features/access/model/access'
+import { MyMandatesSection } from '@/features/profile/ui/MyMandatesSection'
 import { StudentProfileSection } from '@/features/profile/ui/StudentProfileSection'
 import { useStudentProfile } from '@/features/student/hooks/useStudentResources'
 import { ThemeModeToggle } from '@/features/theme/ui/ThemeControls'
@@ -58,13 +60,8 @@ export function ProfilePage() {
     return <p className="text-muted">Non connecté.</p>
   }
 
-  const roleLabel = useMemo(() => {
-    if (user.role === 'student') return 'Étudiant'
-    if (user.role !== 'teacher') return user.role
-    const codes = Array.isArray(user.teacher_role_codes) ? user.teacher_role_codes : []
-    const priority = ['general_director', 'study_director', 'department_head', 'program_director', 'teacher']
-    return priority.find((code) => codes.includes(code)) ?? 'teacher'
-  }, [user])
+  const roleLabel =
+    user.role === 'student' ? 'Étudiant' : user.role === 'teacher' ? primaryRole(user)?.role_name ?? 'Enseignant' : user.role
 
   const displayName = isStudent && studentProfile
     ? `${studentProfile.first_name} ${studentProfile.last_name}`.trim()
@@ -207,6 +204,7 @@ export function ProfilePage() {
             onReload={reloadStudentProfile}
           />
         ) : null}
+        {user.role === 'teacher' ? <MyMandatesSection /> : null}
         </div>
 
         <Card className="border-zinc-300/90 p-5 dark:border-[var(--app-border)]">

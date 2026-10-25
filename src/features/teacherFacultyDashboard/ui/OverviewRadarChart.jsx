@@ -137,7 +137,7 @@ export function OverviewRadarChart({ bars = [], title, subtitle, className, load
             )
           })}
 
-          {points.map((p, i) => (
+          {points.map((p) => (
             <line
               key={`spoke-${p.key}`}
               x1={VIEW.cx}

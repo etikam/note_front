@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Download, FilePlus2, Layers, Plus, Printer } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -32,7 +33,8 @@ export function PedagogyMaquetteSection({
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
-  const [departmentFilter, setDepartmentFilter] = useState('')
+  const [searchParams] = useSearchParams()
+  const [programFilter, setProgramFilter] = useState(() => (searchParams.get('program') ? `id:${searchParams.get('program')}` : ''))
   const [levelFilter, setLevelFilter] = useState('')
   const [unitFilter, setUnitFilter] = useState('')
   const [moduleFilter, setModuleFilter] = useState('')
@@ -69,18 +71,18 @@ export function PedagogyMaquetteSection({
   }, [yearFocusId, reloadKey])
 
   const filterOptions = useMemo(() => {
-    const departmentMap = new Map()
+    const programMap = new Map()
     const levelMap = new Map()
     const unitMap = new Map()
     const calendarMap = new Map()
     const parcoursSet = new Set()
     for (const row of rows) {
-      const deptId = row.department ?? row.department_id ?? null
-      const deptCode = row.department_code ?? row.teaching_unit_department_code ?? null
-      const deptName = row.department_name ?? row.teaching_unit_department_name ?? null
+      const deptId = row.program ?? null
+      const deptCode = row.program_code ?? null
+      const deptName = row.program_name ?? null
       const deptKey = deptId != null ? `id:${deptId}` : deptCode ? `code:${deptCode}` : 'unknown'
-      const deptLabel = deptName || deptCode || 'Département non renseigné'
-      departmentMap.set(deptKey, { id: deptKey, code: deptCode, name: deptLabel })
+      const deptLabel = deptName || deptCode || 'Programme non renseigné'
+      programMap.set(deptKey, { id: deptKey, code: deptCode, name: deptLabel })
 
       if (row.level != null) levelMap.set(String(row.level), row.level_name ?? `Niveau #${row.level}`)
       if (row.teaching_unit != null) {
@@ -94,7 +96,7 @@ export function PedagogyMaquetteSection({
       if (row.semester != null) parcoursSet.add(String(row.semester))
     }
     return {
-      departments: Array.from(departmentMap.values()).sort((a, b) =>
+      programs: Array.from(programMap.values()).sort((a, b) =>
         `${a.code ?? ''} ${a.name}`.localeCompare(`${b.code ?? ''} ${b.name}`, 'fr', { sensitivity: 'base' }),
       ),
       levels: Array.from(levelMap.entries())
@@ -116,10 +118,10 @@ export function PedagogyMaquetteSection({
   const filteredRows = useMemo(() => {
     const q = search.trim().toLowerCase()
     return rows.filter((row) => {
-      const deptId = row.department ?? row.department_id ?? null
-      const deptCode = row.department_code ?? row.teaching_unit_department_code ?? null
+      const deptId = row.program ?? null
+      const deptCode = row.program_code ?? null
       const deptKey = deptId != null ? `id:${deptId}` : deptCode ? `code:${deptCode}` : 'unknown'
-      if (departmentFilter && deptKey !== departmentFilter) return false
+      if (programFilter && deptKey !== programFilter) return false
       if (levelFilter && String(row.level ?? '') !== levelFilter) return false
       if (unitFilter && String(row.teaching_unit ?? '') !== unitFilter) return false
       if (moduleFilter && String(row.module ?? '') !== moduleFilter) return false
@@ -128,8 +130,9 @@ export function PedagogyMaquetteSection({
       const haystack = [
         row.code,
         row.name,
+        row.program_code,
+        row.program_name,
         row.department_code,
-        row.department_name,
         row.level_name,
         row.teaching_unit_code,
         row.teaching_unit_name,
@@ -140,34 +143,34 @@ export function PedagogyMaquetteSection({
         .toLowerCase()
       return haystack.includes(q)
     })
-  }, [rows, search, departmentFilter, levelFilter, unitFilter, moduleFilter, parcoursSemesterFilter])
+  }, [rows, search, programFilter, levelFilter, unitFilter, moduleFilter, parcoursSemesterFilter])
 
   const grouped = useMemo(() => {
     const normalize = (value) => String(value ?? '').trim().toLowerCase()
-    /** @type {Map<string, { departmentKey: string, departmentCode: string, departmentName: string, levels: Map<string, { levelId: number|null, levelName: string, teachingUnits: Map<string, { unitId: number|null, unitCode: string, unitName: string, courses: Array<any>, _courseIds: Set<string> }> }> }>} */
-    const byDepartment = new Map()
+    /** @type {Map<string, { programKey: string, programCode: string, programName: string, levels: Map<string, { levelId: number|null, levelName: string, teachingUnits: Map<string, { unitId: number|null, unitCode: string, unitName: string, courses: Array<any>, _courseIds: Set<string> }> }> }>} */
+    const byProgram = new Map()
     for (const c of filteredRows) {
-      const departmentId = c.department ?? c.department_id ?? null
-      const departmentCode = c.department_code ?? c.teaching_unit_department_code ?? 'DEP-?'
-      const departmentName = c.department_name ?? c.teaching_unit_department_name ?? 'Département non renseigné'
-      const departmentKey = departmentId != null ? `id:${departmentId}` : departmentCode ? `code:${departmentCode}` : 'unknown'
-      if (!byDepartment.has(departmentKey)) {
-        byDepartment.set(departmentKey, {
-          departmentKey,
-          departmentCode,
-          departmentName,
+      const programId = c.program ?? null
+      const programCode = c.program_code ?? 'PRG-?'
+      const programName = c.program_name ?? 'Programme non renseigné'
+      const programKey = programId != null ? `id:${programId}` : programCode ? `code:${programCode}` : 'unknown'
+      if (!byProgram.has(programKey)) {
+        byProgram.set(programKey, {
+          programKey,
+          programCode,
+          programName,
           levels: new Map(),
         })
       }
-      const departmentGroup = byDepartment.get(departmentKey)
+      const programGroup = byProgram.get(programKey)
 
       const levelId = c.level ?? null
       const levelName = c.level_name ?? 'Niveau non renseigné'
       const levelKey = normalize(levelName) || `${levelId ?? 'x'}`
-      if (!departmentGroup.levels.has(levelKey)) {
-        departmentGroup.levels.set(levelKey, { levelId, levelName, teachingUnits: new Map() })
+      if (!programGroup.levels.has(levelKey)) {
+        programGroup.levels.set(levelKey, { levelId, levelName, teachingUnits: new Map() })
       }
-      const levelGroup = departmentGroup.levels.get(levelKey)
+      const levelGroup = programGroup.levels.get(levelKey)
       const unitId = c.teaching_unit ?? null
       const unitCode = c.teaching_unit_code ?? 'UE-?'
       const unitName = c.teaching_unit_name ?? 'UE non renseignée'
@@ -182,15 +185,15 @@ export function PedagogyMaquetteSection({
         ueGroup.courses.push(c)
       }
     }
-    return Array.from(byDepartment.values())
+    return Array.from(byProgram.values())
       .sort((a, b) =>
-        `${a.departmentCode} ${a.departmentName}`.localeCompare(`${b.departmentCode} ${b.departmentName}`, 'fr', {
+        `${a.programCode} ${a.programName}`.localeCompare(`${b.programCode} ${b.programName}`, 'fr', {
           sensitivity: 'base',
         }),
       )
-      .map((department) => ({
-        ...department,
-        levels: Array.from(department.levels.values())
+      .map((program) => ({
+        ...program,
+        levels: Array.from(program.levels.values())
           .sort((a, b) => String(a.levelName).localeCompare(String(b.levelName), 'fr', { sensitivity: 'base' }))
           .map((lvl) => ({
             ...lvl,
@@ -220,18 +223,18 @@ export function PedagogyMaquetteSection({
 
   const filtersLabel = useMemo(() => {
     const chips = []
-    const department = filterOptions.departments.find((x) => x.id === departmentFilter)
+    const program = filterOptions.programs.find((x) => x.id === programFilter)
     const level = filterOptions.levels.find((x) => x.id === levelFilter)
     const unit = filterOptions.units.find((x) => x.id === unitFilter)
     const calendar = filterOptions.calendarModules.find((x) => x.id === moduleFilter)
-    if (department) chips.push(`Département: ${department.code ? `${department.code} - ` : ''}${department.name}`)
+    if (program) chips.push(`Programme: ${program.code ? `${program.code} - ` : ''}${program.name}`)
     if (level) chips.push(`Niveau: ${level.name}`)
     if (unit) chips.push(`UE: ${unit.code} - ${unit.name}`)
     if (calendar) chips.push(`Module: ${calendar.label}`)
     if (parcoursSemesterFilter) chips.push(`Sem. parcours: S${parcoursSemesterFilter}`)
     if (search.trim()) chips.push(`Recherche: "${search.trim()}"`)
     return chips
-  }, [filterOptions, departmentFilter, levelFilter, unitFilter, moduleFilter, parcoursSemesterFilter, search])
+  }, [filterOptions, programFilter, levelFilter, unitFilter, moduleFilter, parcoursSemesterFilter, search])
 
   const renderExportHtml = () => {
     const esc = (value) =>
@@ -242,8 +245,8 @@ export function PedagogyMaquetteSection({
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#39;')
     const sections = grouped
-      .map((department) => {
-        const levelBlocks = department.levels
+      .map((program) => {
+        const levelBlocks = program.levels
           .map((lvl) => {
             const ueBlocks = lvl.teachingUnits
               .map((ue) => {
@@ -286,14 +289,14 @@ export function PedagogyMaquetteSection({
           </section>`
           })
           .join('')
-        const departmentCount = department.levels.reduce(
+        const programCount = program.levels.reduce(
           (total, lvl) => total + lvl.teachingUnits.reduce((acc, ue) => acc + ue.courses.length, 0),
           0,
         )
-        return `<section class="department">
-          <div class="department-head">
-            <h2>${esc(department.departmentCode ? `${department.departmentCode} - ${department.departmentName}` : department.departmentName)}</h2>
-            <p>${esc(departmentCount)} matière(s)</p>
+        return `<section class="program">
+          <div class="program-head">
+            <h2>${esc(program.programCode ? `${program.programCode} - ${program.programName}` : program.programName)}</h2>
+            <p>${esc(programCount)} matière(s)</p>
           </div>
           ${levelBlocks}
         </section>`
@@ -322,10 +325,10 @@ export function PedagogyMaquetteSection({
     .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .filters span { border: 1px solid #d4d4d8; border-radius: 999px; padding: 3px 8px; font-size: 11px; color: #3f3f46; }
     .level { page-break-inside: avoid; margin-bottom: 18px; }
-    .department { page-break-inside: avoid; margin-bottom: 20px; border: 1px solid #e4e4e7; border-radius: 12px; padding: 10px; }
-    .department-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d4d4d8; margin-bottom: 8px; }
-    .department-head h2 { margin: 0; font-size: 16px; color: #312e81; font-family: Manrope, Inter, Arial, sans-serif; }
-    .department-head p { margin: 0 0 4px; font-size: 12px; color: #71717a; }
+    .program { page-break-inside: avoid; margin-bottom: 20px; border: 1px solid #e4e4e7; border-radius: 12px; padding: 10px; }
+    .program-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d4d4d8; margin-bottom: 8px; }
+    .program-head h2 { margin: 0; font-size: 16px; color: #312e81; font-family: Manrope, Inter, Arial, sans-serif; }
+    .program-head p { margin: 0 0 4px; font-size: 12px; color: #71717a; }
     .level-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #e4e4e7; margin-bottom: 8px; }
     .level-head h2 { margin: 0; font-size: 18px; font-family: Manrope, Inter, Arial, sans-serif; }
     .level-head p { margin: 0 0 3px; font-size: 12px; color: #71717a; }
@@ -407,8 +410,8 @@ export function PedagogyMaquetteSection({
       }
 
       let sectionIndex = 0
-      grouped.forEach((department) => {
-        department.levels.forEach((lvl) => {
+      grouped.forEach((program) => {
+        program.levels.forEach((lvl) => {
           const index = sectionIndex
           sectionIndex += 1
         if (index > 0) doc.addPage()
@@ -418,7 +421,7 @@ export function PedagogyMaquetteSection({
         doc.setFontSize(11)
         doc.setTextColor(67, 56, 202)
         doc.text(
-          department.departmentCode ? `${department.departmentCode} - ${department.departmentName}` : department.departmentName,
+          program.programCode ? `${program.programCode} - ${program.programName}` : program.programName,
           14,
           cursorY,
         )
@@ -500,7 +503,7 @@ export function PedagogyMaquetteSection({
         <div>
           <h3 className="font-heading text-lg font-semibold text-[var(--app-fg)]">Maquette de l’année {yearFocusLabel ?? `#${yearFocusId}`}</h3>
           <p className="text-sm text-[var(--app-muted)]">
-            Vue structurée Département → Niveau → UE → Matières, présentée en mode document pour contrôle pédagogique.
+            Vue structurée Programme → Niveau → UE → Matières, présentée en mode document pour contrôle pédagogique.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -537,16 +540,16 @@ export function PedagogyMaquetteSection({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Département</span>
+            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Programme</span>
             <select
-              value={departmentFilter}
-              onChange={(e) => setDepartmentFilter(e.target.value)}
+              value={programFilter}
+              onChange={(e) => setProgramFilter(e.target.value)}
               className="h-9 rounded-lg border border-zinc-300 bg-white px-3 text-sm outline-none focus:border-brand-500 dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]"
             >
               <option value="">Tous</option>
-              {filterOptions.departments.map((department) => (
-                <option key={department.id} value={department.id}>
-                  {department.code ? `${department.code} - ` : ''}{department.name}
+              {filterOptions.programs.map((program) => (
+                <option key={program.id} value={program.id}>
+                  {program.code ? `${program.code} - ` : ''}{program.name}
                 </option>
               ))}
             </select>
@@ -624,7 +627,7 @@ export function PedagogyMaquetteSection({
               size="sm"
               onClick={() => {
                 setSearch('')
-                setDepartmentFilter('')
+                setProgramFilter('')
                 setLevelFilter('')
                 setUnitFilter('')
                 setModuleFilter('')
@@ -656,22 +659,22 @@ export function PedagogyMaquetteSection({
             </div>
           ) : (
             <div className="space-y-6">
-              {grouped.map((department) => (
-                <section key={department.departmentKey} className="space-y-4 rounded-xl border border-zinc-200 p-4 dark:border-[var(--app-border)]">
+              {grouped.map((program) => (
+                <section key={program.programKey} className="space-y-4 rounded-xl border border-zinc-200 p-4 dark:border-[var(--app-border)]">
                   <div className="flex items-center justify-between gap-3 border-b border-zinc-200 pb-2 dark:border-[var(--app-border)]">
                     <h5 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {department.departmentCode ? `${department.departmentCode} - ` : ''}{department.departmentName}
+                      {program.programCode ? `${program.programCode} - ` : ''}{program.programName}
                     </h5>
                     <span className="text-xs text-zinc-500">
-                      {department.levels.reduce(
+                      {program.levels.reduce(
                         (total, lvl) => total + lvl.teachingUnits.reduce((acc, ue) => acc + ue.courses.length, 0),
                         0,
                       )}{' '}
                       matière(s)
                     </span>
                   </div>
-                  {department.levels.map((lvl) => (
-                    <div key={`${department.departmentKey}-${lvl.levelId ?? 'x'}-${lvl.levelName}`} className="space-y-3">
+                  {program.levels.map((lvl) => (
+                    <div key={`${program.programKey}-${lvl.levelId ?? 'x'}-${lvl.levelName}`} className="space-y-3">
                       <div className="flex items-center justify-between gap-3">
                         <h6 className="font-medium text-zinc-800 dark:text-zinc-200">{lvl.levelName}</h6>
                         <span className="text-xs text-zinc-500">

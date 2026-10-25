@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { BookOpen, Plus } from 'lucide-react'
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
-import { useAuth } from '@/features/auth/model/AuthContext'
+import { useAccess } from '@/features/access/model/useAccess'
+import { useScopeOptions } from '@/features/access/model/useScopeOptions'
+import { defaultScope } from '@/features/access/model/scopeFilter'
+import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
 import {
   deleteCourseAssignment,
   fetchCourseAssignmentModules,
@@ -27,10 +30,12 @@ const SEMESTER_SELECT_CLASS =
   'cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-zinc-50 dark:disabled:bg-brand-950/40'
 
 export function TeacherFacultyCourseAssignmentsPage() {
-  const { user } = useAuth()
-  const institutionWide = Boolean(user?.scope?.institution_wide)
-  const canManageCourses = Boolean(user?.capabilities?.can_manage_courses)
+  const access = useAccess()
+  const canManageCourses = access.canManage('courses.assign')
   const { academicYearId, academicYearLabel, refreshAcademicYears } = useAcademicYear()
+  const scopeOptions = useScopeOptions('courses.assign', { enabled: canManageCourses })
+  const [searchParams] = useSearchParams()
+  const [scope, setScope] = useState(() => ({ departmentId: '', programId: searchParams.get('program') ?? '' }))
 
   const [moduleFilter, setModuleFilter] = useState('')
   const [moduleOptions, setModuleOptions] = useState([])
@@ -47,6 +52,18 @@ export function TeacherFacultyCourseAssignmentsPage() {
   }, [refreshAcademicYears])
 
   useEffect(() => {
+    if (scopeOptions.loading) return
+    const locked = defaultScope(scopeOptions)
+    if (locked.departmentId || locked.programId) setScope((s) => (s.departmentId || s.programId ? s : locked))
+  }, [scopeOptions])
+
+  const scopeParams = useMemo(() => {
+    if (scope.programId) return { program_id: scope.programId }
+    if (scope.departmentId) return { department_id: scope.departmentId }
+    return {}
+  }, [scope])
+
+  useEffect(() => {
     if (!academicYearId) {
       setModuleOptions([])
       return
@@ -54,10 +71,7 @@ export function TeacherFacultyCourseAssignmentsPage() {
     let cancelled = false
     ;(async () => {
       try {
-        const params = { academic_year_id: academicYearId }
-        const managed = user?.scope?.managed_department_id
-        if (managed && !institutionWide) params.department_id = managed
-        const rows = await fetchCourseAssignmentModules(params)
+        const rows = await fetchCourseAssignmentModules({ academic_year_id: academicYearId, ...scopeParams })
         if (!cancelled) setModuleOptions(Array.isArray(rows) ? rows : [])
       } catch {
         if (!cancelled) setModuleOptions([])
@@ -66,18 +80,18 @@ export function TeacherFacultyCourseAssignmentsPage() {
     return () => {
       cancelled = true
     }
-  }, [academicYearId, user?.scope?.managed_department_id, institutionWide])
+  }, [academicYearId, scopeParams])
 
   useEffect(() => {
     setPage(1)
-  }, [academicYearId, moduleFilter])
+  }, [academicYearId, moduleFilter, scopeParams])
 
   const params = useMemo(() => {
-    const p = { page }
+    const p = { page, ...scopeParams }
     if (academicYearId) p.academic_year_id = academicYearId
     if (moduleFilter) p.module_id = moduleFilter
     return p
-  }, [page, academicYearId, moduleFilter])
+  }, [page, academicYearId, moduleFilter, scopeParams])
 
   const load = useCallback(async () => {
     if (!academicYearId || !canManageCourses) return
@@ -149,7 +163,17 @@ export function TeacherFacultyCourseAssignmentsPage() {
       ) : null}
 
       {academicYearId ? (
-        <div className="max-w-xs">
+        <div className="grid max-w-2xl gap-3 sm:grid-cols-2">
+          <Field label="Programme">
+            <ScopeSelect
+              className={SEMESTER_SELECT_CLASS}
+              options={scopeOptions}
+              departmentId={scope.departmentId}
+              programId={scope.programId}
+              onChange={setScope}
+              allLabel="Tous les programmes"
+            />
+          </Field>
           <Field label="Filtrer par module">
             <select className={SEMESTER_SELECT_CLASS} value={moduleFilter} onChange={(e) => setModuleFilter(e.target.value)}>
               <option value="">Tous les modules</option>
@@ -217,7 +241,7 @@ export function TeacherFacultyCourseAssignmentsPage() {
         </div>
       ) : null}
 
-      {user?.capabilities?.can_provision_teacher ? (
+      {access.canAny('teachers.view', 'teachers.provision') ? (
         <p className="text-sm text-zinc-500">
           <BookOpen size={14} className="inline mr-1 align-text-bottom opacity-70" aria-hidden />
           <Link to="/teacher/faculty/list" className="text-brand-600 hover:underline dark:text-brand-400">
@@ -231,6 +255,7 @@ export function TeacherFacultyCourseAssignmentsPage() {
           open={modalOpen}
           onClose={() => setModalOpen(false)}
           academicYearId={String(academicYearId)}
+          initialScope={scope}
           onSuccess={async () => {
             dispatchToast({ type: 'success', message: 'Cours affecté.' })
             await load()

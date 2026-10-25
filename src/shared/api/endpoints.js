@@ -1,6 +1,16 @@
 export const API_PREFIX = '/api/v1'
 
 export const endpoints = {
+  access: {
+    catalog: `${API_PREFIX}/access/catalog/`,
+    roles: `${API_PREFIX}/access/roles/`,
+    role: (id) => `${API_PREFIX}/access/roles/${id}/`,
+    assignments: `${API_PREFIX}/access/assignments/`,
+    assignment: (id) => `${API_PREFIX}/access/assignments/${id}/`,
+    revoke: (id) => `${API_PREFIX}/access/assignments/${id}/revoke/`,
+    candidates: `${API_PREFIX}/access/candidates/`,
+    me: `${API_PREFIX}/access/me/`,
+  },
   auth: {
     studentActivationLookup: `${API_PREFIX}/auth/activation/student/lookup/`,
     studentActivationRequestOtp: `${API_PREFIX}/auth/activation/student/request-otp/`,
@@ -25,6 +35,10 @@ export const endpoints = {
     departments: `${API_PREFIX}/academics/departments/`,
     programs: `${API_PREFIX}/academics/programs/`,
     programDetail: (id) => `${API_PREFIX}/academics/programs/${id}/`,
+    faculties: `${API_PREFIX}/academics/faculties/`,
+    departmentCreate: `${API_PREFIX}/academics/departments/manage/`,
+    departmentDetail: (id) => `${API_PREFIX}/academics/departments/${id}/`,
+    structure: `${API_PREFIX}/academics/structure/`,
     levels: `${API_PREFIX}/academics/levels/`,
     levelGradesReport: (levelId) => `${API_PREFIX}/academics/levels/${levelId}/grades-report/`,
     levelsManage: `${API_PREFIX}/academics/levels/manage/`,

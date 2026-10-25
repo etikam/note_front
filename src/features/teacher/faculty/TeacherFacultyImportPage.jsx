@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Play } from 'lucide-react'
 
-import { useAuth } from '@/features/auth/model/AuthContext'
+import { useAccess } from '@/features/access/model/useAccess'
 import { validateTeacherImportCsv } from '@/features/teacher/faculty/teacherCsvValidation'
 import { TEACHER_IMPORT_REQUIRED_COLUMNS } from '@/features/teacher/faculty/teacherImport.constants'
 import { TeacherImportRowIssuesPanel } from '@/features/teacher/faculty/ui/TeacherImportRowIssuesPanel'
@@ -30,12 +30,11 @@ import { PREVIEW_ROW_CAP } from '@/features/teacher/students/ui/import/import.co
 import { Button } from '@/shared/ui/Button'
 import { Stack } from '@/shared/ui/Stack'
 
-const IMPORT_ROLE_VALUES = ['teacher', 'department_head', 'study_director', 'program_director', 'general_director']
 
 export function TeacherFacultyImportPage() {
-  const { user } = useAuth()
-  const canProvision = Boolean(user?.capabilities?.can_provision_teacher)
-  const canViewReports = Boolean(user?.capabilities?.can_view_reports)
+  const access = useAccess()
+  const canProvision = access.canGlobal('teachers.provision')
+  const canViewReports = access.canManage('reports.view')
   const inputRef = useRef(null)
   const [drag, setDrag] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -178,8 +177,9 @@ export function TeacherFacultyImportPage() {
         lignes avec matricule ou e-mail déjà présents sont ignorées.
       </p>
       <p className="mt-2">
-        <span className="font-semibold text-zinc-800 dark:text-zinc-200">teacher_role</span> :{' '}
-        <span className="font-mono text-[11px]">{IMPORT_ROLE_VALUES.join(', ')}</span>
+        <span className="font-semibold text-zinc-800 dark:text-zinc-200">teacher_role</span> : laisser vide ou{' '}
+        <span className="font-mono text-[11px]">teacher</span>. Les responsabilités (chef de département, directeur…)
+        s’attribuent ensuite par nomination.
       </p>
       <p className="mt-1.5">
         <span className="font-semibold text-zinc-800 dark:text-zinc-200">grade_code</span> :{' '}

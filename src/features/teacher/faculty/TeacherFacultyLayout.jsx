@@ -1,61 +1,33 @@
-import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Link2, Upload, UserCog } from 'lucide-react'
 
-import { useAuth } from '@/features/auth/model/AuthContext'
-import { hasAnyCapability } from '@/core/accessControl'
-import { cn } from '@/shared/lib/cn'
+import { useAccess } from '@/features/access/model/useAccess'
+import { RouteTabs } from '@/shared/ui/RouteTabs'
 
-const facultyTabClass = ({ isActive }) =>
-  cn(
-    'inline-flex shrink-0 items-center border-b-2 px-4 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none whitespace-nowrap no-underline',
-    'rounded-t-md focus-visible:ring-2 focus-visible:ring-secondary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600',
-    isActive
-      ? 'border-secondary-300 text-secondary-50 visited:text-secondary-50 shadow-[inset_0_-8px_12px_-10px_rgba(249,115,22,0.35)] dark:border-secondary-200 dark:text-secondary-50 dark:visited:text-secondary-50'
-      : 'border-transparent text-secondary-100 visited:text-secondary-100 hover:border-secondary-300/70 hover:text-secondary-50 dark:text-secondary-100 dark:visited:text-secondary-100 dark:hover:text-secondary-50',
-  )
+/** Sous-sections « Enseignants » visibles selon les permissions de l'utilisateur. */
+function facultySectionTabs(access) {
+  return [
+    { to: '/teacher/faculty/list', label: 'Annuaire', icon: UserCog, visible: access.canManage('teachers.view') },
+    { to: '/teacher/faculty/course-assignments', label: 'Affectations des cours', icon: Link2, visible: access.canManage('courses.assign') },
+    { to: '/teacher/faculty/import-export', label: 'Import', icon: Upload, visible: access.canGlobal('teachers.provision') },
+  ].filter((t) => t.visible)
+}
 
 export function TeacherFacultyLayout() {
-  const { user } = useAuth()
-  const canProvision = hasAnyCapability(user, ['can_provision_teacher'])
-  const canManageCourses = hasAnyCapability(user, ['can_manage_courses'])
+  const access = useAccess()
   const location = useLocation()
+  const tabs = facultySectionTabs(access)
   const isDetail = /^\/teacher\/faculty\/\d+\/?$/.test(location.pathname)
 
-  if (!canProvision && !canManageCourses) {
-    return <Navigate to="/teacher/dashboard" replace />
-  }
+  if (!tabs.length) return <Navigate to="/teacher/my-courses" replace />
+  const isAssignmentDetail = location.pathname.startsWith('/teacher/faculty/course-assignments/')
+  const current = tabs.find((t) => location.pathname.startsWith(t.to))
+  if (!isDetail && !isAssignmentDetail && !current) return <Navigate to={tabs[0].to} replace />
 
   return (
-    <section className="flex flex-col gap-0" aria-label="Gestion des enseignants">
-      {!isDetail && (
-        <div className="-mx-6 mb-6 px-6">
-          <div className="overflow-hidden rounded-xl bg-brand-600 shadow-sm ring-1 ring-brand-700/30 dark:bg-brand-600 dark:ring-white/10">
-            <nav
-              className="-mb-px flex flex-nowrap divide-x divide-secondary-400/50 overflow-x-auto px-1 text-secondary-100 sm:flex-wrap sm:px-2"
-              role="tablist"
-              aria-label="Sections enseignants"
-            >
-              {canProvision ? (
-                <>
-                  <NavLink to="/teacher/faculty/list" className={facultyTabClass} role="tab" end>
-                    Annuaire
-                  </NavLink>
-                  <NavLink to="/teacher/faculty/import-export" className={facultyTabClass} role="tab">
-                    Import / Export
-                  </NavLink>
-                </>
-              ) : null}
-              {canManageCourses ? (
-                <NavLink to="/teacher/faculty/course-assignments" className={facultyTabClass} role="tab">
-                  Affectations cours
-                </NavLink>
-              ) : null}
-            </nav>
-          </div>
-        </div>
-      )}
-      <div>
-        <Outlet />
-      </div>
+    <section aria-label="Enseignants">
+      {!isDetail && !isAssignmentDetail ? <RouteTabs tabs={tabs} ariaLabel="Sections enseignants" /> : null}
+      <Outlet />
     </section>
   )
 }

@@ -227,7 +227,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="hero-text" style={{ fontSize: 16, color: "#64748B", lineHeight: 1.85, maxWidth: 500, marginBottom: 40, fontFamily: "'Sora',sans-serif", fontWeight: 300 }}>
-              Fruit d'un partenariat France-Guinée depuis <strong style={{ color: "#1D4ED8", fontWeight: 700 }}>1989</strong> — Formations en Licence, Master et Doctorat dans les domaines des NTIC et du Développement Logiciel.
+              Fruit d’un partenariat France-Guinée depuis <strong style={{ color: "#1D4ED8", fontWeight: 700 }}>1989</strong> — Formations en Licence, Master et Doctorat dans les domaines des NTIC et du Développement Logiciel.
             </p>
 
             <div className="hero-text" style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
@@ -284,10 +284,10 @@ export default function LandingPage() {
               Bienvenue au<br /><em style={{ color: "#1D4ED8" }}>Centre Informatique</em>
             </h2>
             <p style={{ fontSize: 15, color: "#64748B", lineHeight: 1.9, marginBottom: 16, fontFamily: "'Sora',sans-serif", fontWeight: 300 }}>
-              Créé en 1989 grâce à un partenariat France-Guinée, le Centre Informatique est un établissement autonome de l'Université Gamal Abdel Nasser de Conakry, sous la supervision directe du Recteur.
+              Créé en 1989 grâce à un partenariat France-Guinée, le Centre Informatique est un établissement autonome de l’Université Gamal Abdel Nasser de Conakry, sous la supervision directe du Recteur.
             </p>
             <p style={{ fontSize: 15, color: "#64748B", lineHeight: 1.9, marginBottom: 28, fontFamily: "'Sora',sans-serif", fontWeight: 300 }}>
-              Il forme des ingénieurs et développeurs compétents à travers deux départements spécialisés, avec un cursus conforme au système LMD reconnu à l'international.
+              Il forme des ingénieurs et développeurs compétents à travers deux départements spécialisés, avec un cursus conforme au système LMD reconnu à l’international.
             </p>
             <a href="https://ci.edu.gn/a-propos" target="_blank" rel="noreferrer" style={{ fontSize: 13, fontWeight: 700, color: "#1D4ED8", textDecoration: "none", fontFamily: "'Sora',sans-serif", display: "inline-flex", alignItems: "center", gap: 6 }}>
               En savoir plus →

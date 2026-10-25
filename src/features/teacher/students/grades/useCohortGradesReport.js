@@ -1,18 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { fetchCohortGradesReport, fetchCohorts, fetchDepartments } from '@/features/academicYear/api/academicsApi'
-import { useAuth } from '@/features/auth/model/AuthContext'
+import { fetchCohortGradesReport, fetchCohorts } from '@/features/academicYear/api/academicsApi'
+import { useScopeOptions } from '@/features/access/model/useScopeOptions'
+import { defaultScope, programIdsFor } from '@/features/access/model/scopeFilter'
 
+/** Relevé d'une cohorte ; les cohortes proposées sont celles des programmes du périmètre (``reports.view``). */
 export function useCohortGradesReport() {
-  const { user } = useAuth()
-  const managedDeptId = user?.scope?.managed_department_id ?? null
-  const institutionWide = Boolean(user?.scope?.institution_wide)
-  const deptScoped = managedDeptId != null && !institutionWide
-
-  const [departmentId, setDepartmentId] = useState(deptScoped ? String(managedDeptId) : '')
+  const scopeOptions = useScopeOptions('reports.view')
+  const [scope, setScope] = useState({ departmentId: '', programId: '' })
+  const { departmentId, programId } = scope
   const [cohortId, setCohortId] = useState('')
-  const [departments, setDepartments] = useState([])
-  const [cohorts, setCohorts] = useState([])
+  const [allCohorts, setCohorts] = useState([])
   const [metaLoading, setMetaLoading] = useState(true)
 
   const [report, setReport] = useState(null)
@@ -27,13 +25,10 @@ export function useCohortGradesReport() {
     ;(async () => {
       setMetaLoading(true)
       try {
-        const [deptList, cohortList] = await Promise.all([fetchDepartments(), fetchCohorts()])
-        if (!cancelled) {
-          setDepartments(deptList)
-          setCohorts(cohortList)
-        }
+        const cohortList = await fetchCohorts()
+        if (!cancelled) setCohorts(cohortList)
       } catch {
-        if (!cancelled) { setDepartments([]); setCohorts([]) }
+        if (!cancelled) setCohorts([])
       } finally {
         if (!cancelled) setMetaLoading(false)
       }
@@ -42,11 +37,22 @@ export function useCohortGradesReport() {
   }, [])
 
   useEffect(() => {
+    if (scopeOptions.loading) return
+    const locked = defaultScope(scopeOptions)
+    if (locked.departmentId || locked.programId) setScope(locked)
+  }, [scopeOptions])
+
+  const cohorts = useMemo(() => {
+    const ids = programIdsFor(scopeOptions, scope)
+    return allCohorts.filter((c) => ids.has(c.program))
+  }, [allCohorts, scopeOptions, scope])
+
+  useEffect(() => {
     setCohortId('')
     setReport(null)
     setSelectedCourseId('')
     setSearchQuery('')
-  }, [departmentId])
+  }, [departmentId, programId])
 
   useEffect(() => {
     setSelectedCourseId('')
@@ -58,8 +64,7 @@ export function useCohortGradesReport() {
     setLoading(true)
     setError(null)
     try {
-      const params = departmentId ? { department_id: departmentId } : {}
-      const data = await fetchCohortGradesReport(cohortId, params)
+      const data = await fetchCohortGradesReport(cohortId, {})
       setReport(data)
     } catch (e) {
       setError(e?.message ?? 'Chargement impossible.')
@@ -67,7 +72,7 @@ export function useCohortGradesReport() {
     } finally {
       setLoading(false)
     }
-  }, [cohortId, departmentId])
+  }, [cohortId])
 
   useEffect(() => { load() }, [load])
 
@@ -82,14 +87,14 @@ export function useCohortGradesReport() {
   }, [report])
 
   return {
-    departments,
+    scopeOptions,
+    departmentId,
+    programId,
+    setScope,
     cohorts,
     metaLoading,
-    departmentId,
-    setDepartmentId,
     cohortId,
     setCohortId,
-    deptScoped,
     report,
     loading,
     error,

@@ -7,9 +7,9 @@ import { OverviewLevelChart } from '@/features/teacherFacultyDashboard/overview/
 
 /**
  * Onglet « Vue d'ensemble » — filtres, KPIs, graphique par niveau, détails.
- * @param {{ enabled: boolean, managedDeptId?: number | null, institutionWide?: boolean }} props
+ * @param {{ enabled: boolean }} props
  */
-export function OverviewTab({ enabled, managedDeptId, institutionWide }) {
+export function OverviewTab({ enabled }) {
   const { academicYearId } = useAcademicYear()
 
   const {
@@ -19,21 +19,19 @@ export function OverviewTab({ enabled, managedDeptId, institutionWide }) {
     reload,
     filters,
     setFilter,
-    departments,
+    setScope,
+    scopeOptions,
     levels,
-    metaLoading,
-    deptScoped,
-  } = useOverviewStatistics(academicYearId, enabled, { managedDeptId, institutionWide })
+  } = useOverviewStatistics(academicYearId, enabled)
 
   return (
     <div className="flex flex-col gap-6">
       <OverviewFiltersBar
         filters={filters}
         onFilterChange={setFilter}
-        departments={departments}
+        onScopeChange={setScope}
+        scopeOptions={scopeOptions}
         levels={levels}
-        metaLoading={metaLoading}
-        deptScoped={deptScoped}
       />
 
       {error && (

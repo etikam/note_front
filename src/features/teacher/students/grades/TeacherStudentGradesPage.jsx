@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
 
+import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
 import { useCohortGradesReport } from '@/features/teacher/students/grades/useCohortGradesReport'
 import { LevelGradesTable } from '@/features/teacher/students/grades/ui/LevelGradesTable'
 import { cn } from '@/shared/lib/cn'
@@ -35,18 +36,15 @@ export function TeacherStudentGradesPage() {
       {/* Filtres principaux */}
       <div className="flex flex-wrap gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Département</label>
-          <select
-            className={cn(SELECT_BASE, 'h-10 px-3 min-w-[14rem]')}
-            value={g.departmentId}
-            onChange={(e) => g.setDepartmentId(e.target.value)}
-            disabled={g.deptScoped || g.metaLoading}
-          >
-            <option value="">Tous les départements</option>
-            {g.departments.map((d) => (
-              <option key={d.id} value={String(d.id)}>{d.name}</option>
-            ))}
-          </select>
+          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Programme</label>
+          <ScopeSelect
+            className={cn(SELECT_BASE, 'h-10 px-3 min-w-[14rem] max-w-[20rem]')}
+            options={g.scopeOptions}
+            departmentId={g.departmentId}
+            programId={g.programId}
+            onChange={g.setScope}
+            allLabel="Tous les programmes"
+          />
         </div>
 
         <div className="flex flex-col gap-1">

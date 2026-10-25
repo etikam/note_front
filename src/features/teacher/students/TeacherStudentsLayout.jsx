@@ -1,84 +1,37 @@
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { ClipboardList, FileUp, GraduationCap, Upload } from 'lucide-react'
 
-import { useAuth } from '@/features/auth/model/AuthContext'
-import { canAdminGradeImport, hasAnyCapability } from '@/core/accessControl'
-import { cn } from '@/shared/lib/cn'
+import { useAccess } from '@/features/access/model/useAccess'
+import { RouteTabs } from '@/shared/ui/RouteTabs'
 
-const studentsTabClass = ({ isActive }) =>
-  cn(
-    'inline-flex items-center border-b-2 px-4 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none whitespace-nowrap no-underline',
-    'rounded-t-md focus-visible:ring-2 focus-visible:ring-secondary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600',
-    isActive
-      ? 'border-secondary-300 text-secondary-50 visited:text-secondary-50 shadow-[inset_0_-8px_12px_-10px_rgba(249,115,22,0.35)] dark:border-secondary-200 dark:text-secondary-50 dark:visited:text-secondary-50'
-      : 'border-transparent text-secondary-100 visited:text-secondary-100 hover:border-secondary-300/70 hover:text-secondary-50 dark:text-secondary-100 dark:visited:text-secondary-100 dark:hover:text-secondary-50',
-  )
+/** Sous-sections « Étudiants » visibles selon les permissions de l'utilisateur. */
+function studentSectionTabs(access) {
+  return [
+    { to: '/teacher/students/list', label: 'Annuaire', icon: GraduationCap, visible: access.canManage('students.view') },
+    { to: '/teacher/students/import-export', label: 'Import / export', icon: Upload, visible: access.canManage('students.import') },
+    { to: '/teacher/students/grades-import', label: 'Import des notes', icon: FileUp, visible: access.canManage('grades.bulk_import') },
+    { to: '/teacher/students/grades', label: 'Relevés de notes', icon: ClipboardList, visible: access.canManage('reports.view') },
+  ].filter((t) => t.visible)
+}
 
 export function TeacherStudentsLayout() {
-  const { user } = useAuth()
-  const canImport = hasAnyCapability(user, ['can_import_data'])
-  const showGradesImportTab = canAdminGradeImport(user)
+  const access = useAccess()
   const location = useLocation()
+  const tabs = studentSectionTabs(access)
   const isDetail = /^\/teacher\/students\/\d+\/?$/.test(location.pathname)
 
+  if (location.pathname.replace(/\/$/, '') === '/teacher/students') {
+    return <Navigate to={tabs[0]?.to ?? '/teacher/my-courses'} replace />
+  }
+  const current = tabs.find((t) => location.pathname.startsWith(t.to))
+  if (!isDetail && !current) {
+    return <Navigate to={tabs[0]?.to ?? '/teacher/my-courses'} replace />
+  }
+
   return (
-    <section className="flex flex-col gap-0" aria-label="Espace étudiants">
-      {!isDetail && (
-        <div className="-mx-6 mb-6 px-6">
-          <div className="overflow-hidden rounded-xl bg-brand-600 shadow-sm ring-1 ring-brand-700/30 dark:bg-brand-600 dark:ring-white/10">
-            <nav
-              className="-mb-px flex flex-wrap divide-x divide-secondary-400/50 px-1 text-secondary-100 sm:px-2"
-              role="tablist"
-              aria-label="Sections étudiants"
-            >
-              <NavLink to="/teacher/students/list" className={studentsTabClass} role="tab" end>
-                Annuaire
-              </NavLink>
-              {canImport ? (
-                <NavLink to="/teacher/students/import-export" className={studentsTabClass} role="tab">
-                  Import / Export
-                </NavLink>
-              ) : (
-                <span
-                  className="inline-flex cursor-not-allowed items-center border-b-2 border-transparent px-4 py-3 text-sm font-semibold tracking-tight text-secondary-200/50 opacity-80"
-                  title="Droits insuffisants"
-                  aria-disabled="true"
-                >
-                  Import / Export
-                </span>
-              )}
-              {showGradesImportTab ? (
-                <NavLink to="/teacher/students/grades-import" className={studentsTabClass} role="tab">
-                  Import des notes
-                </NavLink>
-              ) : (
-                <span
-                  className="inline-flex cursor-not-allowed items-center border-b-2 border-transparent px-4 py-3 text-sm font-semibold tracking-tight text-secondary-200/50 opacity-80"
-                  title="Réservé au directeur des études ou au directeur général"
-                  aria-disabled="true"
-                >
-                  Import des notes
-                </span>
-              )}
-              {showGradesImportTab ? (
-                <NavLink to="/teacher/students/grades" className={studentsTabClass} role="tab">
-                  Notes
-                </NavLink>
-              ) : (
-                <span
-                  className="inline-flex cursor-not-allowed items-center border-b-2 border-transparent px-4 py-3 text-sm font-semibold tracking-tight text-secondary-200/50 opacity-80"
-                  title="Réservé au directeur des études ou au directeur général"
-                  aria-disabled="true"
-                >
-                  Notes
-                </span>
-              )}
-            </nav>
-          </div>
-        </div>
-      )}
-      <div>
-        <Outlet />
-      </div>
+    <section aria-label="Étudiants">
+      {!isDetail ? <RouteTabs tabs={tabs} ariaLabel="Sections étudiants" /> : null}
+      <Outlet />
     </section>
   )
 }

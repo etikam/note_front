@@ -1,5 +1,6 @@
 import { Filter, RotateCcw, Search } from 'lucide-react'
 
+import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
 import { STATUS_UI } from '@/features/teacher/students/studentList.constants'
 import { cn } from '@/shared/lib/cn'
 
@@ -16,7 +17,9 @@ export function StudentFilters({
   q,
   onQChange,
   departmentId,
-  onDepartmentIdChange,
+  programId,
+  onScopeChange,
+  scopeOptions,
   filterAcademicYearId,
   onFilterAcademicYearIdChange,
   cohorteId,
@@ -28,12 +31,11 @@ export function StudentFilters({
   onLevelIdChange,
   status,
   onStatusChange,
-  departments,
   levels,
   metaLoading,
   isLoadingYears,
   academicYears,
-  deptScoped,
+  scopeLocked,
   activeFilterCount,
   onResetFilters,
 }) {
@@ -58,20 +60,15 @@ export function StudentFilters({
         </div>
 
         <div className="flex flex-col gap-1">
-          <select
-            id="sd-dept"
-            className={cn(SELECT_BASE, 'h-10 px-3')}
-            value={departmentId}
-            onChange={(e) => onDepartmentIdChange(e.target.value)}
-            disabled={deptScoped || metaLoading}
-          >
-            <option value="">Tous les départements</option>
-            {departments.map((d) => (
-              <option key={d.id} value={String(d.id)}>
-                {d.name}
-              </option>
-            ))}
-          </select>
+          <ScopeSelect
+            id="sd-scope"
+            className={cn(SELECT_BASE, 'h-10 px-3 max-w-[18rem]')}
+            options={scopeOptions}
+            departmentId={departmentId}
+            programId={programId}
+            onChange={onScopeChange}
+            allLabel="Tous les programmes"
+          />
         </div>
 
         <div className="flex flex-col gap-1">
@@ -149,9 +146,9 @@ export function StudentFilters({
               className={cn(SELECT_BASE, 'h-9 px-3 text-sm')}
               value={levelId}
               onChange={(e) => onLevelIdChange(e.target.value)}
-              disabled={!departmentId}
+              disabled={!departmentId && !programId}
             >
-              <option value="">{departmentId ? 'Tous les niveaux' : 'Choisir un département'}</option>
+              <option value="">{departmentId || programId ? 'Tous les niveaux' : 'Choisir un programme'}</option>
               {levels.map((lv) => (
                 <option key={lv.id} value={String(lv.id)}>
                   {lv.name}
@@ -175,9 +172,9 @@ export function StudentFilters({
               ))}
             </select>
           </div>
-          {deptScoped && (
+          {scopeLocked && (
             <p className="text-xs text-zinc-400 dark:text-zinc-500 self-end pb-1">
-              Périmètre restreint : chef de département.
+              Affichage limité à votre périmètre.
             </p>
           )}
         </div>

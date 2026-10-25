@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { FileSearch } from 'lucide-react'
 
 import { useAuth } from '@/features/auth/model/AuthContext'
-import { canAdminGradeImport } from '@/core/accessControl'
+import { useAccess } from '@/features/access/model/useAccess'
 import {
   fetchCourseGradeImportTemplateBlob,
   postCourseAdminGradesImport,
@@ -57,7 +57,7 @@ function triggerBlobDownload(blob, filename) {
  */
 export function TeacherGradesImportPage({ embedded = false }) {
   const { user } = useAuth()
-  const allowed = canAdminGradeImport(user)
+  const allowed = useAccess().canManage('grades.bulk_import')
   const inputRef = useRef(null)
   const analysisRef = useRef(null)
 

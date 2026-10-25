@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Upload, UserPlus, X } from 'lucide-react'
 
-import { useAuth } from '@/features/auth/model/AuthContext'
+import { useAccess } from '@/features/access/model/useAccess'
 import { fetchTeacherGrades, postTeacher } from '@/features/teacher/faculty/api/teachersApi'
-import { TEACHER_ROLE_OPTIONS } from '@/features/teacher/faculty/facultyList.constants'
+import { MandatesHint } from '@/features/teacher/faculty/ui/TeacherMandates'
 import { useTeacherDirectoryList } from '@/features/teacher/faculty/hooks/useTeacherDirectoryList'
 import { FacultyDirectoryTable } from '@/features/teacher/faculty/ui/FacultyDirectoryTable'
 import { FacultyFilters } from '@/features/teacher/faculty/ui/FacultyFilters'
@@ -25,7 +25,6 @@ function emptyCreateForm() {
     gender: '',
     phone: '',
     birth_date: '',
-    teacher_role: 'teacher',
     grade: '',
     years_of_experience: '',
     has_phd: false,
@@ -40,7 +39,6 @@ function buildCreatePayload(form) {
     first_name: form.first_name.trim(),
     last_name: form.last_name.trim(),
     email: form.email.trim(),
-    teacher_role: form.teacher_role,
     has_phd: Boolean(form.has_phd),
   }
   if (form.gender) payload.gender = form.gender
@@ -65,9 +63,9 @@ const INPUT_ERR =
   'border-red-500 dark:border-red-600 ring-2 ring-red-500/25 focus:ring-red-500/40 focus:border-red-500'
 
 export function TeacherFacultyListPage() {
-  const { user } = useAuth()
-  const canProvision = Boolean(user?.capabilities?.can_provision_teacher)
-  const canManageCourses = Boolean(user?.capabilities?.can_manage_courses)
+  const access = useAccess()
+  const canProvision = access.canGlobal('teachers.provision')
+  const canManageCourses = access.canManage('courses.assign')
 
   const [setTableHostRef, listInView] = useInView({ rootMargin: '100px' })
   const dir = useTeacherDirectoryList({ listEnabled: listInView })
@@ -335,22 +333,10 @@ export function TeacherFacultyListPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400 mb-3">
                   Fonction & carrière
                 </p>
+                <div className="mb-4">
+                  <MandatesHint />
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Rôle institutionnel" error={createFieldErrors.teacher_role}>
-                    <select
-                      name="teacher_role"
-                      className={cn(selectClass, inputErrClass('teacher_role'))}
-                      value={createForm.teacher_role}
-                      onChange={(e) => handleCreateChange('teacher_role', e.target.value)}
-                      aria-invalid={Boolean(createFieldErrors.teacher_role)}
-                    >
-                      {TEACHER_ROLE_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
                   <Field label="Grade (titre)" error={createFieldErrors.grade}>
                     <select
                       name="grade"

@@ -81,7 +81,9 @@ export function TeacherStudentsListPage() {
         q={ts.q}
         onQChange={ts.setQ}
         departmentId={ts.departmentId}
-        onDepartmentIdChange={ts.setDepartmentId}
+        programId={ts.programId}
+        onScopeChange={ts.setScope}
+        scopeOptions={ts.scopeOptions}
         filterAcademicYearId={ts.filterAcademicYearId}
         onFilterAcademicYearIdChange={ts.setFilterAcademicYearId}
         cohorteId={ts.cohorteId}
@@ -93,12 +95,11 @@ export function TeacherStudentsListPage() {
         onLevelIdChange={ts.setLevelId}
         status={ts.status}
         onStatusChange={ts.setStatus}
-        departments={ts.departments}
         levels={ts.levels}
         metaLoading={ts.metaLoading}
         isLoadingYears={ts.isLoadingYears}
         academicYears={ts.academicYears}
-        deptScoped={ts.deptScoped}
+        scopeLocked={ts.scopeLocked}
         activeFilterCount={ts.activeFilterCount}
         onResetFilters={ts.resetFilters}
       />

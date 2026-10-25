@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useState } from 'react'
 import { BookOpen, GraduationCap, Loader2, Pencil, User, X } from 'lucide-react'
 
 import { fetchTeacherGrades, patchTeacher } from '@/features/teacher/faculty/api/teachersApi'
-import { TEACHER_ROLE_OPTIONS } from '@/features/teacher/faculty/facultyList.constants'
+import { MandatesHint, TeacherMandates } from '@/features/teacher/faculty/ui/TeacherMandates'
 import { apiDateToIsoField } from '@/shared/lib/datesFr'
 import { cn } from '@/shared/lib/cn'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
@@ -34,7 +34,6 @@ function emptyFormFromTeacher(teacher) {
       gender: '',
       phone: '',
       birth_date: '',
-      teacher_role: 'teacher',
       grade: '',
       years_of_experience: '',
       has_phd: false,
@@ -50,7 +49,6 @@ function emptyFormFromTeacher(teacher) {
     gender: teacher.gender ?? '',
     phone: teacher.phone ?? '',
     birth_date: apiDateToIsoField(teacher.birth_date),
-    teacher_role: teacher.teacher_role ?? 'teacher',
     grade: teacher.grade ?? '',
     years_of_experience:
       teacher.years_of_experience != null && teacher.years_of_experience !== ''
@@ -68,7 +66,6 @@ function buildPatchPayload(form) {
     first_name: form.first_name.trim(),
     last_name: form.last_name.trim(),
     email: form.email.trim(),
-    teacher_role: form.teacher_role,
     has_phd: Boolean(form.has_phd),
   }
   payload.gender = form.gender || ''
@@ -358,23 +355,12 @@ export function TeacherEditModal({ open, onClose, teacher, onSaved }) {
                 Fonction & carrière
               </h3>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className={labelClass} htmlFor="te-role">
-                    Rôle institutionnel
-                  </label>
-                  <select
-                    id="te-role"
-                    className={cn(inputClass, inputErr('teacher_role'))}
-                    value={form.teacher_role}
-                    onChange={(e) => setField('teacher_role', e.target.value)}
-                  >
-                    {TEACHER_ROLE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                  {err('teacher_role')}
+                <div className="sm:col-span-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-subtle)] px-3 py-2.5 text-[13px]">
+                  <p className={labelClass}>Mandats actifs</p>
+                  <TeacherMandates mandates={teacher?.mandates} />
+                  <div className="mt-2">
+                    <MandatesHint />
+                  </div>
                 </div>
                 <div>
                   <label className={labelClass} htmlFor="te-grade">

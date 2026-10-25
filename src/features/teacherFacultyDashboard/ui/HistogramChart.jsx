@@ -21,7 +21,7 @@ function formatTick(n) {
 export function HistogramChart({ bars = [], title, subtitle, className, loading = false, emptyMessage }) {
   const uid = useId()
 
-  const { maxY, ticks, norm } = useMemo(() => {
+  const { ticks, norm } = useMemo(() => {
     const values = (bars ?? []).map((b) => Math.max(0, Number(b.value) || 0))
     const rawMax = values.length ? Math.max(...values, 1) : 1
     const nice = Math.ceil(rawMax * 1.08) || 1
@@ -95,7 +95,7 @@ export function HistogramChart({ bars = [], title, subtitle, className, loading 
             ))}
           </defs>
 
-          {ticks.map((tick, i) => {
+          {ticks.map((tick) => {
             const y = baseY - norm(tick) * innerH
             return (
               <g key={`g-${tick}`}>

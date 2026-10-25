@@ -1,5 +1,5 @@
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
-import { useAuth } from '@/features/auth/model/AuthContext'
+import { useAccess } from '@/features/access/model/useAccess'
 import { OverviewFiltersBar } from '@/features/teacherFacultyDashboard/overview/ui/OverviewFiltersBar'
 import { useDetailedReport } from '@/features/teacherFacultyDashboard/report/model/useDetailedReport'
 import { DetailedReportTable } from '@/features/teacherFacultyDashboard/report/ui/DetailedReportTable'
@@ -9,11 +9,8 @@ import { DetailedReportTable } from '@/features/teacherFacultyDashboard/report/u
  * Réservée aux profils avec indicateurs agrégés institutionnels.
  */
 export function DetailedReportPage() {
-  const { user } = useAuth()
   const { academicYearId } = useAcademicYear()
-  const canViewAggregatedStats = Boolean(user?.capabilities?.can_view_directory_aggregated_stats)
-  const managedDeptId = user?.scope?.managed_department_id ?? null
-  const institutionWide = Boolean(user?.scope?.institution_wide)
+  const canViewAggregatedStats = useAccess().canManage('stats.view')
 
   const {
     data,
@@ -22,18 +19,17 @@ export function DetailedReportPage() {
     reload,
     filters,
     setFilter,
-    departments,
+    setScope,
+    scopeOptions,
     levels,
-    metaLoading,
-    deptScoped,
-  } = useDetailedReport(academicYearId, canViewAggregatedStats, { managedDeptId, institutionWide })
+  } = useDetailedReport(academicYearId, canViewAggregatedStats)
 
   if (!canViewAggregatedStats) {
     return (
       <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-6 shadow-sm">
         <p className="text-sm leading-relaxed text-[var(--app-muted)]">
-          Le rapport détaillé par niveau est réservé au directeur des études ou au directeur général.
-          Vous conservez l&apos;accès aux listes et aux opérations de votre périmètre via le menu.
+          Le rapport détaillé par niveau demande un droit de consultation des statistiques sur un département,
+          un programme ou plus. Vous conservez l&apos;accès aux listes et aux opérations de votre périmètre via le menu.
         </p>
       </div>
     )
@@ -44,12 +40,11 @@ export function DetailedReportPage() {
       <OverviewFiltersBar
         filters={filters}
         onFilterChange={setFilter}
-        departments={departments}
+        onScopeChange={setScope}
+        scopeOptions={scopeOptions}
         levels={levels}
-        metaLoading={metaLoading}
-        deptScoped={deptScoped}
         title="Filtres du rapport"
-        description="Affinez le tableau par semestre, département et niveau. L'année académique suit le sélecteur global."
+        description="Affinez le tableau par semestre, programme et niveau. L'année académique suit le sélecteur global."
       />
 
       {error ? (

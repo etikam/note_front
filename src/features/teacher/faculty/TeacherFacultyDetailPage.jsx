@@ -15,8 +15,9 @@ import {
 } from 'lucide-react'
 
 import { useAuth } from '@/features/auth/model/AuthContext'
+import { useAccess } from '@/features/access/model/useAccess'
 import { deleteTeacherPhoto, fetchTeacherDetail, patchTeacherPhoto } from '@/features/teacher/faculty/api/teachersApi'
-import { TEACHER_ROLE_OPTIONS } from '@/features/teacher/faculty/facultyList.constants'
+import { MandatesHint, TeacherMandates } from '@/features/teacher/faculty/ui/TeacherMandates'
 import { TeacherEditModal } from '@/features/teacher/faculty/ui/TeacherEditModal'
 import { cn } from '@/shared/lib/cn'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
@@ -41,11 +42,6 @@ function initials(first, last) {
 function formatTeacherStatus(raw) {
   const key = String(raw ?? '').toLowerCase()
   return TEACHER_STATUS_FR[key] ?? raw ?? '—'
-}
-
-function teacherRoleLabel(code) {
-  const v = TEACHER_ROLE_OPTIONS.find((o) => o.value === code)
-  return v?.label ?? code ?? '—'
 }
 
 function formatFrenchCalendarDate(raw) {
@@ -77,9 +73,10 @@ export function TeacherFacultyDetailPage() {
   const { teacherId } = useParams()
   const id = Number(teacherId)
   const navigate = useNavigate()
-  const { user, refreshMe } = useAuth()
-  const canProvision = Boolean(user?.capabilities?.can_provision_teacher)
-  const canManageCourses = Boolean(user?.capabilities?.can_manage_courses)
+  const { refreshMe } = useAuth()
+  const access = useAccess()
+  const canProvision = access.canGlobal('teachers.provision')
+  const canManageCourses = access.canManage('courses.assign')
 
   const [detail, setDetail] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -183,7 +180,8 @@ export function TeacherFacultyDetailPage() {
 
   const assigned = Array.isArray(detail.assigned_courses) ? detail.assigned_courses : []
   const statusFr = formatTeacherStatus(detail.status)
-  const roleFr = teacherRoleLabel(detail.teacher_role)
+  const mandates = Array.isArray(detail.mandates) ? detail.mandates : []
+  const roleFr = mandates.length ? mandates.map((m) => m.role_name).join(' · ') : 'Enseignant'
   const gradeDisplay = detail.grade_name ?? (detail.grade ? String(detail.grade) : '—')
   const accountShort = detail.is_activated ? 'Activé' : 'Non activé'
 
@@ -334,8 +332,10 @@ export function TeacherFacultyDetailPage() {
                   <dd>{formatFrenchCalendarDate(detail.birth_date)}</dd>
                 </div>
                 <div>
-                  <dt>Rôle institutionnel</dt>
-                  <dd>{roleFr}</dd>
+                  <dt>Mandats</dt>
+                  <dd>
+                    <TeacherMandates mandates={mandates} withPeriod />
+                  </dd>
                 </div>
                 <div>
                   <dt>Grade / titre</dt>
@@ -364,9 +364,9 @@ export function TeacherFacultyDetailPage() {
                   <dd>{detail.is_activated ? 'Activé (connexion possible)' : 'Non activé (pas d’accès)'}</dd>
                 </div>
                 <div>
-                  <dt>Département géré (code)</dt>
+                  <dt>Nominations</dt>
                   <dd>
-                    <code className="sd-code">{detail.managed_department_code ?? '—'}</code>
+                    <MandatesHint />
                   </dd>
                 </div>
                 <div>

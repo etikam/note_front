@@ -100,7 +100,7 @@ apiClient.interceptors.response.use(
         originalRequest.headers = originalRequest.headers ?? {}
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
         return apiClient.request(originalRequest)
-      } catch (_refreshError) {
+      } catch {
         clearAuthTokens()
         if (onUnauthorized) onUnauthorized()
       }

@@ -4,7 +4,8 @@ import { Activity, BookOpen, Download, Upload, Users, Waypoints } from 'lucide-r
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { useAuth } from '@/features/auth/model/AuthContext'
-import { canAdminGradeImport } from '@/core/accessControl'
+import { primaryRole } from '@/features/access/model/access'
+import { useAccess } from '@/features/access/model/useAccess'
 import { TeacherGradesImportPage } from '@/features/teacher/students/TeacherGradesImportPage'
 import { OverviewTab } from '@/features/teacherFacultyDashboard/overview/OverviewTab'
 import { cn } from '@/shared/lib/cn'
@@ -69,16 +70,18 @@ function QuickActions({ canImport, canReports, canViewStudents, canViewGrades })
 export function TeacherFacultyDashboardPage() {
   const { user } = useAuth()
   const { academicYearId } = useAcademicYear()
-  const caps = user?.capabilities ?? {}
-  const canImport = Boolean(caps.can_import_data)
-  const canReports = Boolean(caps.can_view_reports)
-  const canViewStudents = Boolean(caps.can_view_students)
-  const canViewGrades = Boolean(caps.can_view_all_grades)
-  const managedDeptId = user?.scope?.managed_department_id ?? null
-  const institutionWide = Boolean(user?.scope?.institution_wide)
-  /** KPI dashboard + stats annuaires : directeur des études ou directeur général (cumulable avec chef de département). */
-  const canViewAggregatedStats = Boolean(caps.can_view_directory_aggregated_stats)
-  const showGradesImportTab = canAdminGradeImport(user)
+  const access = useAccess()
+  const canImport = access.canManage('students.import')
+  const canReports = access.canManage('reports.view')
+  const canViewStudents = access.can('students.view')
+  const canViewGrades = access.can('grades.view')
+  /** Indicateurs agrégés : ``stats.view`` sur au moins une entité (programme, département, faculté, institution). */
+  const canViewAggregatedStats = access.canManage('stats.view')
+  const showGradesImportTab = access.canManage('grades.bulk_import')
+  const mandate = primaryRole(user)
+  const scopeLabel = access.scopeOf('stats.view')?.institution
+    ? 'Toute l’institution'
+    : mandate?.target_label || 'Votre périmètre'
 
   const GRADES_IMPORT_TAB = {
     id: 'grades-import',
@@ -139,25 +142,20 @@ export function TeacherFacultyDashboardPage() {
                 <>
                   Indicateurs pour l’année <strong className="font-semibold text-[var(--app-fg)]">{yearLabel}</strong>
                   {' · '}
-                  <span className="text-[var(--app-muted)]">
-                    {managedDeptId != null && !institutionWide
-                      ? `Département #${managedDeptId}`
-                      : 'Périmètre global (faculté)'}
-                  </span>
+                  <span className="text-[var(--app-muted)]">{scopeLabel}</span>
                 </>
               ) : (
                 <>
                   Les <strong className="font-semibold text-[var(--app-fg)]">indicateurs agrégés</strong> du pilotage
-                  sont réservés au directeur des études ou au directeur général. Vous conservez l’accès aux{' '}
-                  <strong className="font-semibold text-[var(--app-fg)]">listes</strong> (étudiants de votre périmètre,
-                  annuaire enseignants).
+                  s’affichent pour les responsables d’un programme, d’un département ou plus. Vous conservez l’accès aux{' '}
+                  <strong className="font-semibold text-[var(--app-fg)]">listes</strong> de votre périmètre.
                 </>
               )}
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <span className="rounded-full border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_92%,var(--app-canvas))] px-3 py-1.5 text-xs font-semibold text-[var(--app-fg)] dark:bg-white/[0.05]">
-              {(user?.teacher_role_codes ?? ['teacher']).join(' · ')}
+              {mandate?.role_name ?? 'Enseignant'}
             </span>
             <Button variant="ghost" size="sm" disabled={!canImport}>
               Import <Upload size={13} />
@@ -209,11 +207,7 @@ export function TeacherFacultyDashboardPage() {
         {activeTab === 'grades-import' ? (
           <TeacherGradesImportPage embedded />
         ) : (
-          <OverviewTab
-            enabled={canViewAggregatedStats}
-            managedDeptId={managedDeptId}
-            institutionWide={institutionWide}
-          />
+          <OverviewTab enabled={canViewAggregatedStats} />
         )}
       </div>
         </>
@@ -221,8 +215,8 @@ export function TeacherFacultyDashboardPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-6 shadow-sm lg:col-span-2">
             <p className="text-sm leading-relaxed text-[var(--app-muted)]">
-              Utilisez les entrées du menu pour ouvrir l’annuaire étudiants (filtré sur votre département si vous en
-              gérez un) et l’annuaire institutionnel des enseignants.
+              Utilisez les entrées du menu pour ouvrir l’annuaire étudiants et l’annuaire des enseignants, limités à
+              votre périmètre.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Button variant="secondary" size="sm" as={Link} to="/teacher/students">

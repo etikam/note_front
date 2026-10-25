@@ -1,3 +1,4 @@
+import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
 import { cn } from '@/shared/lib/cn'
 import { OVERVIEW_SEMESTER_OPTIONS } from '@/features/teacherFacultyDashboard/overview/model/overviewFilterDefaults'
 
@@ -11,12 +12,11 @@ const LABEL_CLASS = 'text-xs font-semibold text-[var(--app-muted)]'
 export function OverviewFiltersBar({
   filters,
   onFilterChange,
-  departments,
+  onScopeChange,
+  scopeOptions,
   levels,
-  metaLoading,
-  deptScoped,
   title = "Vue d'ensemble",
-  description = "Filtrez par semestre, département et niveau. L'année académique suit le sélecteur global du tableau de bord.",
+  description = "Filtrez par semestre, programme et niveau. L'année académique suit le sélecteur global du tableau de bord.",
 }) {
   return (
     <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-5 shadow-sm">
@@ -44,22 +44,16 @@ export function OverviewFiltersBar({
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="ov-dept" className={LABEL_CLASS}>
-            Département
+            Programme
           </label>
-          <select
+          <ScopeSelect
             id="ov-dept"
             className={SELECT_BASE}
-            value={filters.departmentId}
-            onChange={(e) => onFilterChange('departmentId', e.target.value)}
-            disabled={deptScoped || metaLoading}
-          >
-            <option value="">Tous les départements</option>
-            {departments.map((d) => (
-              <option key={d.id} value={String(d.id)}>
-                {d.name}
-              </option>
-            ))}
-          </select>
+            options={scopeOptions}
+            departmentId={filters.departmentId}
+            programId={filters.programId}
+            onChange={onScopeChange}
+          />
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -71,10 +65,10 @@ export function OverviewFiltersBar({
             className={SELECT_BASE}
             value={filters.levelId}
             onChange={(e) => onFilterChange('levelId', e.target.value)}
-            disabled={!filters.departmentId}
+            disabled={!filters.departmentId && !filters.programId}
           >
             <option value="">
-              {filters.departmentId ? 'Tous les niveaux' : "Sélectionnez d'abord un département"}
+              {filters.departmentId || filters.programId ? 'Tous les niveaux' : "Sélectionnez d'abord un programme"}
             </option>
             {levels.map((lv) => (
               <option key={lv.id} value={String(lv.id)}>

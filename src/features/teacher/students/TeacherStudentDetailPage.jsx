@@ -15,7 +15,7 @@ import {
   User,
 } from 'lucide-react'
 
-import { canEditStudentDossier } from '@/core/accessControl'
+import { useAccess } from '@/features/access/model/useAccess'
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { useStudentDetail } from '@/features/teacher/students/hooks/useStudentDetail'
 import { StudentEditModal } from '@/features/teacher/students/ui/StudentEditModal'
@@ -102,7 +102,7 @@ function groupGradesByUe(rows) {
 export function TeacherStudentDetailPage() {
   const { studentId } = useParams()
   const navigate = useNavigate()
-  const { user, refreshMe } = useAuth()
+  const { refreshMe } = useAuth()
   const { validId, loading, error, student, reload } = useStudentDetail(studentId)
 
   /** Recharge `/me` à l’ouverture pour éviter un objet `user` obsolète (nouvelles capabilities après déploiement). */
@@ -110,7 +110,7 @@ export function TeacherStudentDetailPage() {
     void refreshMe()
   }, [refreshMe])
 
-  const showEditStudentButton = canEditStudentDossier(user)
+  const showEditStudentButton = useAccess().canManage('students.edit_dossier')
 
   const [mainTab, setMainTab] = useState('history')
   const [suspendModalOpen, setSuspendModalOpen] = useState(false)
