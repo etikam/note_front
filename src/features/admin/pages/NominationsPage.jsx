@@ -71,6 +71,15 @@ export default function NominationsPage() {
     void load()
   }, [load])
 
+  // Raccourci « Nommer un responsable » (palette ⌘K) : ouvre l'assistant une fois les données chargées.
+  useEffect(() => {
+    if (loading || params.get('new') !== '1') return
+    setWizard({})
+    const next = new URLSearchParams(params)
+    next.delete('new')
+    setParams(next, { replace: true })
+  }, [loading, params, setParams])
+
   const refresh = useCallback(async () => {
     await load({ silent: true })
     await refreshMe()

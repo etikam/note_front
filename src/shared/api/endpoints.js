@@ -39,6 +39,7 @@ export const endpoints = {
     departmentCreate: `${API_PREFIX}/academics/departments/manage/`,
     departmentDetail: (id) => `${API_PREFIX}/academics/departments/${id}/`,
     structure: `${API_PREFIX}/academics/structure/`,
+    search: `${API_PREFIX}/academics/search/`,
     levels: `${API_PREFIX}/academics/levels/`,
     levelGradesReport: (levelId) => `${API_PREFIX}/academics/levels/${levelId}/grades-report/`,
     levelsManage: `${API_PREFIX}/academics/levels/manage/`,
@@ -89,6 +90,7 @@ export const endpoints = {
   },
   reporting: {
     statistics: `${API_PREFIX}/reporting/statistics/`,
+    homeDashboard: `${API_PREFIX}/reporting/dashboard/home/`,
     teacherDashboardOverview: `${API_PREFIX}/reporting/dashboard/overview/`,
     teacherDashboardStatistics: `${API_PREFIX}/reporting/dashboard/statistics/`,
     teacherDashboardReport: `${API_PREFIX}/reporting/dashboard/report/`,

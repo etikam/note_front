@@ -8,6 +8,7 @@ import { useAccess } from '@/features/access/model/useAccess'
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { AcademicYearNavPicker } from '@/features/academicYear/ui/AcademicYearNavPicker'
 import { UserProfileMenu } from '@/features/auth/ui/UserProfileMenu'
+import { SearchTrigger } from '@/features/search/ui/CommandPalette'
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { ThemeLampToggle } from '@/features/theme/ui/ThemeControls'
 import { cn } from '@/shared/lib/cn'
@@ -331,13 +332,18 @@ export function DashboardLayout() {
               >
                 {mobileOpen ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />}
               </button>
-              <div className="min-w-0 flex-1">
-                {isStudent ? (
-                  <p className="truncate text-sm font-medium text-[var(--app-muted)]">Année académique courante · espace étudiant</p>
-                ) : (
-                  <AcademicYearNavPicker />
-                )}
-              </div>
+              {isStudent ? (
+                <p className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--app-muted)]">Année académique courante · espace étudiant</p>
+              ) : (
+                <>
+                  <div className="shrink-0">
+                    <AcademicYearNavPicker />
+                  </div>
+                  <div className="flex min-w-0 flex-1 justify-center px-1">
+                    <SearchTrigger />
+                  </div>
+                </>
+              )}
             </div>
             <div className="flex shrink-0 items-center gap-1">
               <ThemeLampToggle />

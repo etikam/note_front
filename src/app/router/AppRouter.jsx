@@ -32,7 +32,6 @@ import { TeacherStudentsImportPage } from '@/features/teacher/students/TeacherSt
 import { TeacherStudentsLayout } from '@/features/teacher/students/TeacherStudentsLayout'
 import { TeacherStudentsListPage } from '@/features/teacher/students/TeacherStudentsListPage'
 import { TeacherCourseDetailPage } from '@/features/teacherFacultyDashboard/pages/TeacherCourseDetailPage'
-import { TeacherFacultyDashboardPage } from '@/features/teacherFacultyDashboard/pages/TeacherFacultyDashboardPage'
 import { TeacherPedagogyPage } from '@/features/teacherFacultyDashboard/pages/TeacherPedagogyPage'
 import { TeacherFacultyCourseAssignmentDetailPage } from '@/features/teacher/faculty/TeacherFacultyCourseAssignmentDetailPage'
 import { TeacherFacultyCourseAssignmentsPage } from '@/features/teacher/faculty/TeacherFacultyCourseAssignmentsPage'
@@ -49,6 +48,7 @@ function RedirectPedagogyToAcademie() {
   return <Navigate to={`/teacher/academie${search}`} replace />
 }
 
+const HomeDashboardPage = lazy(() => import('@/features/dashboard/pages/HomeDashboardPage'))
 const StructurePage = lazy(() => import('@/features/structure/pages/StructurePage'))
 const NominationsPage = lazy(() => import('@/features/admin/pages/NominationsPage'))
 const RolesPage = lazy(() => import('@/features/admin/pages/RolesPage'))
@@ -83,7 +83,9 @@ export function AppRouter() {
               path="/teacher/dashboard"
               element={
                 <RequirePermission perms="stats.view">
-                  <TeacherFacultyDashboardPage />
+                  <Lazy>
+                    <HomeDashboardPage />
+                  </Lazy>
                 </RequirePermission>
               }
             />
