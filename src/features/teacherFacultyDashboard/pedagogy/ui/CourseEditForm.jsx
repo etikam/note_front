@@ -97,6 +97,7 @@ export function CourseEditForm({
   const selectedDepartmentId =
     selectedTeachingUnit?.department != null ? String(selectedTeachingUnit.department) : ''
   const selectedDepartmentCode = selectedTeachingUnit?.department_code ?? ''
+  const selectedProgramId = selectedTeachingUnit?.program ?? null
   const selectedLevel = useMemo(
     () => levels.find((lv) => String(lv.id) === String(form.level)) ?? null,
     [levels, form.level],
@@ -114,7 +115,9 @@ export function CourseEditForm({
     let cancelled = false
     ;(async () => {
       try {
-        const lv = await fetchLevels({ department: selectedDepartmentId })
+        const lv = await fetchLevels(
+          selectedProgramId ? { program: selectedProgramId } : { department: selectedDepartmentId },
+        )
         if (!cancelled) setLevels(lv)
       } catch {
         if (!cancelled) setLevels([])
@@ -123,7 +126,7 @@ export function CourseEditForm({
     return () => {
       cancelled = true
     }
-  }, [active, selectedDepartmentId])
+  }, [active, selectedDepartmentId, selectedProgramId])
 
   useEffect(() => {
     if (form.semester === '') return

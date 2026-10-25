@@ -23,6 +23,8 @@ export const endpoints = {
     academicYearSemesterBlockDeactivate: (id) =>
       `${API_PREFIX}/academics/academic-years/${id}/semester-block/deactivate/`,
     departments: `${API_PREFIX}/academics/departments/`,
+    programs: `${API_PREFIX}/academics/programs/`,
+    programDetail: (id) => `${API_PREFIX}/academics/programs/${id}/`,
     levels: `${API_PREFIX}/academics/levels/`,
     levelGradesReport: (levelId) => `${API_PREFIX}/academics/levels/${levelId}/grades-report/`,
     levelsManage: `${API_PREFIX}/academics/levels/manage/`,

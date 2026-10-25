@@ -142,6 +142,7 @@ export function CourseOfferingFormBlock({
   )
   const selectedDepartmentId = selectedUe?.department != null ? Number(selectedUe.department) : null
   const selectedDepartmentCode = selectedUe?.department_code ?? null
+  const selectedProgramId = selectedUe?.program ?? null
   const selectedLevel = useMemo(
     () => levels.find((lv) => String(lv.id) === String(offer.level)) ?? null,
     [levels, offer.level],
@@ -159,7 +160,9 @@ export function CourseOfferingFormBlock({
     let cancelled = false
     ;(async () => {
       try {
-        const lv = await fetchLevels({ department: selectedDepartmentId })
+        const lv = await fetchLevels(
+          selectedProgramId ? { program: selectedProgramId } : { department: selectedDepartmentId },
+        )
         if (!cancelled) setLevels(lv)
       } catch {
         if (!cancelled) setLevels([])
@@ -168,7 +171,7 @@ export function CourseOfferingFormBlock({
     return () => {
       cancelled = true
     }
-  }, [selectedDepartmentId])
+  }, [selectedDepartmentId, selectedProgramId])
 
   useEffect(() => {
     if (!offer.module || modules.length === 0) return

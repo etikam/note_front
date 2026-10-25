@@ -22,7 +22,17 @@ export async function fetchDepartments(config) {
 }
 
 /**
- * @param {{ department: string | number }} params
+ * Programmes (cursus) — filtre optionnel ``department``.
+ * @param {{ department?: string | number }} [params]
+ * @param {import('axios').AxiosRequestConfig} [config]
+ */
+export async function fetchPrograms(params = {}, config) {
+  const { data } = await apiClient.get(endpoints.academics.programs, { params, ...config })
+  return normalizeListPayload(data)
+}
+
+/**
+ * @param {{ department?: string | number, program?: string | number }} params
  * @param {import('axios').AxiosRequestConfig} [config]
  */
 export async function fetchLevels(params, config) {

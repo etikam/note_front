@@ -633,7 +633,7 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
       ) : null}
 
       {section === 'levels' ? (
-        <PedagogyLevelsSection departments={departments} canStructure={canStructure} />
+        <PedagogyLevelsSection canStructure={canStructure} />
       ) : null}
 
       {section === 'departments' && canViewStudents ? (
@@ -665,13 +665,11 @@ export function PedagogyReferencePanel({ syncUrl = false }) {
       <TeachingUnitCreateModal
         open={modalUeOpen}
         onClose={() => setModalUeOpen(false)}
-        departments={departments}
         onCreated={refreshTeachingUnitLists}
       />
       <TeachingUnitCreateModal
         open={editUnit != null}
         onClose={() => setEditUnit(null)}
-        departments={departments}
         mode="edit"
         unit={editUnit}
         onCreated={refreshTeachingUnitLists}

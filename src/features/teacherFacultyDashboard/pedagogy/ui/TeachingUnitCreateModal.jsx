@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Layers } from 'lucide-react'
 
+import { usePrograms } from '@/features/academicYear/hooks/usePrograms'
+import { ProgramSelect } from '@/features/academicYear/ui/ProgramSelect'
 import { patchTeachingUnit, postTeachingUnit } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
 import { Button } from '@/shared/ui/Button'
 import { Field, Input } from '@/shared/ui/Field'
@@ -12,19 +14,19 @@ import { PedagogyModalFrame } from '@/features/teacherFacultyDashboard/pedagogy/
 const inputCls =
   'w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]'
 
-const empty = { code: '', name: '', total_credits: 6, description: '', department: '' }
+const empty = { code: '', name: '', total_credits: 6, description: '', program: '' }
 
 /**
  * @param {{
  *   open: boolean
  *   onClose: () => void
- *   departments: Array<{ id: number; code: string; name: string }>
  *   onCreated: () => Promise<void> | void
  *   mode?: 'create' | 'edit'
- *   unit?: { id: number; code: string; name: string; total_credits?: number; description?: string; department?: number } | null
+ *   unit?: { id: number; code: string; name: string; total_credits?: number; description?: string; program?: number } | null
  * }} props
  */
-export function TeachingUnitCreateModal({ open, onClose, departments, onCreated, mode = 'create', unit = null }) {
+export function TeachingUnitCreateModal({ open, onClose, onCreated, mode = 'create', unit = null }) {
+  const { programs } = usePrograms({ enabled: open })
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(empty)
 
@@ -36,7 +38,7 @@ export function TeachingUnitCreateModal({ open, onClose, departments, onCreated,
         name: unit.name ?? '',
         total_credits: unit.total_credits ?? 6,
         description: unit.description ?? '',
-        department: unit.department != null ? String(unit.department) : '',
+        program: unit.program != null ? String(unit.program) : '',
       })
       return
     }
@@ -52,7 +54,7 @@ export function TeachingUnitCreateModal({ open, onClose, departments, onCreated,
         name: form.name.trim(),
         total_credits: Number(form.total_credits) || 6,
         description: form.description,
-        department: Number(form.department),
+        program: Number(form.program),
       }
       if (mode === 'edit' && unit?.id) {
         await patchTeachingUnit(unit.id, payload)
@@ -75,7 +77,7 @@ export function TeachingUnitCreateModal({ open, onClose, departments, onCreated,
       open={open}
       onClose={onClose}
       title={mode === 'edit' ? 'Modifier l’unité d’enseignement' : 'Nouvelle unité d’enseignement'}
-      subtitle="Code catalogue, intitulé, volume de crédits et rattachement départemental."
+      subtitle="Code catalogue, intitulé, volume de crédits et programme (maquette) de rattachement."
       icon={Layers}
       widthClass="max-w-xl"
       footer={
@@ -104,20 +106,14 @@ export function TeachingUnitCreateModal({ open, onClose, departments, onCreated,
         <Field label="Description (optionnel)">
           <textarea className={cn(inputCls, 'min-h-[72px] resize-y')} value={form.description} onChange={(e) => setForm((x) => ({ ...x, description: e.target.value }))} />
         </Field>
-        <Field label="Département">
-          <select
-            className={cn(inputCls)}
-            value={form.department}
-            onChange={(e) => setForm((x) => ({ ...x, department: e.target.value }))}
+        <Field label="Programme">
+          <ProgramSelect
+            className={inputCls}
+            programs={programs}
+            value={form.program}
+            onChange={(value) => setForm((x) => ({ ...x, program: value }))}
             required
-          >
-            <option value="">Choisir…</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.code} — {d.name}
-              </option>
-            ))}
-          </select>
+          />
         </Field>
       </form>
     </PedagogyModalFrame>

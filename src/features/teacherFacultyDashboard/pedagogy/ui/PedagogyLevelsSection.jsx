@@ -8,6 +8,8 @@ import {
   patchLevelManage,
   postLevelManage,
 } from '@/features/academicYear/api/academicsApi'
+import { usePrograms } from '@/features/academicYear/hooks/usePrograms'
+import { ProgramSelect } from '@/features/academicYear/ui/ProgramSelect'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
@@ -28,12 +30,10 @@ const inputClass = cn(
 )
 
 /**
- * @param {{
- *   departments: Array<{ id: number, code: string, name: string }>
- *   canStructure: boolean
- * }} props
+ * @param {{ canStructure: boolean }} props
  */
-export function PedagogyLevelsSection({ departments, canStructure }) {
+export function PedagogyLevelsSection({ canStructure }) {
+  const { programs } = usePrograms()
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
@@ -57,18 +57,13 @@ export function PedagogyLevelsSection({ departments, canStructure }) {
     void load()
   }, [load])
 
-  const deptLabel = (id) => {
-    const d = departments.find((x) => x.id === id)
-    return d ? `${d.code} — ${d.name}` : String(id)
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h3 className="font-heading text-lg font-semibold text-[var(--app-fg)]">Niveaux (Licence, Master, Doctorat)</h3>
           <p className="mt-1 max-w-2xl text-sm text-[var(--app-muted)]">
-            Référentiel par département : cycle, numéro et libellé. Utilisé pour rattacher les cours et les étudiants.
+            Années d’études de chaque programme : cycle, numéro et libellé. Utilisé pour rattacher les cours et les étudiants.
           </p>
         </div>
         {canStructure ? (
@@ -98,7 +93,7 @@ export function PedagogyLevelsSection({ departments, canStructure }) {
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_92%,var(--app-canvas))] text-[11px] font-semibold uppercase tracking-wide text-[var(--app-muted)]">
-                  <th className="px-4 py-3">Département</th>
+                  <th className="px-4 py-3">Programme</th>
                   <th className="px-4 py-3">Cycle</th>
                   <th className="px-4 py-3">N°</th>
                   <th className="px-4 py-3">Libellé</th>
@@ -115,7 +110,10 @@ export function PedagogyLevelsSection({ departments, canStructure }) {
                 ) : (
                   rows.map((r) => (
                     <tr key={r.id} className="border-b border-[var(--app-border)] last:border-0">
-                      <td className="px-4 py-2.5">{deptLabel(r.department)}</td>
+                      <td className="px-4 py-2.5">
+                        <span className="font-medium text-[var(--app-fg)]">{r.program_name}</span>
+                        <span className="ml-1.5 text-xs text-[var(--app-muted)]">{r.department_code}</span>
+                      </td>
                       <td className="px-4 py-2.5">{CYCLE_OPTIONS.find((c) => c.value === r.cycle)?.label ?? r.cycle}</td>
                       <td className="px-4 py-2.5 font-mono tabular-nums">{r.number}</td>
                       <td className="px-4 py-2.5 font-medium text-[var(--app-fg)]">{r.name}</td>
@@ -180,7 +178,7 @@ export function PedagogyLevelsSection({ departments, canStructure }) {
           setModalOpen(false)
           setEditing(null)
         }}
-        departments={departments}
+        programs={programs}
         level={editing}
         onSaved={load}
       />
@@ -197,12 +195,12 @@ export function PedagogyLevelsSection({ departments, canStructure }) {
   )
 }
 
-function LevelEditModal({ open, onClose, departments, level, onSaved }) {
+function LevelEditModal({ open, onClose, programs, level, onSaved }) {
   const titleId = useId()
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
   const [form, setForm] = useState({
-    department: '',
+    program: '',
     cycle: 'LICENCE',
     number: '1',
     name: '',
@@ -213,29 +211,29 @@ function LevelEditModal({ open, onClose, departments, level, onSaved }) {
     setFormError('')
     if (level) {
       setForm({
-        department: String(level.department ?? ''),
+        program: String(level.program ?? ''),
         cycle: level.cycle ?? 'LICENCE',
         number: String(level.number ?? '1'),
         name: level.name ?? '',
       })
     } else {
       setForm({
-        department: departments[0]?.id != null ? String(departments[0].id) : '',
+        program: programs.length === 1 ? String(programs[0].id) : '',
         cycle: 'LICENCE',
         number: '1',
         name: '',
       })
     }
-  }, [open, level, departments])
+  }, [open, level, programs])
 
   async function handleSubmit(e) {
     e.preventDefault()
     setSubmitting(true)
     setFormError('')
-    const deptId = Number(form.department)
+    const programId = Number(form.program)
     const num = Number(form.number)
-    if (!Number.isFinite(deptId) || deptId <= 0) {
-      setFormError('Choisissez un département.')
+    if (!Number.isFinite(programId) || programId <= 0) {
+      setFormError('Choisissez un programme.')
       setSubmitting(false)
       return
     }
@@ -245,7 +243,7 @@ function LevelEditModal({ open, onClose, departments, level, onSaved }) {
       return
     }
     const body = {
-      department: deptId,
+      program: programId,
       cycle: form.cycle,
       number: num,
       name: form.name.trim(),
@@ -295,21 +293,15 @@ function LevelEditModal({ open, onClose, departments, level, onSaved }) {
         </h2>
         <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
           <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--app-muted)]">Département</label>
-            <select
+            <label className="mb-1 block text-xs font-medium text-[var(--app-muted)]">Programme</label>
+            <ProgramSelect
               className={inputClass}
+              programs={programs}
               required
-              value={form.department}
+              value={form.program}
               disabled={Boolean(level)}
-              onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}
-            >
-              <option value="">—</option>
-              {departments.map((d) => (
-                <option key={d.id} value={String(d.id)}>
-                  {d.code} — {d.name}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setForm((f) => ({ ...f, program: value }))}
+            />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-[var(--app-muted)]">Cycle</label>
