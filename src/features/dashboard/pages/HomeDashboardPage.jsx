@@ -89,7 +89,7 @@ function TodoCard({ todo, access, loading }) {
   const items = [
     todo.to_validate && { icon: ClipboardCheck, count: todo.to_validate, label: 'Fiches de notes à valider', to: '/teacher/validations', tone: 'brand' },
     todo.to_republish && { icon: Upload, count: todo.to_republish, label: 'Fiches corrigées à republier', to: '/teacher/validations', tone: 'brand' },
-    todo.incomplete_drafts && { icon: FileWarning, count: todo.incomplete_drafts, label: 'Fiches en saisie avec des notes manquantes', to: '/teacher/reports', canOpen: access.canManage('reports.view') },
+    todo.incomplete_drafts && { icon: FileWarning, count: todo.incomplete_drafts, label: 'Fiches en saisie avec des notes manquantes', to: '/teacher/reports?report=progress', canOpen: access.canManage('reports.view') },
     todo.unassigned_courses && {
       icon: BookOpen,
       count: todo.unassigned_courses,

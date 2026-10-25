@@ -358,3 +358,30 @@ html[data-theme='dark'] .rdp-caption_label {
 @media (prefers-reduced-motion: reduce) {
   .ds-fade-in, .ds-slide-in-right, .ds-pop-in, .ds-skeleton { animation: none }
 }
+
+/* ─── Impression (PV, relevés) : seul le contenu de la page est imprimé ─── */
+@media print {
+  aside,
+  header.sticky,
+  nav[aria-label='Rapports'],
+  nav[aria-label='Fil d’Ariane'],
+  button,
+  select,
+  input {
+    display: none !important;
+  }
+  body,
+  main {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  div[style*='padding-left'] {
+    padding-left: 0 !important;
+  }
+  table {
+    font-size: 10px;
+  }
+}
