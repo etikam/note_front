@@ -1,438 +1,204 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Upload, UserPlus, X } from 'lucide-react'
+import { RotateCcw, Upload, UserPlus } from 'lucide-react'
 
 import { useAccess } from '@/features/access/model/useAccess'
-import { fetchTeacherGrades, postTeacher } from '@/features/teacher/faculty/api/teachersApi'
-import { MandatesHint } from '@/features/teacher/faculty/ui/TeacherMandates'
+import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
+import { TEACHER_ROLE_OPTIONS, TEACHER_STATUS } from '@/features/teacher/faculty/facultyList.constants'
 import { useTeacherDirectoryList } from '@/features/teacher/faculty/hooks/useTeacherDirectoryList'
-import { FacultyDirectoryTable } from '@/features/teacher/faculty/ui/FacultyDirectoryTable'
-import { FacultyFilters } from '@/features/teacher/faculty/ui/FacultyFilters'
-import { FacultyStats } from '@/features/teacher/faculty/ui/FacultyStats'
-import { useInView } from '@/shared/hooks/useInView'
-import { Button } from '@/shared/ui/Button'
-import { Card } from '@/shared/ui/Card'
-import { Field, Input } from '@/shared/ui/Field'
+import { TeacherCreateDialog } from '@/features/teacher/faculty/ui/TeacherCreateDialog'
+import { TeacherMandates } from '@/features/teacher/faculty/ui/TeacherMandates'
+import { TeacherPreviewDrawer } from '@/features/teacher/faculty/ui/TeacherPreviewDrawer'
+import { dispatchToast } from '@/shared/notifications/toastBridge'
 import { cn } from '@/shared/lib/cn'
-import { DateInputFr } from '@/shared/ui/DateInputFr'
+import { Avatar } from '@/shared/ui/Avatar'
+import { Button } from '@/shared/ui/Button'
+import { Pagination } from '@/shared/ui/Pagination'
+import { SearchInput } from '@/shared/ui/SearchInput'
+import { ServerTable } from '@/shared/ui/ServerTable'
+import { StatusPill } from '@/shared/ui/StatusPill'
 
-function emptyCreateForm() {
-  return {
-    matricule: '',
-    first_name: '',
-    last_name: '',
-    email: '',
-    gender: '',
-    phone: '',
-    birth_date: '',
-    grade: '',
-    years_of_experience: '',
-    has_phd: false,
-    hire_date: '',
-    bio: '',
-  }
+const SELECT =
+  'h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-elevated)] px-2.5 text-[13px] text-[var(--app-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-focus)] disabled:opacity-50'
+
+const pct = (part, total) => (total ? Math.round((100 * part) / total) : 0)
+const STATUS_TABS = [{ id: '', label: 'Tous' }, ...Object.entries(TEACHER_STATUS).map(([id, s]) => ({ id, label: s.label }))]
+
+function SummaryStrip({ stats }) {
+  if (!stats?.cohort) return null
+  const c = stats.cohort
+  const asg = stats.assignments ?? {}
+  const items = [
+    { label: 'Enseignants', value: c.total ?? 0 },
+    { label: 'Avec au moins un cours', value: asg.teachers_with_course ?? 0, hint: `${pct(asg.teachers_with_course, c.total)} %` },
+    { label: 'Cours affectés', value: asg.assigned_courses ?? 0 },
+    { label: 'Docteurs', value: c.with_phd_count ?? 0, hint: `${pct(c.with_phd_count, c.total)} %` },
+    { label: 'Femmes', value: c.female_count ?? 0, hint: `${pct(c.female_count, c.total)} %` },
+  ]
+  return (
+    <dl className="grid grid-cols-2 overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-elevated)] sm:grid-cols-5 sm:divide-x sm:divide-[var(--app-border)]">
+      {items.map((it) => (
+        <div key={it.label} className="px-4 py-3">
+          <dt className="truncate text-[11.5px] text-[var(--app-muted)]">{it.label}</dt>
+          <dd className="mt-0.5 flex items-baseline gap-2">
+            <span className="font-heading text-[20px] font-semibold tabular-nums text-[var(--app-fg)]">{it.value}</span>
+            {it.hint ? <span className="text-[11.5px] text-[var(--app-muted)]">{it.hint}</span> : null}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
 }
-
-function buildCreatePayload(form) {
-  const payload = {
-    matricule: form.matricule.trim(),
-    first_name: form.first_name.trim(),
-    last_name: form.last_name.trim(),
-    email: form.email.trim(),
-    has_phd: Boolean(form.has_phd),
-  }
-  if (form.gender) payload.gender = form.gender
-  const phone = form.phone.trim()
-  if (phone) payload.phone = phone
-  if (form.birth_date?.trim()) payload.birth_date = form.birth_date.trim()
-  if (form.grade) payload.grade = form.grade
-  if (form.years_of_experience !== '' && form.years_of_experience != null) {
-    const n = Number(form.years_of_experience)
-    if (!Number.isNaN(n)) payload.years_of_experience = n
-  }
-  if (form.hire_date?.trim()) payload.hire_date = form.hire_date.trim()
-  const bio = form.bio.trim()
-  if (bio) payload.bio = bio
-  return payload
-}
-
-const selectClass =
-  'w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]'
-
-const INPUT_ERR =
-  'border-red-500 dark:border-red-600 ring-2 ring-red-500/25 focus:ring-red-500/40 focus:border-red-500'
 
 export function TeacherFacultyListPage() {
   const access = useAccess()
   const canProvision = access.canGlobal('teachers.provision')
-  const canManageCourses = access.canManage('courses.assign')
-
-  const [setTableHostRef, listInView] = useInView({ rootMargin: '100px' })
-  const dir = useTeacherDirectoryList({ listEnabled: listInView })
-
+  const dir = useTeacherDirectoryList()
+  const [preview, setPreview] = useState(null)
   const [createOpen, setCreateOpen] = useState(false)
-  const [creating, setCreating] = useState(false)
-  const [createForm, setCreateForm] = useState(emptyCreateForm)
-  const [createError, setCreateError] = useState(null)
-  const [createFieldErrors, setCreateFieldErrors] = useState({})
-  const [teacherGrades, setTeacherGrades] = useState([])
-  const [gradesLoading, setGradesLoading] = useState(false)
+  const accounts = dir.stats?.accounts
 
-  const handleCreateChange = (field, value) => {
-    setCreateForm((f) => ({ ...f, [field]: value }))
-    setCreateFieldErrors((prev) => {
-      if (!prev[field]) return prev
-      const next = { ...prev }
-      delete next[field]
-      return next
-    })
-  }
-
-  const inputErrClass = (name) => cn(createFieldErrors[name] ? INPUT_ERR : undefined)
-
-  useEffect(() => {
-    if (!createOpen || !canProvision) return
-    let cancelled = false
-    ;(async () => {
-      setGradesLoading(true)
-      try {
-        const rows = await fetchTeacherGrades()
-        if (!cancelled) setTeacherGrades(Array.isArray(rows) ? rows : [])
-      } catch {
-        if (!cancelled) setTeacherGrades([])
-      } finally {
-        if (!cancelled) setGradesLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [createOpen, canProvision])
-
-  const submitCreate = async (e) => {
-    e.preventDefault()
-    setCreating(true)
-    setCreateError(null)
-    setCreateFieldErrors({})
-    try {
-      await postTeacher(buildCreatePayload(createForm))
-      setCreateForm(emptyCreateForm())
-      setCreateOpen(false)
-      await dir.load()
-    } catch (e) {
-      const fieldErrors = e?.fieldErrors && typeof e.fieldErrors === 'object' ? e.fieldErrors : {}
-      setCreateFieldErrors(fieldErrors)
-      setCreateError(e?.message?.trim() || 'Création impossible.')
-    } finally {
-      setCreating(false)
-    }
-  }
-
-  if (!canProvision) return null
-
-  const closeCreateModal = () => {
-    if (creating) return
-    setCreateOpen(false)
-    setCreateError(null)
-    setCreateFieldErrors({})
-  }
+  const columns = [
+    {
+      key: 'name',
+      header: 'Enseignant',
+      orderingField: 'last_name',
+      cell: (t) => (
+        <span className="flex min-w-0 items-center gap-3">
+          <Avatar name={`${t.first_name} ${t.last_name}`} src={t.photo_url} size="sm" />
+          <span className="min-w-0">
+            <span className="block truncate font-medium text-[var(--app-fg)]">
+              {t.last_name} {t.first_name}
+            </span>
+            <span className="block truncate font-mono text-[11.5px] text-[var(--app-muted)]">{t.matricule}</span>
+          </span>
+        </span>
+      ),
+    },
+    { key: 'grade', header: 'Grade', orderingField: 'grade', cell: (t) => <span className="text-[var(--app-fg-soft)]">{t.grade_name || '—'}</span> },
+    { key: 'mandates', header: 'Mandats', cell: (t) => <span className="block max-w-[16rem] text-[12.5px]"><TeacherMandates mandates={t.mandates} compact /></span> },
+    {
+      key: 'load',
+      header: 'Charge',
+      orderingField: 'courses_count',
+      align: 'right',
+      cell: (t) =>
+        t.courses_count ? (
+          <span className="flex flex-col items-end">
+            <span className="tabular-nums">{t.courses_count} cours</span>
+            {t.credits_total ? <span className="text-[11.5px] tabular-nums text-[var(--app-muted)]">{t.credits_total} crédits</span> : null}
+          </span>
+        ) : (
+          <span className="text-[var(--app-muted)]">Aucun cours</span>
+        ),
+    },
+    {
+      key: 'account',
+      header: 'Compte',
+      cell: (t) => (
+        <span className={cn('text-[12.5px]', t.is_active ? 'text-[var(--app-fg-soft)]' : 'text-[var(--app-muted)]')}>{t.is_active ? 'Activé' : 'Non activé'}</span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Statut',
+      orderingField: 'status',
+      cell: (t) => {
+        const st = TEACHER_STATUS[t.status]
+        return st ? <StatusPill tone={st.tone}>{st.label}</StatusPill> : t.status
+      },
+    },
+  ]
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary-600 dark:text-secondary-400 mb-1.5">
-            Gestion académique
-          </p>
-          <h1 className="text-2xl sm:text-3xl font-bold font-heading text-zinc-900 dark:text-zinc-50 tracking-tight">
-            Enseignants
-          </h1>
-          <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400 max-w-xl">
-            Annuaire institutionnel — recherche, filtres, statistiques et fiches (affectations cours selon vos droits).
-          </p>
+    <div className="flex flex-col gap-4">
+      <SummaryStrip stats={dir.stats} />
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-1" role="tablist" aria-label="Statut">
+          {STATUS_TABS.map((t) => {
+            const count = t.id ? accounts?.[TEACHER_STATUS[t.id].statKey] : dir.stats?.cohort?.total
+            const active = dir.status === t.id
+            return (
+              <button
+                key={t.id || 'all'}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => dir.setStatus(t.id)}
+                className={cn(
+                  'rounded-full px-3 py-1 text-[12.5px] font-medium transition-colors',
+                  active ? 'bg-[var(--app-fg)] text-[var(--app-canvas)]' : 'text-[var(--app-muted)] hover:bg-[var(--app-hover)] hover:text-[var(--app-fg)]',
+                )}
+              >
+                {t.label}
+                {count != null ? <span className="ml-1.5 tabular-nums opacity-70">{count}</span> : null}
+              </button>
+            )
+          })}
         </div>
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <Button as={Link} to="/teacher/faculty/import-export" variant="softSecondary">
-            <Upload size={16} aria-hidden />
-            Import / Export
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => {
-              setCreateOpen(true)
-              setCreateError(null)
-              setCreateFieldErrors({})
-            }}
-          >
-            <UserPlus size={16} aria-hidden />
-            Ajouter un enseignant
-          </Button>
-        </div>
+        {canProvision ? (
+          <div className="flex gap-2">
+            <Button as={Link} to="/teacher/faculty/import-export" variant="ghost" size="sm">
+              <Upload size={14} aria-hidden /> Importer
+            </Button>
+            <Button size="sm" onClick={() => setCreateOpen(true)}>
+              <UserPlus size={14} aria-hidden /> Ajouter un enseignant
+            </Button>
+          </div>
+        ) : null}
       </div>
 
-      <FacultyStats
-        stats={dir.stats}
-        canManageCourses={canManageCourses}
-        onAddTeacher={() => {
-          setCreateOpen(true)
-          setCreateError(null)
-          setCreateFieldErrors({})
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchInput value={dir.q} onChange={dir.setQ} placeholder="Nom, matricule, e-mail…" className="w-full sm:w-72" />
+        <ScopeSelect
+          className={cn(SELECT, 'max-w-[15rem]')}
+          options={dir.scopeOptions}
+          departmentId=""
+          programId={dir.programId}
+          onChange={dir.setScope}
+          allLabel="Tous les programmes"
+        />
+        <select className={SELECT} value={dir.teacherRole} onChange={(e) => dir.setTeacherRole(e.target.value)} aria-label="Mandat">
+          <option value="">Tous les mandats</option>
+          {TEACHER_ROLE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.value === 'teacher' ? 'Sans mandat' : o.label}
+            </option>
+          ))}
+        </select>
+        {dir.activeFilterCount ? (
+          <button type="button" onClick={dir.resetFilters} className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[12.5px] text-[var(--app-muted)] hover:bg-[var(--app-hover)] hover:text-[var(--app-fg)]">
+            <RotateCcw size={13} aria-hidden /> Réinitialiser
+          </button>
+        ) : null}
+      </div>
+
+      <ServerTable
+        columns={columns}
+        rows={dir.results}
+        loading={dir.loading}
+        error={dir.error ? { message: dir.error, onRetry: dir.load } : null}
+        ordering={dir.ordering}
+        onOrderingChange={(o) => dir.setOrdering(o ?? '-created_at')}
+        onRowClick={setPreview}
+        activeRowId={preview?.id}
+        empty={{
+          title: 'Aucun enseignant',
+          description: dir.activeFilterCount || dir.q ? 'Modifiez ou réinitialisez les filtres.' : 'Les enseignants intervenant dans votre périmètre apparaîtront ici.',
+        }}
+        footer={<Pagination page={dir.page} pageSize={dir.pageSize} count={dir.count} onPageChange={dir.setPage} onPageSizeChange={dir.setPageSize} />}
+      />
+
+      <TeacherPreviewDrawer teacher={preview} onClose={() => setPreview(null)} />
+      <TeacherCreateDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(t) => {
+          dispatchToast({ type: 'success', message: `Fiche de ${t?.first_name ?? ''} ${t?.last_name ?? ''} créée.` })
+          void dir.load()
         }}
       />
-
-      <FacultyFilters
-        q={dir.q}
-        onQChange={dir.setQ}
-        status={dir.status}
-        onStatusChange={dir.setStatus}
-        teacherRole={dir.teacherRole}
-        onTeacherRoleChange={dir.setTeacherRole}
-        activeFilterCount={dir.activeFilterCount}
-        onResetFilters={dir.resetFilters}
-      />
-
-      <div id="faculty-directory" ref={setTableHostRef}>
-        <FacultyDirectoryTable
-          listEnabled={listInView}
-          loading={dir.loading}
-          error={dir.error}
-          onRetry={dir.load}
-          results={dir.results}
-          page={dir.page}
-          onPageChange={dir.setPage}
-          count={dir.count}
-          next={dir.next}
-          previous={dir.previous}
-          pageNumbers={dir.pageNumbers}
-          rangeStart={dir.rangeStart}
-          rangeEnd={dir.rangeEnd}
-          pageSize={dir.pageSize}
-          onPageSizeChange={dir.setPageSize}
-          ordering={dir.ordering}
-          onOrderingChange={dir.setOrdering}
-        />
-      </div>
-
-      {createOpen ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/60 dark:bg-black/70 backdrop-blur-[2px]"
-          role="presentation"
-          onClick={closeCreateModal}
-        >
-          <Card
-            className="relative w-full max-w-4xl max-h-[calc(100vh-2rem)] overflow-y-auto p-5 sm:p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="font-heading text-lg font-semibold text-zinc-900 dark:text-zinc-50">Ajouter un enseignant</h2>
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                  Renseignez l’identité, la fonction et les informations professionnelles (aligné sur la fiche enseignant).
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={closeCreateModal}
-                className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[var(--app-nav-hover)] dark:text-zinc-400 transition-colors"
-                aria-label="Fermer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form className="mt-6 space-y-6" onSubmit={submitCreate} noValidate>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400 mb-3">
-                  Identité & contact
-                </p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Matricule" error={createFieldErrors.matricule}>
-                    <Input
-                      name="matricule"
-                      value={createForm.matricule}
-                      onChange={(e) => handleCreateChange('matricule', e.target.value)}
-                      required
-                      autoComplete="off"
-                      aria-invalid={Boolean(createFieldErrors.matricule)}
-                      className={inputErrClass('matricule')}
-                    />
-                  </Field>
-                  <Field label="Email professionnel" error={createFieldErrors.email}>
-                    <Input
-                      type="email"
-                      name="email"
-                      value={createForm.email}
-                      onChange={(e) => handleCreateChange('email', e.target.value)}
-                      required
-                      autoComplete="email"
-                      aria-invalid={Boolean(createFieldErrors.email)}
-                      className={inputErrClass('email')}
-                    />
-                  </Field>
-                  <Field label="Prénom" error={createFieldErrors.first_name}>
-                    <Input
-                      name="first_name"
-                      value={createForm.first_name}
-                      onChange={(e) => handleCreateChange('first_name', e.target.value)}
-                      required
-                      autoComplete="given-name"
-                      aria-invalid={Boolean(createFieldErrors.first_name)}
-                      className={inputErrClass('first_name')}
-                    />
-                  </Field>
-                  <Field label="Nom" error={createFieldErrors.last_name}>
-                    <Input
-                      name="last_name"
-                      value={createForm.last_name}
-                      onChange={(e) => handleCreateChange('last_name', e.target.value)}
-                      required
-                      autoComplete="family-name"
-                      aria-invalid={Boolean(createFieldErrors.last_name)}
-                      className={inputErrClass('last_name')}
-                    />
-                  </Field>
-                  <Field label="Genre" error={createFieldErrors.gender}>
-                    <select
-                      name="gender"
-                      className={cn(selectClass, inputErrClass('gender'))}
-                      value={createForm.gender}
-                      onChange={(e) => handleCreateChange('gender', e.target.value)}
-                      aria-invalid={Boolean(createFieldErrors.gender)}
-                    >
-                      <option value="">Non renseigné</option>
-                      <option value="M">Masculin</option>
-                      <option value="F">Féminin</option>
-                    </select>
-                  </Field>
-                  <Field label="Téléphone" error={createFieldErrors.phone}>
-                    <Input
-                      type="tel"
-                      name="phone"
-                      value={createForm.phone}
-                      onChange={(e) => handleCreateChange('phone', e.target.value)}
-                      autoComplete="tel"
-                      placeholder="+225…"
-                      aria-invalid={Boolean(createFieldErrors.phone)}
-                      className={inputErrClass('phone')}
-                    />
-                  </Field>
-                  <Field label="Date de naissance" error={createFieldErrors.birth_date}>
-                    <DateInputFr
-                      name="birth_date"
-                      value={createForm.birth_date}
-                      onChange={(v) => handleCreateChange('birth_date', v)}
-                      aria-invalid={Boolean(createFieldErrors.birth_date)}
-                      className={inputErrClass('birth_date')}
-                    />
-                  </Field>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400 mb-3">
-                  Fonction & carrière
-                </p>
-                <div className="mb-4">
-                  <MandatesHint />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Grade (titre)" error={createFieldErrors.grade}>
-                    <select
-                      name="grade"
-                      className={cn(selectClass, inputErrClass('grade'))}
-                      value={createForm.grade}
-                      onChange={(e) => handleCreateChange('grade', e.target.value)}
-                      disabled={gradesLoading}
-                      aria-invalid={Boolean(createFieldErrors.grade)}
-                    >
-                      <option value="">{gradesLoading ? 'Chargement…' : 'Non renseigné'}</option>
-                      {teacherGrades.map((g) => (
-                        <option key={g.value} value={g.value}>
-                          {g.label}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Années d'expérience" error={createFieldErrors.years_of_experience}>
-                    <Input
-                      type="number"
-                      name="years_of_experience"
-                      min={0}
-                      step={1}
-                      value={createForm.years_of_experience}
-                      onChange={(e) => handleCreateChange('years_of_experience', e.target.value)}
-                      placeholder="0"
-                      aria-invalid={Boolean(createFieldErrors.years_of_experience)}
-                      className={inputErrClass('years_of_experience')}
-                    />
-                  </Field>
-                  <Field label="Doctorat" error={createFieldErrors.has_phd}>
-                    <label className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name="has_phd"
-                        className="rounded border-zinc-300 dark:border-[var(--app-border)]"
-                        checked={createForm.has_phd}
-                        onChange={(e) => handleCreateChange('has_phd', e.target.checked)}
-                      />
-                      <span>Oui, titulaire d’un doctorat</span>
-                    </label>
-                  </Field>
-                  <Field label="Date d’embauche" error={createFieldErrors.hire_date}>
-                    <DateInputFr
-                      name="hire_date"
-                      value={createForm.hire_date}
-                      onChange={(v) => handleCreateChange('hire_date', v)}
-                      aria-invalid={Boolean(createFieldErrors.hire_date)}
-                      className={inputErrClass('hire_date')}
-                    />
-                  </Field>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400 mb-3">
-                  Présentation
-                </p>
-                <Field label="Biographie / parcours (optionnel)" error={createFieldErrors.bio}>
-                  <textarea
-                    name="bio"
-                    rows={4}
-                    value={createForm.bio}
-                    onChange={(e) => handleCreateChange('bio', e.target.value)}
-                    className={cn(
-                      'w-full rounded-lg border bg-white px-3 py-2 text-sm resize-y min-h-[5rem]',
-                      'border-zinc-200 dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]',
-                      'focus:outline-none focus:ring-2 focus:ring-brand-500 dark:focus:ring-brand-400',
-                      inputErrClass('bio'),
-                    )}
-                    placeholder="Parcours académique, spécialités, responsabilités…"
-                    aria-invalid={Boolean(createFieldErrors.bio)}
-                  />
-                </Field>
-              </div>
-
-              {createError ? (
-                <div
-                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-900 dark:border-red-500/35 dark:bg-red-950/40 dark:text-red-100"
-                  role="alert"
-                >
-                  {createError}
-                </div>
-              ) : null}
-              <div className="sm:col-span-2 flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={closeCreateModal} disabled={creating}>
-                  Annuler
-                </Button>
-                <Button type="submit" variant="primary" disabled={creating}>
-                  {creating ? 'Enregistrement…' : 'Créer'}
-                </Button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      ) : null}
     </div>
   )
 }

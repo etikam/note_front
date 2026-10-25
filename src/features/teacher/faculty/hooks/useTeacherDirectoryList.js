@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useAccess } from '@/features/access/model/useAccess'
+import { useScopeOptions } from '@/features/access/model/useScopeOptions'
+import { defaultScope } from '@/features/access/model/scopeFilter'
 import { fetchTeachersList, fetchTeachersStats } from '@/features/teacher/faculty/api/teachersApi'
 
 const DEFAULT_PAGE_SIZE = 20
 export const TEACHER_PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
-function buildTeacherListParams({ page, pageSize, ordering, debouncedQ, status, teacherRole }) {
+function buildTeacherListParams({ page, pageSize, ordering, debouncedQ, status, teacherRole, programId }) {
   return {
     page,
     page_size: pageSize,
@@ -14,14 +16,16 @@ function buildTeacherListParams({ page, pageSize, ordering, debouncedQ, status, 
     ...(debouncedQ ? { q: debouncedQ } : {}),
     ...(status ? { status } : {}),
     ...(teacherRole ? { teacher_role: teacherRole } : {}),
+    ...(programId ? { program: programId } : {}),
   }
 }
 
-function buildTeacherStatsParams({ debouncedQ, status, teacherRole }) {
+/** Sans le statut : les compteurs par statut (onglets) couvrent tout le filtre. */
+function buildTeacherStatsParams({ debouncedQ, teacherRole, programId }) {
   return {
     ...(debouncedQ ? { q: debouncedQ } : {}),
-    ...(status ? { status } : {}),
     ...(teacherRole ? { teacher_role: teacherRole } : {}),
+    ...(programId ? { program: programId } : {}),
   }
 }
 
@@ -41,6 +45,17 @@ export function useTeacherDirectoryList(opts = {}) {
   const [debouncedQ, setDebouncedQ] = useState('')
   const [status, setStatus] = useState('')
   const [teacherRole, setTeacherRole] = useState('')
+  const [programId, setProgramId] = useState('')
+  const scopeOptions = useScopeOptions('teachers.view')
+  const lockedScope = useMemo(() => defaultScope(scopeOptions), [scopeOptions])
+
+  useEffect(() => {
+    if (scopeOptions.loading || !lockedScope.programId) return
+    setProgramId((p) => p || lockedScope.programId)
+  }, [scopeOptions.loading, lockedScope])
+
+  /** Un département choisi = tous ses programmes : on ne filtre que sur un programme précis. */
+  const setScope = useCallback(({ programId: p }) => setProgramId(p || ''), [])
 
   const [data, setData] = useState(null)
   const [stats, setStats] = useState(null)
@@ -54,23 +69,24 @@ export function useTeacherDirectoryList(opts = {}) {
 
   useEffect(() => {
     setPage(1)
-  }, [debouncedQ, status, teacherRole, pageSize, ordering])
+  }, [debouncedQ, status, teacherRole, programId, pageSize, ordering])
 
   const listParams = useMemo(
-    () => buildTeacherListParams({ page, pageSize, ordering, debouncedQ, status, teacherRole }),
-    [page, pageSize, ordering, debouncedQ, status, teacherRole],
+    () => buildTeacherListParams({ page, pageSize, ordering, debouncedQ, status, teacherRole, programId }),
+    [page, pageSize, ordering, debouncedQ, status, teacherRole, programId],
   )
 
   const statsParams = useMemo(
-    () => buildTeacherStatsParams({ debouncedQ, status, teacherRole }),
-    [debouncedQ, status, teacherRole],
+    () => buildTeacherStatsParams({ debouncedQ, teacherRole, programId }),
+    [debouncedQ, teacherRole, programId],
   )
 
   const resetFilters = useCallback(() => {
     setQ('')
     setStatus('')
     setTeacherRole('')
-  }, [])
+    setProgramId(lockedScope.programId)
+  }, [lockedScope])
 
   const load = useCallback(async () => {
     if (canViewAggregatedStats) {
@@ -124,8 +140,8 @@ export function useTeacherDirectoryList(opts = {}) {
   }, [page, totalPages])
 
   const activeFilterCount = useMemo(
-    () => [status, teacherRole].filter(Boolean).length,
-    [status, teacherRole],
+    () => [teacherRole, programId && programId !== lockedScope.programId ? programId : ''].filter(Boolean).length,
+    [teacherRole, programId, lockedScope],
   )
 
   return {
@@ -135,6 +151,9 @@ export function useTeacherDirectoryList(opts = {}) {
     setStatus,
     teacherRole,
     setTeacherRole,
+    programId,
+    setScope,
+    scopeOptions,
     resetFilters,
     activeFilterCount,
     page,

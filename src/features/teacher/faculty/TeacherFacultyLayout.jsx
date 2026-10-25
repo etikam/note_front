@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { Link2, Upload, UserCog } from 'lucide-react'
 
 import { useAccess } from '@/features/access/model/useAccess'
+import { PageHeader } from '@/shared/ui/PageHeader'
 import { RouteTabs } from '@/shared/ui/RouteTabs'
 
 /** Sous-sections « Enseignants » visibles selon les permissions de l'utilisateur. */
@@ -26,7 +27,17 @@ export function TeacherFacultyLayout() {
 
   return (
     <section aria-label="Enseignants">
-      {!isDetail && !isAssignmentDetail ? <RouteTabs tabs={tabs} ariaLabel="Sections enseignants" /> : null}
+      {!isDetail && !isAssignmentDetail ? (
+        <>
+          <PageHeader
+            className="mb-4"
+            breadcrumbs={[{ label: 'Personnes' }, { label: 'Enseignants' }, { label: current?.label ?? '' }]}
+            title="Enseignants"
+            description="Annuaire, charge de cours et affectations des enseignants de votre périmètre."
+          />
+          <RouteTabs tabs={tabs} ariaLabel="Sections enseignants" className="mb-5" />
+        </>
+      ) : null}
       <Outlet />
     </section>
   )
