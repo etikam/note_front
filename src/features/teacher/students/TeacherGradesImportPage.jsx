@@ -264,8 +264,8 @@ export function TeacherGradesImportPage({ embedded = false }) {
           description={
             <>
               Importez les notes d’un cours passé ou en cours à partir d’un fichier Excel. Les étudiants du
-              fichier seront inscrits au cours si nécessaire. Réservé au directeur des études et au directeur
-              général.
+              fichier seront inscrits au cours si nécessaire. Réservé aux responsables habilités à l’import
+              administratif.
             </>
           }
         />

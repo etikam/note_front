@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { ClipboardList, FileUp, GraduationCap, Upload } from 'lucide-react'
 
 import { useAccess } from '@/features/access/model/useAccess'
+import { PageHeader } from '@/shared/ui/PageHeader'
 import { RouteTabs } from '@/shared/ui/RouteTabs'
 
 /** Sous-sections « Étudiants » visibles selon les permissions de l'utilisateur. */
@@ -30,7 +31,17 @@ export function TeacherStudentsLayout() {
 
   return (
     <section aria-label="Étudiants">
-      {!isDetail ? <RouteTabs tabs={tabs} ariaLabel="Sections étudiants" /> : null}
+      {!isDetail ? (
+        <>
+          <PageHeader
+            className="mb-4"
+            breadcrumbs={[{ label: 'Personnes' }, { label: 'Étudiants' }, { label: current?.label ?? '' }]}
+            title="Étudiants"
+            description="Dossiers, inscriptions et notes des étudiants de votre périmètre."
+          />
+          <RouteTabs tabs={tabs} ariaLabel="Sections étudiants" className="mb-5" />
+        </>
+      ) : null}
       <Outlet />
     </section>
   )

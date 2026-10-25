@@ -33,7 +33,6 @@ export function useStudents(opts = {}) {
   const [status, setStatus] = useState('')
   const [filterAcademicYearId, setFilterAcademicYearId] = useState('')
   const [cohorteId, setCohorteId] = useState('')
-  const [filtersOpen, setFiltersOpen] = useState(true)
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
@@ -146,11 +145,11 @@ export function useStudents(opts = {}) {
         departmentId,
         programId,
         levelId,
-        status,
         filterAcademicYearId,
         cohorteId,
       }),
-    [pageSize, ordering, debouncedQ, departmentId, programId, levelId, status, filterAcademicYearId, cohorteId],
+    // Sans le statut : les compteurs par statut (onglets) restent ceux de tout le filtre.
+    [pageSize, ordering, debouncedQ, departmentId, programId, levelId, filterAcademicYearId, cohorteId],
   )
 
   const load = useCallback(async () => {
@@ -187,7 +186,7 @@ export function useStudents(opts = {}) {
 
   const exportCsv = useCallback(async () => {
     try {
-      const res = await fetchStudentsExportBlob(statsParams)
+      const res = await fetchStudentsExportBlob(status ? { ...statsParams, status } : statsParams)
       const blob =
         res.data instanceof Blob ? res.data : new Blob([res.data], { type: 'text/csv;charset=utf-8' })
       const url = URL.createObjectURL(blob)
@@ -199,7 +198,7 @@ export function useStudents(opts = {}) {
     } catch {
       /* Toast global via intercepteur Axios */
     }
-  }, [statsParams])
+  }, [statsParams, status])
 
   const resetFilters = useCallback(() => {
     setQ('')
@@ -260,8 +259,6 @@ export function useStudents(opts = {}) {
     cohorteId,
     setCohorteId,
     cohorts: scopedCohorts,
-    filtersOpen,
-    setFiltersOpen,
     page,
     setPage,
     pageSize,

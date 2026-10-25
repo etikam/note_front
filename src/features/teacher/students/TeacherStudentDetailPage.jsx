@@ -1,572 +1,338 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-
-import {
-  ArrowLeft,
-  Ban,
-  Bell,
-  BookOpen,
-  Download,
-  FileImage,
-  FileText,
-  GraduationCap,
-  Layers,
-  Pencil,
-  User,
-} from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { Award, Ban, Bell, BookOpen, Download, FileImage, FileText, GraduationCap, Layers, Pencil, Sigma } from 'lucide-react'
 
 import { useAccess } from '@/features/access/model/useAccess'
-import { useAuth } from '@/features/auth/model/AuthContext'
 import { useStudentDetail } from '@/features/teacher/students/hooks/useStudentDetail'
+import { STUDENT_STATUS } from '@/features/teacher/students/ui/directory/studentDirectory.constants'
 import { StudentEditModal } from '@/features/teacher/students/ui/StudentEditModal'
 import { StudentNotifyModal } from '@/features/teacher/students/ui/StudentNotifyModal'
 import { StudentSuspendModal } from '@/features/teacher/students/ui/StudentSuspendModal'
 import { formatCohortDisplay } from '@/shared/lib/formatCohortDisplay'
-import { cn } from '@/shared/lib/cn'
+import { Avatar } from '@/shared/ui/Avatar'
 import { Button } from '@/shared/ui/Button'
-import { Spinner } from '@/shared/ui/Spinner'
+import { EmptyState } from '@/shared/ui/EmptyState'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { SectionCard } from '@/shared/ui/SectionCard'
+import { SkeletonLines } from '@/shared/ui/Skeleton'
+import { StatTile } from '@/shared/ui/StatTile'
+import { StatusPill } from '@/shared/ui/StatusPill'
+import { Tabs } from '@/shared/ui/Tabs'
 
-const ENROLL_STATUS_LABEL = {
-  pending: 'En attente',
-  approved: 'Approuvé',
-  rejected: 'Rejeté',
+const ENROLL_STATUS = {
+  pending: { label: 'En attente', tone: 'warning' },
+  approved: { label: 'Approuvée', tone: 'success' },
+  rejected: { label: 'Refusée', tone: 'danger' },
 }
 
-const GRADE_STATUS_FR = {
-  DRAFT: 'Brouillon',
-  INCOMPLETE: 'Incomplet',
-  NEEDS_MAKEUP: 'Rattrapage',
-  PASSED: 'Validé',
-  DEBT: 'Dette',
+const GRADE_STATUS = {
+  PASSED: { label: 'Validé', tone: 'success' },
+  DEBT: { label: 'Dette', tone: 'danger' },
+  NEEDS_MAKEUP: { label: 'Rattrapage', tone: 'warning' },
+  INCOMPLETE: { label: 'Incomplet', tone: 'neutral' },
+  DRAFT: { label: 'Brouillon', tone: 'neutral' },
 }
 
-function enrollmentBadgeClass(status) {
-  switch (status) {
-    case 'approved':
-      return 'sd-detail__mini-badge sd-detail__mini-badge--ok'
-    case 'pending':
-      return 'sd-detail__mini-badge sd-detail__mini-badge--pending'
-    default:
-      return 'sd-detail__mini-badge sd-detail__mini-badge--muted'
-  }
+const dateFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+const fmtDate = (v) => {
+  if (!v) return null
+  const d = new Date(v)
+  return Number.isNaN(d.getTime()) ? v : dateFmt.format(d)
 }
+const fmtNote = (v) => (v == null ? '—' : Number(v).toFixed(2).replace('.', ','))
 
-function studentDetailTabClass(active) {
-  return cn(
-    'inline-flex min-w-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold tracking-tight transition-colors duration-200 outline-none sm:px-4',
-    'rounded-t-md focus-visible:ring-2 focus-visible:ring-secondary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600',
-    active
-      ? 'border-secondary-400 text-secondary-50 shadow-[inset_0_-8px_12px_-10px_rgba(249,115,22,0.35)] dark:border-secondary-300 dark:text-secondary-50'
-      : 'border-transparent text-secondary-200/95 hover:border-secondary-400/55 hover:text-secondary-50 dark:text-secondary-200/90',
-  )
-}
-
-function gradeBadgeClass(status) {
-  switch (status) {
-    case 'PASSED':
-      return 'sd-detail__mini-badge sd-detail__mini-badge--ok'
-    case 'DEBT':
-    case 'NEEDS_MAKEUP':
-      return 'sd-detail__mini-badge sd-detail__mini-badge--pending'
-    case 'DRAFT':
-    case 'INCOMPLETE':
-      return 'sd-detail__mini-badge sd-detail__mini-badge--muted'
-    default:
-      return 'sd-detail__mini-badge sd-detail__mini-badge--muted'
-  }
-}
-
-function initials(first, last) {
-  const a = `${first?.[0] ?? ''}${last?.[0] ?? ''}`.trim()
-  return a ? a.toUpperCase() : '?'
-}
-
-/** Regroupe les lignes de notes par UE (pour fusion verticale de la colonne UE). */
 function groupGradesByUe(rows) {
   const groups = new Map()
   for (const r of rows || []) {
     const key = r.ue_code ?? '__none__'
-    if (!groups.has(key)) {
-      groups.set(key, {
-        key,
-        ueCode: r.ue_code,
-        ueName: r.ue_name,
-        rows: [],
-      })
-    }
+    if (!groups.has(key)) groups.set(key, { key, ueCode: r.ue_code, ueName: r.ue_name, rows: [] })
     groups.get(key).rows.push(r)
   }
   return [...groups.values()]
 }
 
+function Info({ label, children, mono = false }) {
+  return (
+    <div className="grid grid-cols-[120px_1fr] gap-3 py-2 text-[13px]">
+      <dt className="text-[var(--app-muted)]">{label}</dt>
+      <dd className={mono ? 'min-w-0 break-words font-mono text-[12.5px] text-[var(--app-fg)]' : 'min-w-0 break-words text-[var(--app-fg)]'}>{children || '—'}</dd>
+    </div>
+  )
+}
+
+const TH = 'px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--app-muted)]'
+const TD = 'px-4 py-2.5 align-middle text-[13px] text-[var(--app-fg)]'
+
+function GradesTable({ rows }) {
+  const groups = useMemo(() => groupGradesByUe(rows), [rows])
+  if (!groups.length) return <EmptyState compact icon={Layers} title="Aucune note" description="Les notes saisies pour cet étudiant apparaîtront ici." />
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[640px] border-collapse">
+        <thead className="bg-[var(--app-subtle)]">
+          <tr className="border-b border-[var(--app-border)]">
+            <th className={TH}>Matière</th>
+            <th className={TH}>Année · module</th>
+            <th className={`${TH} text-right`}>Moyenne</th>
+            <th className={TH}>Résultat</th>
+            <th className={`${TH} text-right`}>Crédits</th>
+          </tr>
+        </thead>
+        <tbody>
+          {groups.map((g) => (
+            <GroupRows key={g.key} group={g} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function GroupRows({ group }) {
+  return (
+    <>
+      <tr className="border-b border-[var(--app-border)] bg-[var(--app-subtle)]/60">
+        <td colSpan={5} className="px-4 py-1.5 text-[12px] font-semibold text-[var(--app-fg-soft)]">
+          {group.ueCode ? (
+            <>
+              <span className="font-mono">{group.ueCode}</span>
+              {group.ueName ? <span className="font-normal text-[var(--app-muted)]"> · {group.ueName}</span> : null}
+            </>
+          ) : (
+            'Sans unité d’enseignement'
+          )}
+        </td>
+      </tr>
+      {group.rows.map((r, i) => {
+        const st = GRADE_STATUS[r.status]
+        return (
+          <tr key={`${r.course_code}-${i}`} className="border-b border-[var(--app-border)] last:border-0">
+            <td className={TD}>
+              <span className="font-mono text-[11.5px] text-[var(--app-muted)]">{r.course_code}</span> {r.course_name}
+            </td>
+            <td className={`${TD} text-[var(--app-fg-soft)]`}>
+              {r.academic_year ?? '—'}
+              {r.module_number != null ? ` · M${r.module_number}` : ''}
+            </td>
+            <td className={`${TD} text-right font-semibold tabular-nums`}>{fmtNote(r.average)}</td>
+            <td className={TD}>
+              <span className="flex flex-wrap items-center gap-1.5">
+                {st ? <StatusPill tone={st.tone}>{st.label}</StatusPill> : r.status}
+                {!r.published ? (
+                  <StatusPill tone="neutral" dot={false} title="Fiche du cours non publiée">
+                    Non publiée
+                  </StatusPill>
+                ) : null}
+              </span>
+            </td>
+            <td className={`${TD} text-right tabular-nums`}>{r.credits ?? '—'}</td>
+          </tr>
+        )
+      })}
+    </>
+  )
+}
+
+function EnrollmentsTable({ rows }) {
+  if (!rows?.length) return <EmptyState compact icon={BookOpen} title="Aucune inscription" description="Les inscriptions aux cours apparaîtront ici." />
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[560px] border-collapse">
+        <thead className="bg-[var(--app-subtle)]">
+          <tr className="border-b border-[var(--app-border)]">
+            <th className={TH}>Cours</th>
+            <th className={TH}>Année · module</th>
+            <th className={TH}>Statut</th>
+            <th className={`${TH} text-right`}>Crédits</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => {
+            const st = ENROLL_STATUS[r.status]
+            return (
+              <tr key={`${r.course_code}-${i}`} className="border-b border-[var(--app-border)] last:border-0">
+                <td className={TD}>
+                  <span className="font-mono text-[11.5px] text-[var(--app-muted)]">{r.course_code}</span> {r.course_name}
+                </td>
+                <td className={`${TD} text-[var(--app-fg-soft)]`}>
+                  {r.academic_year} · M{r.module_number}
+                </td>
+                <td className={TD}>{st ? <StatusPill tone={st.tone}>{st.label}</StatusPill> : r.status}</td>
+                <td className={`${TD} text-right tabular-nums`}>{r.credits ?? '—'}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export function TeacherStudentDetailPage() {
   const { studentId } = useParams()
-  const navigate = useNavigate()
-  const { refreshMe } = useAuth()
   const { validId, loading, error, student, reload } = useStudentDetail(studentId)
+  const access = useAccess()
+  const canEdit = access.canManage('students.edit_dossier')
+  const [tab, setTab] = useState('grades')
+  const [modal, setModal] = useState(null)
 
-  /** Recharge `/me` à l’ouverture pour éviter un objet `user` obsolète (nouvelles capabilities après déploiement). */
-  useEffect(() => {
-    void refreshMe()
-  }, [refreshMe])
+  const crumbs = [{ label: 'Étudiants', to: '/teacher/students/list' }, { label: student ? `${student.first_name} ${student.last_name}` : 'Dossier' }]
 
-  const showEditStudentButton = useAccess().canManage('students.edit_dossier')
-
-  const [mainTab, setMainTab] = useState('history')
-  const [suspendModalOpen, setSuspendModalOpen] = useState(false)
-  const [notifyModalOpen, setNotifyModalOpen] = useState(false)
-  const [editModalOpen, setEditModalOpen] = useState(false)
-
-  const gradesRows = student?.grades_courses ?? []
-  const ueGroups = useMemo(() => groupGradesByUe(gradesRows), [gradesRows])
-
-  if (!validId) {
+  if (!validId || error || (!loading && !student)) {
     return (
-      <div className="sd-detail sd-detail--center">
-        <p className="text-error">Identifiant invalide.</p>
-        <Button type="button" variant="ghost" as={Link} to="/teacher/students/list">
-          Retour à l’annuaire
-        </Button>
+      <div>
+        <PageHeader breadcrumbs={crumbs} title="Dossier étudiant" />
+        <SectionCard>
+          <EmptyState
+            tone="error"
+            title={!validId ? 'Identifiant invalide' : 'Dossier introuvable'}
+            description={error || 'Ce dossier n’existe pas ou n’est pas dans votre périmètre.'}
+            action={
+              <Button as={Link} to="/teacher/students/list" variant="ghost" size="sm">
+                Retour à l’annuaire
+              </Button>
+            }
+          />
+        </SectionCard>
       </div>
     )
   }
 
-  if (loading) {
+  if (loading || !student) {
     return (
-      <div className="sd-detail sd-detail--center">
-        <Spinner size="lg" label="Chargement du dossier" />
+      <div>
+        <PageHeader breadcrumbs={crumbs} title="Dossier étudiant" />
+        <SectionCard>
+          <SkeletonLines lines={8} />
+        </SectionCard>
       </div>
     )
   }
 
-  if (error || !student) {
-    return (
-      <div className="sd-detail sd-detail--center">
-        <p className="text-error" role="alert">
-          {error ?? 'Introuvable.'}
-        </p>
-        <Button type="button" variant="ghost" onClick={() => navigate('/teacher/students/list')}>
-          Retour à l’annuaire
-        </Button>
-      </div>
-    )
-  }
-
-  const gpa = student.grade_summary?.average_gpa
-  const credits = student.grade_summary?.credits_earned ?? 0
-  const passed = student.grade_summary?.passed_courses_count ?? 0
-  const notifications = student.notifications ?? []
+  const s = student
+  const status = STUDENT_STATUS[s.status]
+  const summary = s.grade_summary ?? {}
+  const label = `${s.first_name} ${s.last_name} · ${s.matricule}`
+  const enrollments = s.enrollment_history ?? []
+  const pendingEnrollments = enrollments.filter((e) => e.status === 'pending').length
 
   return (
-    <div className="sd-detail">
-      <nav className="sd-detail__breadcrumb" aria-label="Fil d’Ariane">
-        <button type="button" className="sd-detail__back" onClick={() => navigate(-1)}>
-          <ArrowLeft size={18} aria-hidden />
-          Retour
-        </button>
-        <span className="sd-detail__crumb-muted">Annuaire étudiants</span>
-        <span aria-hidden className="sd-detail__crumb-sep">
-          /
-        </span>
-        <span className="sd-detail__crumb-strong">
-          {student.first_name} {student.last_name}
-        </span>
-      </nav>
-
-      <header className="sd-detail__hero">
-        <div className="sd-detail__hero-main">
-          {student.photo_url ? (
-            <img className="sd-detail__photo" src={student.photo_url} alt="" />
-          ) : (
-            <div className="sd-detail__photo sd-detail__photo--placeholder" aria-hidden>
-              {initials(student.first_name, student.last_name)}
-            </div>
-          )}
-          <div className="sd-detail__hero-text">
-            <div className="sd-detail__name-row">
-              <h1 className="sd-detail__title">
-                {student.first_name} {student.last_name}
-              </h1>
-              {student.status === 'ACTIVE' ? (
-                <span className="sd-detail__pill">Inscription active</span>
-              ) : (
-                <span className="sd-detail__pill sd-detail__pill--muted">{student.status}</span>
-              )}
-            </div>
-            <p className="sd-detail__meta">
-              <span className="sd-detail__meta-id">ID {student.matricule}</span>
-              <span className="sd-detail__dot" aria-hidden>
-                ·
-              </span>
-              <span>
-                {student.department_name ?? student.department_code ?? 'Département non renseigné'}
-              </span>
-            </p>
-          </div>
-        </div>
-        <div className="sd-detail__hero-actions">
-          {showEditStudentButton ? (
-            <Button
-              type="button"
-              variant="primary"
-              className="sd-detail__btn-primary"
-              onClick={() => setEditModalOpen(true)}
-            >
-              <Pencil size={18} aria-hidden />
-              Modifier le profil
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        breadcrumbs={crumbs}
+        title={
+          <span className="flex flex-wrap items-center gap-3">
+            <Avatar name={`${s.first_name} ${s.last_name}`} src={s.photo_url} size="md" />
+            {s.first_name} {s.last_name}
+          </span>
+        }
+        description={[s.program_code ? `${s.program_code}${s.program_name && s.program_name !== s.program_code ? ` — ${s.program_name}` : ''}` : s.department_name, s.level_name, formatCohortDisplay(s)].filter(Boolean).join(' · ') || 'Sans niveau rattaché'}
+        meta={
+          <>
+            {status ? <StatusPill tone={status.tone}>{status.label}</StatusPill> : null}
+            <span className="font-mono text-[12px] text-[var(--app-muted)]">{s.matricule}</span>
+            <span className="text-[12px] text-[var(--app-muted)]">{s.is_activated ? 'Compte activé' : 'Compte non activé'}</span>
+          </>
+        }
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setModal('notify')}>
+              <Bell size={15} aria-hidden /> Notifier
             </Button>
-          ) : null}
-          <Button type="button" variant="ghost" className="sd-btn-outline" onClick={() => setSuspendModalOpen(true)}>
-            <Ban size={18} aria-hidden />
-            Suspendre
-          </Button>
-        </div>
-      </header>
+            {canEdit ? (
+              <>
+                <Button variant="ghost" className="text-red-700 dark:text-red-300" onClick={() => setModal('suspend')}>
+                  <Ban size={15} aria-hidden /> Suspendre
+                </Button>
+                <Button onClick={() => setModal('edit')}>
+                  <Pencil size={15} aria-hidden /> Modifier
+                </Button>
+              </>
+            ) : null}
+          </>
+        }
+      />
 
-      <div className="sd-detail__grid">
-        <section className="sd-card">
-          <h2 className="sd-card__title">
-            <User size={18} aria-hidden />
-            Informations personnelles
-          </h2>
-          <dl className="sd-dl">
-            <div>
-              <dt>Matricule</dt>
-              <dd>
-                <code className="sd-code">{student.matricule}</code>
-              </dd>
-            </div>
-            <div>
-              <dt>Adresse e-mail</dt>
-              <dd>{student.email ?? '—'}</dd>
-            </div>
-            <div>
-              <dt>Téléphone</dt>
-              <dd>{student.phone || '—'}</dd>
-            </div>
-            <div>
-              <dt>Date de naissance</dt>
-              <dd>{student.birth_date ?? '—'}</dd>
-            </div>
-            <div>
-              <dt>Lieu de naissance</dt>
-              <dd>{student.birth_place || '—'}</dd>
-            </div>
-            <div>
-              <dt>Contact d’urgence</dt>
-              <dd>
-                {[student.dad_name, student.mum_name].filter(Boolean).join(' · ') || '—'}
-              </dd>
-            </div>
-            <div>
-              <dt>INE</dt>
-              <dd>
-                <code className="sd-code">{student.INE}</code>
-              </dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="sd-card sd-card--dark">
-          <div className="sd-card--dark__head">
-            <GraduationCap size={22} aria-hidden />
-            <span>Synthèse académique</span>
-          </div>
-          <div className="sd-metrics">
-            <div>
-              <p className="sd-metrics__label">Moyenne (notes publiées)</p>
-              <p className="sd-metrics__value">{gpa != null ? gpa.toFixed(2) : '—'}</p>
-              <div className="sd-metrics__line" />
-            </div>
-            <div>
-              <p className="sd-metrics__label">Crédits validés</p>
-              <p className="sd-metrics__value">{credits}</p>
-            </div>
-            <div>
-              <p className="sd-metrics__label">Cours réussis</p>
-              <p className="sd-metrics__value">{passed}</p>
-            </div>
-            <div>
-              <p className="sd-metrics__label">Cohorte</p>
-              <p className="sd-metrics__value sd-metrics__value--sm">
-                {formatCohortDisplay(student) || '—'}
-              </p>
-            </div>
-          </div>
-          <div className="sd-card--dark__watermark" aria-hidden>
-            <GraduationCap size={120} strokeWidth={0.8} />
-          </div>
-        </section>
-
-        <section className="sd-card">
-          <h2 className="sd-card__title">
-            <FileText size={18} aria-hidden />
-            Documents
-          </h2>
-          {student.documents?.length ? (
-            <ul className="sd-docs">
-              {student.documents.map((doc) => (
-                <li key={doc.id} className="sd-docs__row">
-                  <span className="sd-docs__icon">
-                    {doc.type === 'image' ? <FileImage size={20} /> : <FileText size={20} />}
-                  </span>
-                  <span className="sd-docs__name">{doc.label}</span>
-                  {doc.url ? (
-                    <a className="sd-docs__dl" href={doc.url} download target="_blank" rel="noreferrer">
-                      <Download size={18} />
-                    </a>
-                  ) : (
-                    <span className="sd-docs__missing">Manquant</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="sd-muted">Aucun document enregistré pour le moment.</p>
-          )}
-        </section>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatTile icon={Sigma} tone="brand" label="Moyenne générale" value={summary.average_gpa != null ? `${fmtNote(summary.average_gpa)} / 10` : '—'} hint="notes publiées" />
+        <StatTile icon={Award} tone="success" label="Crédits validés" value={summary.credits_earned ?? 0} />
+        <StatTile icon={GraduationCap} label="Cours réussis" value={summary.passed_courses_count ?? 0} />
+        <StatTile icon={BookOpen} tone={pendingEnrollments ? 'warning' : 'neutral'} label="Inscriptions" value={enrollments.length} hint={pendingEnrollments ? `${pendingEnrollments} en attente` : null} />
       </div>
 
-      <section className="sd-card sd-card--wide sd-detail__bottom">
-        <div
-          className="-mx-5 -mt-5 mb-0 overflow-hidden rounded-t-2xl bg-brand-600 shadow-sm ring-1 ring-brand-700/30 dark:bg-brand-600 dark:ring-white/10"
-          role="tablist"
-          aria-label="Dossier étudiant"
-        >
-          <nav className="-mb-px flex flex-wrap divide-x divide-secondary-400/50 px-1 sm:px-2">
-            <button
-              type="button"
-              role="tab"
-              id="tab-history"
-              aria-selected={mainTab === 'history'}
-              className={studentDetailTabClass(mainTab === 'history')}
-              onClick={() => setMainTab('history')}
-            >
-              <BookOpen size={17} strokeWidth={2} aria-hidden />
-              Historique d’inscriptions
-            </button>
-            <button
-              type="button"
-              role="tab"
-              id="tab-grades"
-              aria-selected={mainTab === 'grades'}
-              className={studentDetailTabClass(mainTab === 'grades')}
-              onClick={() => setMainTab('grades')}
-            >
-              <Layers size={17} strokeWidth={2} aria-hidden />
-              Notes
-            </button>
-            <button
-              type="button"
-              role="tab"
-              id="tab-notif"
-              aria-selected={mainTab === 'notifications'}
-              className={studentDetailTabClass(mainTab === 'notifications')}
-              onClick={() => setMainTab('notifications')}
-            >
-              <Bell size={17} strokeWidth={2} aria-hidden />
-              Notifications
-            </button>
-          </nav>
-        </div>
-
-        <div className="sd-tab-panels">
-          {mainTab === 'history' ? (
-            <div
-              className="sd-tab-panel"
-              role="tabpanel"
-              aria-labelledby="tab-history"
-              id="panel-history"
-            >
-              <div className="sd-table-scroll">
-                <table className="sd-table sd-table--compact">
-                  <thead>
-                    <tr>
-                      <th>Année</th>
-                      <th>Module</th>
-                      <th>Cours</th>
-                      <th>Statut</th>
-                      <th>Crédits</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {student.enrollment_history?.length ? (
-                      student.enrollment_history.map((row, i) => (
-                        <tr key={`${row.course_code}-${i}`}>
-                          <td>{row.academic_year}</td>
-                          <td>M{row.module_number}</td>
-                          <td>
-                            <span className="sd-table-course">
-                              <span className="sd-table-course__code">{row.course_code}</span>
-                              {row.course_name}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={enrollmentBadgeClass(row.status)}>
-                              {ENROLL_STATUS_LABEL[row.status] ?? row.status}
-                            </span>
-                          </td>
-                          <td>{row.credits ?? '—'}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={5} className="sd-table__empty">
-                          Aucune inscription enregistrée.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : null}
-
-          {mainTab === 'grades' ? (
-            <div
-              className="sd-tab-panel"
-              role="tabpanel"
-              aria-labelledby="tab-grades"
-              id="panel-grades"
-            >
-              <div className="sd-table-scroll">
-                <table className="sd-table sd-table--compact sd-table--grades-merged">
-                  <thead>
-                    <tr>
-                      <th className="sd-table__th-ue">Unité d’enseignement</th>
-                      <th>Matière</th>
-                      <th>Année</th>
-                      <th>Mod.</th>
-                      <th>Note</th>
-                      <th>Statut</th>
-                      <th>Crédits</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ueGroups.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="sd-table__empty">
-                          Aucune note enregistrée.
-                        </td>
-                      </tr>
-                    ) : (
-                      ueGroups.flatMap((g) =>
-                        g.rows.map((row, ri) => (
-                          <tr key={`${g.key}-${row.course_code}-${ri}`} className="sd-table__grade-row">
-                            {ri === 0 ? (
-                              <td rowSpan={g.rows.length} className="sd-table__ue-cell">
-                                {g.ueCode ? (
-                                  <>
-                                    <div className="sd-ue-cell__code">{g.ueCode}</div>
-                                    {g.ueName ? <div className="sd-ue-cell__name">{g.ueName}</div> : null}
-                                  </>
-                                ) : (
-                                  <div className="sd-ue-cell__name sd-ue-cell__name--solo">
-                                    Sans unité d’enseignement (UE)
-                                  </div>
-                                )}
-                              </td>
-                            ) : null}
-                            <td>
-                              <span className="sd-table-course">
-                                <span className="sd-table-course__code">{row.course_code}</span>
-                                {row.course_name}
-                              </span>
-                            </td>
-                            <td>{row.academic_year ?? '—'}</td>
-                            <td>{row.module_number != null ? `M${row.module_number}` : '—'}</td>
-                            <td>{row.average != null ? row.average.toFixed(2) : '—'}</td>
-                            <td>
-                              <span className={gradeBadgeClass(row.status)}>
-                                {GRADE_STATUS_FR[row.status] ?? row.status}
-                              </span>
-                            </td>
-                            <td>{row.credits ?? '—'}</td>
-                          </tr>
-                        )),
-                      )
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : null}
-
-          {mainTab === 'notifications' ? (
-            <div
-              className="sd-tab-panel"
-              role="tabpanel"
-              aria-labelledby="tab-notif"
-              id="panel-notif"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <p className="text-sm text-[var(--app-muted)] m-0 max-w-xl">
-                  Envoyez un message à l’étudiant (e-mail, SMS ou WhatsApp). Les canaux seront activés prochainement.
-                </p>
-                <Button type="button" variant="primary" size="sm" onClick={() => setNotifyModalOpen(true)}>
-                  <Bell size={16} aria-hidden />
-                  Notifier
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <SectionCard flush>
+          <Tabs
+            className="px-2"
+            value={tab}
+            onChange={setTab}
+            ariaLabel="Dossier étudiant"
+            tabs={[
+              { id: 'grades', label: 'Notes', icon: Layers, count: s.grades_courses?.length ?? 0 },
+              { id: 'enrollments', label: 'Inscriptions', icon: BookOpen, count: enrollments.length },
+              { id: 'notifications', label: 'Notifications', icon: Bell },
+            ]}
+          />
+          {tab === 'grades' ? <GradesTable rows={s.grades_courses} /> : null}
+          {tab === 'enrollments' ? <EnrollmentsTable rows={enrollments} /> : null}
+          {tab === 'notifications' ? (
+            <EmptyState
+              compact
+              icon={Bell}
+              title={(s.notifications ?? []).length ? `${s.notifications.length} notification(s)` : 'Aucune notification envoyée'}
+              description="L’historique des envois (e-mail, SMS, WhatsApp) apparaîtra ici."
+              action={
+                <Button size="sm" variant="soft" onClick={() => setModal('notify')}>
+                  <Bell size={14} aria-hidden /> Notifier l’étudiant
                 </Button>
-              </div>
-
-              {notifications.length ? (
-                <ul className="sd-notif-list">
-                  {notifications.map((n, i) => (
-                    <li key={n.id ?? i} className="sd-notif-item flex flex-wrap items-center justify-between gap-3">
-                      <span className="min-w-0 flex-1">
-                        {typeof n === 'string' ? n : JSON.stringify(n)}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="shrink-0 border border-[var(--app-border)]"
-                        onClick={() => setNotifyModalOpen(true)}
-                      >
-                        Notifier
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="sd-notif-empty border border-dashed border-[var(--app-border)] rounded-xl px-4 py-8">
-                  <Bell size={28} aria-hidden className="sd-notif-empty__icon" />
-                  <p className="sd-notif-empty__title">Aucune notification</p>
-                  <p className="sd-notif-empty__text">
-                    L’historique des envois apparaîtra ici. Vous pouvez déjà rédiger une notification pour cet étudiant.
-                  </p>
-                  <Button
-                    type="button"
-                    variant="soft"
-                    className="mt-4"
-                    onClick={() => setNotifyModalOpen(true)}
-                  >
-                    <Bell size={16} aria-hidden />
-                    Notifier l’étudiant
-                  </Button>
-                </div>
-              )}
-            </div>
+              }
+            />
           ) : null}
-        </div>
-      </section>
+        </SectionCard>
 
-      <StudentSuspendModal
-        open={suspendModalOpen}
-        onClose={() => setSuspendModalOpen(false)}
-        studentLabel={`${student.first_name} ${student.last_name} · ${student.matricule}`}
-      />
-      <StudentEditModal
-        open={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        student={student}
-        onSaved={reload}
-      />
-      <StudentNotifyModal
-        open={notifyModalOpen}
-        onClose={() => setNotifyModalOpen(false)}
-        studentLabel={`${student.first_name} ${student.last_name} · ${student.matricule}`}
-      />
+        <div className="flex flex-col gap-6">
+          <SectionCard title="Informations personnelles">
+            <dl className="-my-2 divide-y divide-[var(--app-border)]">
+              <Info label="INE" mono>
+                {s.INE}
+              </Info>
+              <Info label="E-mail">{s.email}</Info>
+              <Info label="Téléphone">{s.phone}</Info>
+              <Info label="Naissance">{[fmtDate(s.birth_date), s.birth_place].filter(Boolean).join(' · ')}</Info>
+              <Info label="Parents">{[s.dad_name, s.mum_name].filter(Boolean).join(' · ')}</Info>
+              <Info label="Entrée">{s.entered_academic_year_year}</Info>
+              <Info label="Dossier créé">{fmtDate(s.created_at)}</Info>
+            </dl>
+          </SectionCard>
+          <SectionCard title="Documents">
+            {s.documents?.length ? (
+              <ul className="-my-1 divide-y divide-[var(--app-border)]">
+                {s.documents.map((doc) => (
+                  <li key={doc.id} className="flex items-center gap-3 py-2 text-[13px]">
+                    {doc.type === 'image' ? <FileImage size={16} className="text-[var(--app-muted)]" aria-hidden /> : <FileText size={16} className="text-[var(--app-muted)]" aria-hidden />}
+                    <span className="min-w-0 flex-1 truncate">{doc.label}</span>
+                    {doc.url ? (
+                      <a href={doc.url} download target="_blank" rel="noreferrer" className="rounded-md p-1 text-[var(--app-muted)] hover:bg-[var(--app-hover)] hover:text-[var(--app-fg)]" aria-label={`Télécharger ${doc.label}`}>
+                        <Download size={15} />
+                      </a>
+                    ) : (
+                      <StatusPill tone="warning" dot={false}>
+                        Manquant
+                      </StatusPill>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[13px] text-[var(--app-muted)]">Aucun document enregistré.</p>
+            )}
+          </SectionCard>
+        </div>
+      </div>
+
+      <StudentSuspendModal open={modal === 'suspend'} onClose={() => setModal(null)} studentLabel={label} />
+      <StudentEditModal open={modal === 'edit'} onClose={() => setModal(null)} student={s} onSaved={reload} />
+      <StudentNotifyModal open={modal === 'notify'} onClose={() => setModal(null)} studentLabel={label} />
     </div>
   )
 }

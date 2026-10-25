@@ -22,15 +22,8 @@ export function TeacherStudentGradesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary-600 dark:text-secondary-400 mb-1.5">
-          Gestion académique
-        </p>
-        <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">
-          Relevé de notes
-        </h1>
-        <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400 max-w-xl">
-          Notes de tous les étudiants d&apos;une cohorte, par cours et par semestre.
-        </p>
+        <h2 className="font-heading text-[16px] font-semibold tracking-tight text-[var(--app-fg)]">Relevé de notes par cohorte</h2>
+        <p className="mt-1 text-[13px] text-[var(--app-muted)]">Notes de tous les étudiants d’une cohorte, par cours et par semestre.</p>
       </div>
 
       {/* Filtres principaux */}
