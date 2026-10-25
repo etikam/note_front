@@ -103,9 +103,12 @@ export function AcademicYearProvider({ children }) {
    * Si localStorage vide et pas d’effacement explicite (ex. bannière dev), aligner sur l’année `is_current` de l’API.
    */
   useEffect(() => {
-    if (hasAcademicYearExplicitClear()) return
-    if (getStoredAcademicYearId()) return
     if (!academicYears.length) return
+    const stored = getStoredAcademicYearId()
+    // Une année mémorisée qui n'existe plus (supprimée côté serveur) ne doit pas rester sélectionnée.
+    const storedExists = stored && academicYears.some((y) => String(y.id) === String(stored))
+    if (storedExists) return
+    if (!stored && hasAcademicYearExplicitClear()) return
     const current = academicYears.find((y) => y.is_current === true)
     if (!current) return
     setAcademicYearId(String(current.id))
