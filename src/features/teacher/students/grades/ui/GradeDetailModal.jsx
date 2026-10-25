@@ -2,7 +2,6 @@ import { useEffect, useId } from 'react'
 
 import {
   GRADE_STATUS_LABELS,
-  VALIDATION_STATUS_LABELS,
   gradeStatusBadgeClass,
 } from '@/features/teacherFacultyDashboard/pedagogy/notation/model/notationLabels'
 import { cn } from '@/shared/lib/cn'
@@ -39,9 +38,8 @@ export function GradeDetailModal({ open, onClose, student, course, grade }) {
   if (!open || !grade) return null
 
   const statusLabel = grade.status ? GRADE_STATUS_LABELS[grade.status] ?? grade.status : 'Non noté'
-  const validationLabel = grade.validation_status
-    ? VALIDATION_STATUS_LABELS[grade.validation_status] ?? grade.validation_status
-    : '—'
+  // La validation se suit sur la fiche de notes du cours ; ici, seule la visibilité étudiant importe.
+  const validationLabel = grade.published ? 'Publiée' : 'Non publiée'
 
   return (
     <div
@@ -130,7 +128,7 @@ export function GradeDetailModal({ open, onClose, student, course, grade }) {
                 </dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-zinc-500 dark:text-zinc-400">Niveau de validation</dt>
+                <dt className="text-zinc-500 dark:text-zinc-400">Visibilité étudiant</dt>
                 <dd className="text-right text-zinc-800 dark:text-zinc-100">{validationLabel}</dd>
               </div>
             </dl>

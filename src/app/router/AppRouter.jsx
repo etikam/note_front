@@ -52,6 +52,8 @@ function RedirectPedagogyToAcademie() {
 const StructurePage = lazy(() => import('@/features/structure/pages/StructurePage'))
 const NominationsPage = lazy(() => import('@/features/admin/pages/NominationsPage'))
 const RolesPage = lazy(() => import('@/features/admin/pages/RolesPage'))
+const GradeValidationPage = lazy(() => import('@/features/gradeWorkflow/pages/GradeValidationPage'))
+const GradeCircuitPage = lazy(() => import('@/features/gradeWorkflow/pages/GradeCircuitPage'))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageLoading label="Chargement" />}>{children}</Suspense>
@@ -93,6 +95,12 @@ export function AppRouter() {
             </Route>
             <Route element={<RequirePermission perms={['access.manage_roles', 'access.assign_roles']} />}>
               <Route path="/admin/roles" element={<Lazy><RolesPage /></Lazy>} />
+            </Route>
+            <Route element={<RequirePermission perms={['grades.validate', 'grades.publish']} />}>
+              <Route path="/teacher/validations" element={<Lazy><GradeValidationPage /></Lazy>} />
+            </Route>
+            <Route element={<RequirePermission perms="system.settings" mode="global" />}>
+              <Route path="/admin/grade-circuit" element={<Lazy><GradeCircuitPage /></Lazy>} />
             </Route>
             <Route path="/teacher/my-courses" element={<TeacherMyCoursesPage />} />
             <Route path="/teacher/academie" element={<TeacherPedagogyPage />} />

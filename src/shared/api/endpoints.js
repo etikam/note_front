@@ -52,6 +52,8 @@ export const endpoints = {
     teachingUnitCourseOfferings: (id) => `${API_PREFIX}/academics/teaching-units/${id}/course-offerings/`,
     courses: `${API_PREFIX}/academics/courses/`,
     courseDetail: (id) => `${API_PREFIX}/academics/courses/${id}/`,
+    gradeSheet: (id) => `${API_PREFIX}/academics/courses/${id}/grade-sheet/`,
+    gradeSheetAction: (id, action) => `${API_PREFIX}/academics/courses/${id}/grade-sheet/${action}/`,
     courseEnrollments: (id) => `${API_PREFIX}/academics/courses/${id}/enrollments/`,
     courseEnrollmentDetail: (courseId, enrollmentId) =>
       `${API_PREFIX}/academics/courses/${courseId}/enrollments/${enrollmentId}/`,
@@ -82,6 +84,8 @@ export const endpoints = {
   },
   grades: {
     list: `${API_PREFIX}/grades/`,
+    circuit: `${API_PREFIX}/grades/circuit/`,
+    reviewQueue: `${API_PREFIX}/grades/review-queue/`,
   },
   reporting: {
     statistics: `${API_PREFIX}/reporting/statistics/`,

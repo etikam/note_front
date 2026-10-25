@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Building2,
+  ClipboardCheck,
   FileText,
   GraduationCap,
   KeyRound,
@@ -8,6 +9,7 @@ import {
   Library,
   PieChart,
   ShieldCheck,
+  SlidersHorizontal,
   UserCog,
   Users,
 } from 'lucide-react'
@@ -36,6 +38,12 @@ export function buildStaffNavigation(access) {
       label: 'Pédagogie',
       items: [
         { to: '/structure', label: 'Structure', icon: Building2, visible: access.isManager },
+        {
+          to: '/teacher/validations',
+          label: 'Validation des notes',
+          icon: ClipboardCheck,
+          visible: access.canManageAny('grades.validate', 'grades.publish'),
+        },
         {
           to: '/teacher/academie',
           label: 'Référentiel',
@@ -68,6 +76,7 @@ export function buildStaffNavigation(access) {
           icon: KeyRound,
           visible: access.can('access.manage_roles') || access.canManage('access.assign_roles'),
         },
+        { to: '/admin/grade-circuit', label: 'Circuit des notes', icon: SlidersHorizontal, visible: access.can('system.settings') },
       ],
     },
   ]

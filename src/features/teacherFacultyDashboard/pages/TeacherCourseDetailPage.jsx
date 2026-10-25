@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, Download, Trash2, Upload, X } from 'lucide-react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/features/auth/model/AuthContext'
 import {
@@ -23,6 +23,7 @@ import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { Spinner } from '@/shared/ui/Spinner'
+import { GradeSheetPanel } from '@/features/gradeWorkflow/ui/GradeSheetPanel'
 import { ConfirmModal } from '@/shared/ui/ConfirmModal'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
 import { cn } from '@/shared/lib/cn'
@@ -88,7 +89,8 @@ export function TeacherCourseDetailPage() {
   /** Tous les onglets : le périmètre cours est déjà imposé par l’API (`courses_for_user` limite l’enseignant « simple » à ses cours assignés). */
   const visibleTabs = TABS
 
-  const [tab, setTab] = useState('info')
+  const [searchParams] = useSearchParams()
+  const [tab, setTab] = useState(() => searchParams.get('tab') || 'info')
   const [loadKey, setLoadKey] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -110,14 +112,20 @@ export function TeacherCourseDetailPage() {
 
   const reload = useCallback(() => setLoadKey((k) => k + 1), [])
 
+  /** Fiche de notes (workflow) : décide si la saisie est ouverte ; rechargée après chaque saisie. */
+  const [gradeSheet, setGradeSheet] = useState(null)
+  const [gradeSheetKey, setGradeSheetKey] = useState(0)
+
   const handleNotationGradeSaved = useCallback((studentId, grade) => {
     setNotationRoster((prev) => prev.map((r) => (r.student_id === studentId ? { ...r, grade } : r)))
+    setGradeSheetKey((k) => k + 1)
   }, [])
 
   const reloadNotationRoster = useCallback(async () => {
     if (!courseId) return
     const roster = await fetchCourseNotationRoster(courseId)
     setNotationRoster(Array.isArray(roster) ? roster : [])
+    setGradeSheetKey((k) => k + 1)
   }, [courseId])
 
   const closeArchiveUploadModal = useCallback(() => {
@@ -411,15 +419,17 @@ export function TeacherCourseDetailPage() {
       ) : null}
 
       {tab === 'grades' ? (
-        <CourseNotationSection
-          courseId={courseId}
-          courseCode={course?.code}
-          roster={notationRoster}
-          onGradeSaved={handleNotationGradeSaved}
-          canPublishGrades={Boolean(rights.publish_grades)}
-          canEditGrades={Boolean(rights.enter_grades)}
-          onRosterReload={reloadNotationRoster}
-        />
+        <div className="space-y-4">
+          <GradeSheetPanel courseId={courseId} reloadKey={gradeSheetKey} onSheet={setGradeSheet} />
+          <CourseNotationSection
+            courseId={courseId}
+            courseCode={course?.code}
+            roster={notationRoster}
+            onGradeSaved={handleNotationGradeSaved}
+            canEditGrades={Boolean(gradeSheet?.can?.edit)}
+            onRosterReload={reloadNotationRoster}
+          />
+        </div>
       ) : null}
 
       {tab === 'archives' ? (

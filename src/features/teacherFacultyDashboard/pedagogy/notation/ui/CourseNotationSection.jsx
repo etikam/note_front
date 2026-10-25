@@ -33,8 +33,7 @@ function filenameFromContentDisposition(cd, fallback) {
  *   courseCode?: string
  *   roster: unknown[]
  *   onGradeSaved: (studentId: number, grade: unknown) => void
- *   canPublishGrades: boolean
- *   canEditGrades?: boolean
+ *   canEditGrades?: boolean  — la fiche de notes autorise la saisie
  *   onRosterReload?: () => Promise<void>
  * }} props
  */
@@ -43,7 +42,6 @@ export function CourseNotationSection({
   courseCode = 'cours',
   roster,
   onGradeSaved,
-  canPublishGrades,
   canEditGrades = false,
   onRosterReload,
 }) {
@@ -166,7 +164,7 @@ export function CourseNotationSection({
         <NotationTable
           courseId={courseId}
           rows={filtered}
-          canPublishGrades={canPublishGrades}
+          editable={canEditGrades}
           rowSaving={rowSaving}
           setRowSaving={setRowSaving}
           onGradeSaved={onGradeSaved}

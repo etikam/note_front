@@ -17,7 +17,6 @@ import {
   GradeImportConflictResolution,
 } from '@/features/teacher/students/ui/gradesImport/GradeImportConflictResolution'
 import {
-  defaultAdminValidationStatus,
   GradeImportCommitSection,
 } from '@/features/teacher/students/ui/gradesImport/GradeImportCommitSection'
 import { GradeImportCourseSelector } from '@/features/teacher/students/ui/gradesImport/GradeImportCourseSelector'
@@ -65,7 +64,6 @@ export function TeacherGradesImportPage({ embedded = false }) {
   const [semester, setSemester] = useState('')
   const [courseId, setCourseId] = useState('')
   const [courseMeta, setCourseMeta] = useState(null)
-  const [validationStatus, setValidationStatus] = useState(() => defaultAdminValidationStatus(user))
   const [published, setPublished] = useState(false)
 
   const [drag, setDrag] = useState(false)
@@ -106,7 +104,6 @@ export function TeacherGradesImportPage({ embedded = false }) {
     setCommitResult(null)
     setConflictChoices({})
     setError(null)
-    setValidationStatus(defaultAdminValidationStatus(user))
     setPublished(false)
     if (inputRef.current) inputRef.current.value = ''
   }, [user])
@@ -211,8 +208,7 @@ export function TeacherGradesImportPage({ embedded = false }) {
     try {
       const body = {
         batch_public_id: analysis.batch_public_id,
-        validation_status: validationStatus,
-        published,
+        publish: published,
       }
       if (conflicts.length) {
         body.decisions = buildConflictDecisions(conflicts, conflictChoices)
@@ -228,7 +224,7 @@ export function TeacherGradesImportPage({ embedded = false }) {
     } finally {
       setCommitting(false)
     }
-  }, [analysis, courseId, validationStatus, published, conflicts, conflictChoices])
+  }, [analysis, courseId, published, conflicts, conflictChoices])
 
   const requestCommit = useCallback(() => {
     if (!canLaunchGradeImport(analysis)) return
@@ -369,8 +365,6 @@ export function TeacherGradesImportPage({ embedded = false }) {
                     courseLabel={courseLabel}
                     fileName={pendingFile?.name ?? ''}
                     analysis={analysis}
-                    validationStatus={validationStatus}
-                    onValidationStatusChange={setValidationStatus}
                     published={published}
                     onPublishedChange={setPublished}
                     disabled={busy}
@@ -398,7 +392,6 @@ export function TeacherGradesImportPage({ embedded = false }) {
               courseId={courseId}
               courseLabel={courseLabel}
               fileName={pendingFile?.name ?? ''}
-              validationStatus={validationStatus}
               published={published}
               onStartAnother={resetForAnotherImport}
             />

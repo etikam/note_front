@@ -178,7 +178,7 @@ export async function fetchCourseGrades(courseId, config = {}) {
 /**
  * @param {string} courseId UUID
  * @param {number} studentId
- * @param {Record<string, unknown>} body ex. `{ note1, note2, note3, note4, published?, validation_status? }`
+ * @param {Record<string, unknown>} body ex. `{ note1, note2, note3, note4 }` (la publication passe par la fiche de notes)
  */
 export async function patchCourseStudentGrade(courseId, studentId, body, config = {}) {
   const { data } = await apiClient.patch(
@@ -242,7 +242,7 @@ export async function postCourseAdminGradesImport(courseId, formData, config = {
 
 /**
  * @param {string} courseId
- * @param {{ batch_public_id: string, decisions?: Array<{ student_id: number, field: string, decision: 'keep'|'overwrite' }>, apply_to_remaining?: 'keep'|'overwrite', validation_status: string, published: boolean }} body
+ * @param {{ batch_public_id: string, decisions?: Array<{ student_id: number, field: string, decision: 'keep'|'overwrite' }>, apply_to_remaining?: 'keep'|'overwrite', publish?: boolean }} body
  * @param {import('axios').AxiosRequestConfig} [config]
  */
 export async function postCourseAdminGradesImportCommit(courseId, body, config = {}) {

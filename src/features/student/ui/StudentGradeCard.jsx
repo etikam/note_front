@@ -1,9 +1,7 @@
 import {
   NotationGradeStatusBadge,
   NotationPublicationBadges,
-  NotationWorkflowBadge,
 } from '@/features/teacherFacultyDashboard/pedagogy/notation/ui/NotationStatusBadges'
-import { VALIDATION_STATUS_LABELS } from '@/features/teacherFacultyDashboard/pedagogy/notation/model/notationLabels'
 import { GRADE_STATUS_UI, STUDENT_BADGE } from '@/features/student/student.constants'
 import { cn } from '@/shared/lib/cn'
 
@@ -20,7 +18,6 @@ export function StudentGradeCard({ grade }) {
         </div>
         <div className="flex max-w-full flex-wrap justify-end gap-1">
           <NotationGradeStatusBadge grade={grade} />
-          <NotationWorkflowBadge grade={grade} />
           <NotationPublicationBadges grade={grade} />
         </div>
       </div>
@@ -60,10 +57,7 @@ export function StudentGradesTable({ grades }) {
         <tbody>
           {grades.map((g) => {
             const statusUi = GRADE_STATUS_UI[g.status] ?? { label: g.status }
-            const valLabel =
-              g.validation_status_label ??
-              VALIDATION_STATUS_LABELS[g.validation_status] ??
-              g.validation_status
+            const valLabel = g.validation_status_label ?? (g.published ? 'Publiée' : '—')
             return (
               <tr key={g.id} className="border-t border-[var(--app-border)]">
                 <td className="px-4 py-3">

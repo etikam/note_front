@@ -2,13 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { patchCourseStudentGrade } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
 import { NotationNumberInput } from '@/features/teacherFacultyDashboard/pedagogy/notation/ui/NotationNumberInput'
-import {
-  NotationGradeStatusBadge,
-  NotationPublicationBadges,
-  NotationWorkflowBadge,
-} from '@/features/teacherFacultyDashboard/pedagogy/notation/ui/NotationStatusBadges'
+import { NotationGradeStatusBadge } from '@/features/teacherFacultyDashboard/pedagogy/notation/ui/NotationStatusBadges'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
-import { cn } from '@/shared/lib/cn'
 
 /** @returns {null|number|undefined} undefined = invalide */
 function toPayloadPart(v) {
@@ -34,7 +29,8 @@ function hasPersistedNote4(grade) {
   return true
 }
 
-export function NotationRow({ courseId, row, canPublishGrades, rowSaving, setRowSaving, onGradeSaved }) {
+/** ``editable`` : la fiche de notes du cours autorise la saisie (sinon lecture seule). */
+export function NotationRow({ courseId, row, editable, rowSaving, setRowSaving, onGradeSaved }) {
   const g = row.grade
   const [n1, setN1] = useState('')
   const [n2, setN2] = useState('')
@@ -70,6 +66,7 @@ export function NotationRow({ courseId, row, canPublishGrades, rowSaving, setRow
   }, [g, n1, n2, n3, n4])
 
   const flush = useCallback(async () => {
+    if (!editable) return
     const { body, error } = buildChangedBody()
     if (error) {
       dispatchToast({ type: 'error', message: error })
@@ -89,21 +86,7 @@ export function NotationRow({ courseId, row, canPublishGrades, rowSaving, setRow
     } finally {
       setRowSaving(null)
     }
-  }, [buildChangedBody, courseId, onGradeSaved, row.student_id, setRowSaving])
-
-  const togglePublished = async () => {
-    if (!g?.id) return
-    const next = !g.published
-    setRowSaving(row.student_id)
-    try {
-      const data = await patchCourseStudentGrade(courseId, row.student_id, { published: next })
-      onGradeSaved(row.student_id, data)
-    } catch (e) {
-      dispatchToast({ type: 'error', message: e?.response?.data?.detail ?? 'Action refusée.' })
-    } finally {
-      setRowSaving(null)
-    }
-  }
+  }, [buildChangedBody, courseId, editable, onGradeSaved, row.student_id, setRowSaving])
 
   return (
     <tr className="border-b border-zinc-100 dark:border-[var(--app-border)]">
@@ -118,6 +101,7 @@ export function NotationRow({ courseId, row, canPublishGrades, rowSaving, setRow
           id={`n1-${row.student_id}`}
           label={`Note 1 — ${row.last_name}`}
           value={n1}
+          disabled={!editable}
           saving={saving}
           onChange={setN1}
           onBlur={flush}
@@ -128,6 +112,7 @@ export function NotationRow({ courseId, row, canPublishGrades, rowSaving, setRow
           id={`n2-${row.student_id}`}
           label={`Note 2 — ${row.last_name}`}
           value={n2}
+          disabled={!editable}
           saving={saving}
           onChange={setN2}
           onBlur={flush}
@@ -138,6 +123,7 @@ export function NotationRow({ courseId, row, canPublishGrades, rowSaving, setRow
           id={`n3-${row.student_id}`}
           label={`Note 3 — ${row.last_name}`}
           value={n3}
+          disabled={!editable}
           saving={saving}
           onChange={setN3}
           onBlur={flush}
@@ -148,7 +134,7 @@ export function NotationRow({ courseId, row, canPublishGrades, rowSaving, setRow
           id={`n4-${row.student_id}`}
           label={`Rattrapage — ${row.last_name}`}
           value={n4}
-          disabled={!note4Editable}
+          disabled={!editable || !note4Editable}
           saving={saving}
           onChange={setN4}
           onBlur={flush}
@@ -157,35 +143,8 @@ export function NotationRow({ courseId, row, canPublishGrades, rowSaving, setRow
       <td className="px-2 py-2 text-center text-sm tabular-nums text-zinc-800 dark:text-zinc-200">
         {g?.average != null ? String(g.average) : '—'}
       </td>
-      <td className="min-w-[8rem] px-2 py-2">
+      <td className="min-w-[8rem] py-2 pl-2 pr-4">
         <NotationGradeStatusBadge grade={g} />
-      </td>
-      <td className="min-w-[8.5rem] px-2 py-2">
-        <NotationWorkflowBadge grade={g} />
-      </td>
-      <td className="min-w-[7.5rem] py-2 pr-4 text-right align-middle">
-        <div className="flex flex-col items-end justify-center gap-1.5">
-          {g?.id ? (
-            <NotationPublicationBadges grade={g} />
-          ) : (
-            <span className="text-xs text-zinc-400">—</span>
-          )}
-          {canPublishGrades && g?.id ? (
-            <button
-              type="button"
-              disabled={saving}
-              onClick={togglePublished}
-              className={cn(
-                'rounded-lg border px-2.5 py-1 text-xs font-semibold transition-colors',
-                g.published
-                  ? 'border-brand-300 bg-brand-50 text-brand-800 hover:bg-brand-100 dark:border-brand-700 dark:bg-brand-950/50'
-                  : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50 dark:border-[var(--app-border)] dark:hover:bg-white/5',
-              )}
-            >
-              {g.published ? 'Dépublier' : 'Publier'}
-            </button>
-          ) : null}
-        </div>
       </td>
     </tr>
   )

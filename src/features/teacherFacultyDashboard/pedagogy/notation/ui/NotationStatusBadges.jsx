@@ -2,9 +2,7 @@ import { cn } from '@/shared/lib/cn'
 
 import {
   GRADE_STATUS_LABELS,
-  VALIDATION_STATUS_LABELS,
   gradeStatusBadgeClass,
-  validationStatusBadgeClass,
 } from '@/features/teacherFacultyDashboard/pedagogy/notation/model/notationLabels'
 
 const BADGE = 'inline-flex rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide'
@@ -44,19 +42,6 @@ export function NotationPublicationBadges({ grade }) {
   ) : (
     <span className={cn(BADGE, 'border-zinc-200 text-zinc-500 dark:border-zinc-600')} title="Visibilité étudiant">
       Non publiée
-    </span>
-  )
-}
-
-/** Niveau hiérarchique du circuit de validation (`validation_status`). */
-export function NotationWorkflowBadge({ grade }) {
-  if (!grade) {
-    return <span className="text-xs text-zinc-400">—</span>
-  }
-  const valLabel = VALIDATION_STATUS_LABELS[grade.validation_status] ?? grade.validation_status
-  return (
-    <span className={cn(BADGE, validationStatusBadgeClass())} title="Circuit de validation">
-      {valLabel}
     </span>
   )
 }

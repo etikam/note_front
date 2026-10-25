@@ -2,18 +2,12 @@ import { Link } from 'react-router-dom'
 
 import { Button } from '@/shared/ui/Button'
 
-const STATUS_LABELS = {
-  study_director: 'Directeur des études',
-  general_director: 'Directeur général',
-}
-
 /**
  * @param {{
  *   result: Record<string, unknown> | null
  *   courseId?: string
  *   courseLabel?: string
  *   fileName?: string
- *   validationStatus?: string
  *   published?: boolean
  *   onStartAnother?: () => void
  * }} props
@@ -23,7 +17,6 @@ export function AdminGradeImportResultPanel({
   courseId,
   courseLabel,
   fileName,
-  validationStatus,
   published,
   onStartAnother,
 }) {
@@ -47,13 +40,10 @@ export function AdminGradeImportResultPanel({
               <span className="text-brand-800/70 dark:text-brand-200/70">Fichier :</span> {fileName}
             </li>
           ) : null}
-          {validationStatus ? (
-            <li>
-              <span className="text-brand-800/70 dark:text-brand-200/70">Validation :</span>{' '}
-              {STATUS_LABELS[validationStatus] ?? validationStatus}
-              {published ? ' · publié' : ' · non publié'}
-            </li>
-          ) : null}
+          <li>
+            <span className="text-brand-800/70 dark:text-brand-200/70">Fiche de notes :</span>{' '}
+            {published ? 'publiée' : 'en saisie, à soumettre au circuit de validation'}
+          </li>
         </ul>
       )}
       <ul className="mt-3 space-y-1 text-[13px]">

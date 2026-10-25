@@ -4,7 +4,9 @@ import { BookOpen, ChevronRight, GraduationCap, Layers } from 'lucide-react'
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { fetchCoursesList } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
+import { SHEET_STATUS } from '@/features/gradeWorkflow/model/gradeSheetLabels'
 import { Card } from '@/shared/ui/Card'
+import { StatusPill } from '@/shared/ui/StatusPill'
 import { Spinner } from '@/shared/ui/Spinner'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
 import { cn } from '@/shared/lib/cn'
@@ -15,7 +17,7 @@ function TeacherCourseMiniCard({ course: c }) {
   const title = [c.code, c.name].filter(Boolean).join(' — ')
   return (
     <Link
-      to={`/teacher/courses/${c.id}`}
+      to={`/teacher/courses/${c.id}?tab=grades`}
       aria-label={title ? `Ouvrir le cours ${title}` : 'Ouvrir le détail du cours'}
       className={cn(
         'group relative flex min-h-[7.5rem] flex-col overflow-hidden rounded-xl border border-zinc-200/90 bg-[var(--app-elevated)] p-3.5 shadow-sm',
@@ -33,6 +35,11 @@ function TeacherCourseMiniCard({ course: c }) {
         <span className="inline-flex items-center rounded-md bg-brand-500/[0.12] px-2 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-brand-800 dark:bg-brand-400/15 dark:text-brand-100">
           {c.code ?? '—'}
         </span>
+        {SHEET_STATUS[c.grade_sheet_status] ? (
+          <StatusPill tone={SHEET_STATUS[c.grade_sheet_status].tone} className="ml-auto mr-1" title="Fiche de notes">
+            {SHEET_STATUS[c.grade_sheet_status].label}
+          </StatusPill>
+        ) : null}
         <ChevronRight
           size={18}
           strokeWidth={2}

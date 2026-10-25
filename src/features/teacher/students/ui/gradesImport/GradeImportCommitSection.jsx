@@ -1,20 +1,6 @@
-import { buildAccess } from '@/features/access/model/access'
+import { useAccess } from '@/features/access/model/useAccess'
 import { useAuth } from '@/features/auth/model/AuthContext'
-import { Select } from '@/shared/ui/Field'
 import { cn } from '@/shared/lib/cn'
-
-export const ADMIN_VALIDATION_STATUS_OPTIONS = [
-  { value: 'study_director', label: 'Directeur des études' },
-  { value: 'general_director', label: 'Directeur général' },
-]
-
-export function defaultAdminValidationStatus(user) {
-  // Étape de validation par défaut : celle du niveau institution si l'on publie à ce niveau.
-  if (buildAccess(user).scopeOf('grades.publish')?.institution) return 'general_director'
-  return 'study_director'
-}
-
-const STATUS_LABELS = Object.fromEntries(ADMIN_VALIDATION_STATUS_OPTIONS.map((o) => [o.value, o.label]))
 
 export function isBatchExpired(analysis) {
   const raw = analysis?.expires_at
@@ -37,14 +23,13 @@ export function batchExpiryHint(analysis) {
 }
 
 /**
- * Récapitulatif + paramètres workflow + bouton commit (étape 4).
+ * Récapitulatif + publication directe éventuelle + bouton commit (étape 4).
+ * Sans publication directe, les notes restent en saisie et la fiche suit le circuit de validation.
  */
 export function GradeImportCommitSection({
   courseLabel,
   fileName,
   analysis,
-  validationStatus,
-  onValidationStatusChange,
   published,
   onPublishedChange,
   disabled = false,
@@ -54,12 +39,10 @@ export function GradeImportCommitSection({
   committing = false,
 }) {
   const { user } = useAuth()
+  const canPublish = useAccess().canManage('grades.publish')
   const rowErrors = Array.isArray(analysis?.errors) ? analysis.errors : []
   const expired = isBatchExpired(analysis)
   const expiresHint = batchExpiryHint(analysis)
-
-  const fieldClass =
-    'w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_96%,black)]'
 
   return (
     <div className="space-y-4 border-t border-zinc-100 pt-4 dark:border-[var(--app-border)]">
@@ -98,26 +81,8 @@ export function GradeImportCommitSection({
         ) : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm">
-          <span className="mb-1.5 block font-medium text-zinc-700 dark:text-zinc-300">
-            Niveau de validation après import
-          </span>
-          <Select
-            className={fieldClass}
-            value={validationStatus}
-            disabled={disabled || committing}
-            onChange={(e) => onValidationStatusChange(e.target.value)}
-          >
-            {ADMIN_VALIDATION_STATUS_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </Select>
-        </label>
-
-        <label className="flex items-end gap-2 pb-2 text-sm">
+      {canPublish ? (
+        <label className="flex items-start gap-2 text-sm">
           <input
             type="checkbox"
             className="size-4 rounded border-zinc-300 text-brand-600 focus:ring-brand-500"
@@ -126,18 +91,18 @@ export function GradeImportCommitSection({
             onChange={(e) => onPublishedChange(e.target.checked)}
           />
           <span>
-            <span className="font-medium text-zinc-700 dark:text-zinc-300">Publier les notes aux étudiants</span>
+            <span className="font-medium text-zinc-700 dark:text-zinc-300">Publier directement, sans circuit de validation</span>
             <span className="mt-0.5 block text-xs text-zinc-500">
-              Si coché, les notes seront visibles dans l’espace étudiant.
+              La fiche du cours est publiée et les notes deviennent visibles par les étudiants. Sinon, les notes restent en
+              saisie et la fiche suit le circuit habituel.
             </span>
           </span>
         </label>
-      </div>
+      ) : null}
 
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Validation au statut « {STATUS_LABELS[validationStatus] ?? validationStatus} »
-        {published ? ', notes publiées' : ', notes non publiées'} — opération par{' '}
-        {user?.full_name ?? 'directeur'}.
+        {published ? 'Notes publiées dès l’enregistrement' : 'Notes enregistrées en saisie (fiche à soumettre)'} — opération par{' '}
+        {user?.full_name ?? 'vous'}. Possible seulement si la fiche du cours est en saisie ou dépubliée.
       </p>
 
       <div className="flex flex-wrap items-center gap-3">

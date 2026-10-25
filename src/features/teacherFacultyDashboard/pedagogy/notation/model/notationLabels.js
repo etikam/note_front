@@ -7,14 +7,6 @@ export const GRADE_STATUS_LABELS = {
   DEBT: 'Dette',
 }
 
-/** Libellés circuit de validation (`validation_status`) — niveau hiérarchique actuel. */
-export const VALIDATION_STATUS_LABELS = {
-  teacher: 'Enseignant',
-  department_head: 'Chef de département',
-  study_director: 'Directeur des études',
-  general_director: 'Directeur général',
-}
-
 /** Classes badge statut pédagogique (charte zinc / brand / sémantique). */
 export function gradeStatusBadgeClass(status) {
   switch (status) {
@@ -29,8 +21,4 @@ export function gradeStatusBadgeClass(status) {
     default:
       return 'bg-zinc-100 text-zinc-600 border-zinc-200/70 dark:bg-white/5 dark:text-zinc-400'
   }
-}
-
-export function validationStatusBadgeClass() {
-  return 'bg-secondary-100 text-secondary-900 border-secondary-200/70 dark:bg-secondary-950/40 dark:text-secondary-200'
 }

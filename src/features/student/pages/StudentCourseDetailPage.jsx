@@ -9,7 +9,6 @@ import { StudentEmptyState } from '@/features/student/ui/StudentEmptyState'
 import {
   NotationGradeStatusBadge,
   NotationPublicationBadges,
-  NotationWorkflowBadge,
 } from '@/features/teacherFacultyDashboard/pedagogy/notation/ui/NotationStatusBadges'
 import { StudentPageHeader } from '@/features/student/ui/StudentPageHeader'
 import { cn } from '@/shared/lib/cn'
@@ -150,7 +149,6 @@ export function StudentCourseDetailPage() {
             <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-6">
               <div className="mb-3 flex flex-wrap gap-2">
                 <NotationGradeStatusBadge grade={myGrade} />
-                <NotationWorkflowBadge grade={myGrade} />
                 <NotationPublicationBadges grade={myGrade} />
               </div>
               <p className="text-sm text-[var(--app-muted)]">Moyenne</p>
