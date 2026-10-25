@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 
 import { buildStaffNavigation } from '@/app/layouts/navigation'
+import { settingsTabs } from '@/features/settings/model/settingsTabs'
 
 /** Pages du menu (selon les droits) + actions rapides, pour la palette ⌘K. */
 export function buildCommands(access) {
@@ -26,13 +27,23 @@ export function buildCommands(access) {
       keywords: `${item.label} ${section.label}`,
     })),
   )
+  const settings = settingsTabs(access).map((t) => ({
+    id: `page:${t.to}`,
+    group: 'Pages',
+    icon: t.icon,
+    title: t.label,
+    subtitle: 'Paramètres',
+    to: t.to,
+    keywords: `${t.label} paramètres configuration`,
+  }))
+  pages.push(...settings)
   const actions = [
     {
       id: 'action:nominate',
       icon: UserPlus,
       title: 'Nommer un responsable',
       subtitle: 'Chef de département, directeur de programme…',
-      to: '/admin/nominations?new=1',
+      to: '/settings/nominations?new=1',
       visible: access.canManage('access.assign_roles'),
       keywords: 'nomination mandat rôle chef directeur',
     },

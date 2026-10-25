@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Calendar, ChevronsLeft, ChevronsRight, LogOut, Menu, Settings, X } from 'lucide-react'
+import { Calendar, ChevronDown, ChevronsLeft, ChevronsRight, LogOut, Menu, Settings, X } from 'lucide-react'
 
 import { buildStaffNavigation, buildStudentNavigation } from '@/app/layouts/navigation'
 import { homePathFor, primaryRole } from '@/features/access/model/access'
@@ -16,6 +16,7 @@ import { Avatar } from '@/shared/ui/Avatar'
 import { Spinner } from '@/shared/ui/Spinner'
 
 const SIDEBAR_STORAGE_KEY = 'gestion_ci.sidebar.collapsed'
+const SECTIONS_STORAGE_KEY = 'gestion_ci.sidebar.folded-sections'
 const MOBILE_MAX_BREAKPOINT = 768
 const SIDEBAR_W = { expanded: 264, collapsed: 72 }
 
@@ -78,6 +79,56 @@ function NavItem({ item, collapsed, onNavigate }) {
   )
 }
 
+function readFolded() {
+  try {
+    const raw = window.localStorage.getItem(SECTIONS_STORAGE_KEY)
+    const list = raw ? JSON.parse(raw) : []
+    return new Set(Array.isArray(list) ? list : [])
+  } catch {
+    return new Set()
+  }
+}
+
+/** Groupe du menu dépliable ; toujours ouvert s'il contient la page courante. */
+function NavSection({ section, collapsed, folded, onToggle, pathname, onNavigate }) {
+  const containsActive = section.items.some((it) => pathname === it.to || pathname.startsWith(`${it.to}/`))
+  const open = containsActive || !folded
+  if (collapsed) {
+    return (
+      <div className="flex flex-col gap-0.5">
+        <span className="mx-auto mb-1 h-px w-6 bg-[var(--app-border)]" aria-hidden />
+        {section.items.map((it) => (
+          <NavItem key={it.to} item={it} collapsed onNavigate={onNavigate} />
+        ))}
+      </div>
+    )
+  }
+  const listId = `nav-section-${section.id}`
+  return (
+    <div className="flex flex-col gap-0.5">
+      <button
+        type="button"
+        onClick={() => onToggle(section.id)}
+        aria-expanded={open}
+        aria-controls={listId}
+        disabled={containsActive}
+        title={containsActive ? 'Contient la page ouverte' : undefined}
+        className="group flex items-center justify-between rounded-md px-2.5 pb-1 pt-0.5 text-left text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--app-sidebar-muted)] outline-none hover:text-[var(--app-sidebar-fg)] focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)] disabled:cursor-default disabled:hover:text-[var(--app-sidebar-muted)]"
+      >
+        {section.label}
+        <ChevronDown size={13} className={cn('shrink-0 transition-transform duration-200', !open && '-rotate-90', containsActive && 'opacity-40')} aria-hidden />
+      </button>
+      {open ? (
+        <div id={listId} className="ds-fade-in flex flex-col gap-0.5">
+          {section.items.map((it) => (
+            <NavItem key={it.to} item={it} collapsed={false} onNavigate={onNavigate} />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function StudentBottomNav({ items }) {
   return (
     <nav
@@ -131,6 +182,21 @@ export function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== 'undefined' && window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === '1',
   )
+  const [folded, setFolded] = useState(readFolded)
+
+  const toggleSection = useCallback((id) => {
+    setFolded((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      try {
+        window.localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify([...next]))
+      } catch {
+        /* stockage indisponible : l'état reste pour la session */
+      }
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     if (isDesktop) setMobileOpen(false)
@@ -237,18 +303,15 @@ export function DashboardLayout() {
             </div>
           ) : (
             sections.map((section) => (
-              <div key={section.id} className="flex flex-col gap-0.5">
-                {effectiveCollapsed ? (
-                  <span className="mx-auto mb-1 h-px w-6 bg-[var(--app-border)]" aria-hidden />
-                ) : (
-                  <p className="px-2.5 pb-1 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--app-sidebar-muted)]">
-                    {section.label}
-                  </p>
-                )}
-                {section.items.map((it) => (
-                  <NavItem key={it.to} item={it} collapsed={effectiveCollapsed} onNavigate={onNavigate} />
-                ))}
-              </div>
+              <NavSection
+                key={section.id}
+                section={section}
+                collapsed={effectiveCollapsed}
+                folded={folded.has(section.id)}
+                onToggle={toggleSection}
+                pathname={location.pathname}
+                onNavigate={onNavigate}
+              />
             ))
           )}
         </nav>
@@ -267,7 +330,7 @@ export function DashboardLayout() {
               ) : null}
             </div>
           ) : null}
-          {access.isManager ? (
+          {!isStudent ? (
             <NavItem item={{ to: '/settings', label: 'Paramètres', icon: Settings }} collapsed={effectiveCollapsed} onNavigate={onNavigate} />
           ) : null}
           <button

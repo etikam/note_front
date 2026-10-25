@@ -87,7 +87,7 @@ export default function GradeValidationPage() {
         description="Fiches de notes qui attendent votre décision. Ouvrez un cours pour relire les notes, puis validez ou renvoyez la fiche avec un motif."
         actions={
           access.can('system.settings') ? (
-            <Button as={Link} to="/admin/grade-circuit" variant="ghost">
+            <Button as={Link} to="/settings/grade-circuit" variant="ghost">
               <Settings2 size={15} aria-hidden /> Circuit de validation
             </Button>
           ) : null

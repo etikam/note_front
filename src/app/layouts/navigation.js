@@ -4,12 +4,9 @@ import {
   ClipboardCheck,
   FileText,
   GraduationCap,
-  KeyRound,
   LayoutDashboard,
   Library,
   PieChart,
-  ShieldCheck,
-  SlidersHorizontal,
   UserCog,
   Users,
 } from 'lucide-react'
@@ -63,20 +60,6 @@ export function buildStaffNavigation(access) {
           icon: UserCog,
           visible: access.canManageAny('teachers.view', 'courses.assign', 'teachers.provision'),
         },
-      ],
-    },
-    {
-      id: 'admin',
-      label: 'Administration',
-      items: [
-        { to: '/admin/nominations', label: 'Nominations', icon: ShieldCheck, visible: access.canManage('access.assign_roles') },
-        {
-          to: '/admin/roles',
-          label: 'Rôles & permissions',
-          icon: KeyRound,
-          visible: access.can('access.manage_roles') || access.canManage('access.assign_roles'),
-        },
-        { to: '/admin/grade-circuit', label: 'Circuit des notes', icon: SlidersHorizontal, visible: access.can('system.settings') },
       ],
     },
   ]

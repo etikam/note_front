@@ -79,7 +79,7 @@ export default function GradeCircuitPage() {
   return (
     <div>
       <PageHeader
-        breadcrumbs={[{ label: 'Administration' }, { label: 'Circuit de validation' }]}
+        variant="section"
         title="Circuit de validation des notes"
         description="Choisissez les étapes qu’une fiche de notes traverse après sa soumission par l’enseignant. La dernière étape publie les notes. Les fiches déjà en validation gardent le circuit en vigueur au moment de leur soumission."
       />

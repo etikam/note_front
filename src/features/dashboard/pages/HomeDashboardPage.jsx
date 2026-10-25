@@ -101,7 +101,7 @@ function TodoCard({ todo, access, loading }) {
       icon: UserRoundX,
       count: todo.vacant_programs + todo.vacant_departments,
       label: `Postes de responsable vacants (${[...todo.vacancies.departments, ...todo.vacancies.programs].map((v) => v.code).slice(0, 4).join(', ')}${todo.vacant_programs + todo.vacant_departments > 4 ? '…' : ''})`,
-      to: '/admin/nominations?new=1',
+      to: '/settings/nominations?new=1',
       canOpen: canAssignRoles,
     },
   ].filter(Boolean)

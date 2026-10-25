@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import Home from '@/pages/Home'
 
 import { DashboardLayout } from '@/app/layouts/DashboardLayout'
@@ -7,6 +7,7 @@ import { PublicLayout } from '@/app/layouts/PublicLayout'
 import { ActivationPage } from '@/features/auth/pages/ActivationPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
+import { SettingsLayout } from '@/features/settings/pages/SettingsLayout'
 import { SettingsPage } from '@/features/settings/pages/SettingsPage'
 import {
   GuestRoute,
@@ -39,6 +40,14 @@ import { TeacherFacultyLayout } from '@/features/teacher/faculty/TeacherFacultyL
 import { TeacherFacultyListPage } from '@/features/teacher/faculty/TeacherFacultyListPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { StudentOnboardingPage } from '@/features/onboarding/pages/StudentOnboardingPage'
+
+/** Anciennes URL `/admin/<section>` → onglets de Paramètres (conserve la query). */
+function RedirectAdminToSettings() {
+  const { section } = useParams()
+  const { search } = useLocation()
+  const known = ['nominations', 'roles', 'grade-circuit']
+  return <Navigate to={known.includes(section) ? `/settings/${section}${search}` : '/settings'} replace />
+}
 
 /** Ancienne URL `/teacher/pedagogy` → `/teacher/academie` (conserve la query `?tab=`). */
 function RedirectPedagogyToAcademie() {
@@ -92,17 +101,9 @@ export function AppRouter() {
             <Route element={<RequirePermission perms={STRUCTURE_PERMS} />}>
               <Route path="/structure" element={<Lazy><StructurePage /></Lazy>} />
             </Route>
-            <Route element={<RequirePermission perms="access.assign_roles" />}>
-              <Route path="/admin/nominations" element={<Lazy><NominationsPage /></Lazy>} />
-            </Route>
-            <Route element={<RequirePermission perms={['access.manage_roles', 'access.assign_roles']} />}>
-              <Route path="/admin/roles" element={<Lazy><RolesPage /></Lazy>} />
-            </Route>
+            <Route path="/admin/:section" element={<RedirectAdminToSettings />} />
             <Route element={<RequirePermission perms={['grades.validate', 'grades.publish']} />}>
               <Route path="/teacher/validations" element={<Lazy><GradeValidationPage /></Lazy>} />
-            </Route>
-            <Route element={<RequirePermission perms="system.settings" mode="global" />}>
-              <Route path="/admin/grade-circuit" element={<Lazy><GradeCircuitPage /></Lazy>} />
             </Route>
             <Route path="/teacher/my-courses" element={<TeacherMyCoursesPage />} />
             <Route path="/teacher/academie" element={<Lazy><CurriculumPage /></Lazy>} />
@@ -149,7 +150,18 @@ export function AppRouter() {
             <Route path="/student/promotion" element={<StudentPromotionPage />} />
           </Route>
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings" element={<SettingsLayout />}>
+            <Route index element={<SettingsPage />} />
+            <Route element={<RequirePermission perms="access.assign_roles" />}>
+              <Route path="nominations" element={<Lazy><NominationsPage /></Lazy>} />
+            </Route>
+            <Route element={<RequirePermission perms={['access.manage_roles', 'access.assign_roles']} />}>
+              <Route path="roles" element={<Lazy><RolesPage /></Lazy>} />
+            </Route>
+            <Route element={<RequirePermission perms="system.settings" mode="global" />}>
+              <Route path="grade-circuit" element={<Lazy><GradeCircuitPage /></Lazy>} />
+            </Route>
+          </Route>
         </Route>
       </Route>
 

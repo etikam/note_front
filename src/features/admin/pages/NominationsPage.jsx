@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { BadgeCheck, CalendarClock, Hourglass, Network, ListChecks, UserPlus, UserRoundX } from 'lucide-react'
 
 import { apiErrorMessage, fetchAssignments, fetchRoles, fetchStructureTree } from '@/features/access/api/accessApi'
-import { useAccess } from '@/features/access/model/useAccess'
 import { ASSIGNMENT_STATUS, SCOPE_LEVEL_LABELS, formatPeriod } from '@/features/admin/model/accessLabels'
 import { indexStructure, vacanciesFor } from '@/features/admin/model/structureIndex'
 import { MandateDrawer } from '@/features/admin/ui/MandateDrawer'
@@ -41,7 +40,6 @@ function endsSoon(m, today) {
 }
 
 export default function NominationsPage() {
-  const access = useAccess()
   const { refreshMe } = useAuth()
   const [params, setParams] = useSearchParams()
   const tab = params.get('tab') === 'mandates' ? 'mandates' : 'structure'
@@ -176,16 +174,11 @@ export default function NominationsPage() {
   return (
     <div>
       <PageHeader
-        breadcrumbs={[{ label: 'Administration' }, { label: 'Nominations' }]}
+        variant="section"
         title="Nominations"
         description="Qui occupe quel rôle, sur quelle entité, et jusqu’à quand. Une nomination donne à la personne les permissions du rôle sur l’entité et tout ce qu’elle contient."
         actions={
           <>
-            {access.canAny('access.manage_roles', 'access.assign_roles') ? (
-              <Button as={Link} to="/admin/roles" variant="ghost">
-                Rôles & permissions
-              </Button>
-            ) : null}
             <Button onClick={() => setWizard({})} disabled={loading || Boolean(error)}>
               <UserPlus size={15} aria-hidden /> Nommer
             </Button>

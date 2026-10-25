@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { Info, Lock, Plus, ShieldCheck, Trash2, Users } from 'lucide-react'
 
 import { apiErrorMessage, deleteRole, fetchAccessCatalog, fetchRoles, updateRole } from '@/features/access/api/accessApi'
@@ -176,16 +176,11 @@ export default function RolesPage() {
   return (
     <div>
       <PageHeader
-        breadcrumbs={[{ label: 'Administration' }, { label: 'Rôles & permissions' }]}
+        variant="section"
         title="Rôles & permissions"
         description="Un rôle regroupe des permissions et fixe un niveau de périmètre. Il s’attribue par une nomination sur une entité précise : la personne nommée agit alors sur cette entité et tout ce qu’elle contient."
         actions={
           <>
-            {access.canManage('access.assign_roles') ? (
-              <Button as={Link} to="/admin/nominations" variant="ghost">
-                Nominations
-              </Button>
-            ) : null}
             {canEdit ? (
               <Button onClick={() => setCreateOpen(true)}>
                 <Plus size={15} aria-hidden /> Nouveau rôle

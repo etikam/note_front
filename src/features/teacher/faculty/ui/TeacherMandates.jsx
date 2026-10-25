@@ -40,7 +40,7 @@ export function MandatesHint() {
       Les responsabilités (chef de département, directeur de programme…) s’attribuent par nomination, avec un périmètre et
       une période.{' '}
       {access.canManage('access.assign_roles') ? (
-        <Link to="/admin/nominations" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
+        <Link to="/settings/nominations" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
           Gérer les nominations
         </Link>
       ) : null}

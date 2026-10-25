@@ -30,8 +30,23 @@ export function Breadcrumbs({ items, className }) {
   )
 }
 
-/** En-tête de page : fil d'Ariane, titre, description, métadonnées et actions principales. */
-export function PageHeader({ breadcrumbs, title, description, meta, actions, className }) {
+/**
+ * En-tête de page : fil d'Ariane, titre, description, métadonnées et actions principales.
+ * ``variant="section"`` : en-tête d'un onglet sous une page qui porte déjà le titre (h2, sans fil d'Ariane).
+ */
+export function PageHeader({ breadcrumbs, title, description, meta, actions, className, variant = 'page' }) {
+  if (variant === 'section') {
+    return (
+      <header className={cn('mb-5 flex flex-wrap items-start justify-between gap-x-6 gap-y-3', className)}>
+        <div className="min-w-0 max-w-3xl">
+          <h2 className="font-heading text-[16px] font-semibold tracking-tight text-[var(--app-fg)]">{title}</h2>
+          {description ? <p className="mt-1 text-[13px] leading-relaxed text-[var(--app-muted)]">{description}</p> : null}
+          {meta ? <div className="mt-2 flex flex-wrap items-center gap-2">{meta}</div> : null}
+        </div>
+        {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
+      </header>
+    )
+  }
   return (
     <header className={cn('mb-6 flex flex-col gap-3', className)}>
       <Breadcrumbs items={breadcrumbs} />

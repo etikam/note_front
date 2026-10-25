@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   Bell,
   ChevronRight,
@@ -125,25 +124,7 @@ export function SettingsPage() {
     'h-10 w-full rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_96%,transparent)] px-3 text-sm text-[var(--app-fg)] outline-none focus:ring-2 focus:ring-brand-500/40'
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-8">
-      <header className="relative overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-sm">
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-500/[0.07] via-transparent to-secondary-500/[0.08]"
-          aria-hidden
-        />
-        <div className="relative p-6 sm:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--app-muted)]">Institution</p>
-          <h1 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[var(--app-fg)] sm:text-3xl">Paramètres</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--app-muted)]">
-            Personnalisez l’interface, les notifications et le comportement de la navigation. Les changements de compte
-            détaillés (photo, identité) restent sur{' '}
-            <Link to="/profile" className="font-semibold text-brand-600 underline-offset-2 hover:underline dark:text-brand-400">
-              Mon profil
-            </Link>
-            .
-          </p>
-        </div>
-      </header>
+    <div className="flex flex-col gap-8">
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         <nav
