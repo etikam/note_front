@@ -34,6 +34,7 @@ function filenameFromContentDisposition(cd, fallback) {
  *   roster: unknown[]
  *   onGradeSaved: (studentId: number, grade: unknown) => void
  *   canEditGrades?: boolean  — la fiche de notes autorise la saisie
+ *   grading?: { scale_max: number, pass_mark: number, weights: number[] }  — règlement applicable au cours
  *   onRosterReload?: () => Promise<void>
  * }} props
  */
@@ -43,6 +44,7 @@ export function CourseNotationSection({
   roster,
   onGradeSaved,
   canEditGrades = false,
+  grading = null,
   onRosterReload,
 }) {
   const [q, setQ] = useState('')
@@ -135,7 +137,8 @@ export function CourseNotationSection({
         <div className="px-4 pt-3">
           <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Notation</h2>
           <p className="pb-2 text-xs text-zinc-500">
-            Saisie 0–10 · moyenne pondérée 30/30/40 · rattrapage activé par le serveur · enregistrement au blur.
+            Saisie 0–{grading?.scale_max ?? 10} · moyenne pondérée {(grading?.weights ?? [30, 30, 40]).join('/')} · validation à{' '}
+            {String(grading?.pass_mark ?? 5).replace('.', ',')} · enregistrement en quittant la case (règlement des études de l’année).
             {canEditGrades ? ' · import Excel : analyse du fichier puis validation avant enregistrement.' : ''}
           </p>
         </div>
@@ -165,6 +168,7 @@ export function CourseNotationSection({
           courseId={courseId}
           rows={filtered}
           editable={canEditGrades}
+          grading={grading}
           rowSaving={rowSaving}
           setRowSaving={setRowSaving}
           onGradeSaved={onGradeSaved}

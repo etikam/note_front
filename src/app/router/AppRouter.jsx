@@ -58,6 +58,7 @@ function RedirectPedagogyToAcademie() {
 const HomeDashboardPage = lazy(() => import('@/features/dashboard/pages/HomeDashboardPage'))
 const CurriculumPage = lazy(() => import('@/features/curriculum/pages/CurriculumPage'))
 const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage'))
+const RegulationPage = lazy(() => import('@/features/regulations/pages/RegulationPage'))
 const StructurePage = lazy(() => import('@/features/structure/pages/StructurePage'))
 const NominationsPage = lazy(() => import('@/features/admin/pages/NominationsPage'))
 const RolesPage = lazy(() => import('@/features/admin/pages/RolesPage'))
@@ -158,6 +159,7 @@ export function AppRouter() {
             <Route element={<RequirePermission perms={['access.manage_roles', 'access.assign_roles']} />}>
               <Route path="roles" element={<Lazy><RolesPage /></Lazy>} />
             </Route>
+            <Route path="regulation" element={<Lazy><RegulationPage /></Lazy>} />
             <Route element={<RequirePermission perms="system.settings" mode="global" />}>
               <Route path="grade-circuit" element={<Lazy><GradeCircuitPage /></Lazy>} />
             </Route>

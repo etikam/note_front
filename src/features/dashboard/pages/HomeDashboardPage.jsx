@@ -35,7 +35,7 @@ import { StatusPill } from '@/shared/ui/StatusPill'
 
 const EVENT_ICONS = { submit: Send, approve: CheckCircle2, reject: CornerUpLeft, publish: Upload, unpublish: Undo2 }
 const fmtPct = (v) => (v == null ? '—' : `${String(v).replace('.', ',')} %`)
-const fmtAvg = (v) => (v == null ? '—' : `${String(v.toFixed(2)).replace('.', ',')} / 10`)
+const fmtAvg = (v) => (v == null ? '—' : String(v.toFixed(2)).replace('.', ','))
 
 function KpiRow({ data, loading }) {
   const k = data?.kpis ?? {}

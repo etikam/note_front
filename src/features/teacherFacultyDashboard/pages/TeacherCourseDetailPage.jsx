@@ -427,6 +427,7 @@ export function TeacherCourseDetailPage() {
             roster={notationRoster}
             onGradeSaved={handleNotationGradeSaved}
             canEditGrades={Boolean(gradeSheet?.can?.edit)}
+            grading={course?.grading ?? null}
             onRosterReload={reloadNotationRoster}
           />
         </div>

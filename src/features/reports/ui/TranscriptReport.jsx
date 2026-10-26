@@ -91,10 +91,10 @@ export function TranscriptReport({ initialStudent = null }) {
     const tables = data.structure.flatMap((sem) =>
       sem.units.map((u) => ({
         title: `${sem.semester ? `S${sem.semester} · ` : ''}${u.code} — ${u.name} (${u.credits} cr.) · moyenne ${fmtNote(data.units[String(u.id)])}`,
-        head: [['Code', 'Matière', 'Crédits', 'Moyenne /10', 'Résultat']],
+        head: [['Code', 'Matière', 'Crédits', 'Moyenne', 'Résultat']],
         body: u.courses.map((c) => {
           const cell = data.cells[c.id]
-          return [c.code, c.name, c.credits ?? '', cell?.state === 'graded' ? fmtNote(cell.average) : 'en attente', cell?.state === 'graded' ? COURSE_RESULT[cell.status]?.label ?? '' : '']
+          return [c.code, c.name, c.credits ?? '', cell?.state === 'graded' ? fmtNote(cell.average) : 'en attente', cell?.state === 'graded' ? (cell.compensated ? 'Compensé' : COURSE_RESULT[cell.status]?.label ?? '') : '']
         }),
         columnStyles: { 0: { cellWidth: 24 }, 2: { cellWidth: 16, halign: 'center' }, 3: { cellWidth: 24, halign: 'center' }, 4: { cellWidth: 26 } },
       })),
@@ -107,7 +107,7 @@ export function TranscriptReport({ initialStudent = null }) {
         periodLabel,
       ],
       tables,
-      footer: `Moyenne générale : ${fmtNote(data.average)} / 10 · Crédits acquis : ${data.credits_earned ?? 0} / ${data.credits_attempted ?? 0} · Décision : ${data.decision_label}`,
+      footer: `Moyenne générale : ${fmtNote(data.average)} · Crédits acquis : ${data.credits_earned ?? 0} / ${data.credits_attempted ?? 0} · Décision : ${data.decision_label}`,
     })
   }
 
@@ -224,7 +224,7 @@ function UnitRows({ unit, data }) {
       </tr>
       {unit.courses.map((c) => {
         const cell = data.cells[c.id]
-        const result = cell?.state === 'graded' ? COURSE_RESULT[cell.status] : null
+        const result = cell?.state !== 'graded' ? null : cell.compensated ? { label: 'Compensé', tone: 'info' } : COURSE_RESULT[cell.status]
         return (
           <tr key={c.id} className="border-b border-[var(--app-border)] last:border-0">
             <td className="w-24 px-4 py-2 font-mono text-[12px] text-[var(--app-muted)]">{c.code}</td>

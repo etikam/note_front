@@ -254,7 +254,7 @@ export function TeacherStudentDetailPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile icon={Sigma} tone="brand" label="Moyenne générale" value={summary.average_gpa != null ? `${fmtNote(summary.average_gpa)} / 10` : '—'} hint="notes publiées" />
+        <StatTile icon={Sigma} tone="brand" label="Moyenne générale" value={summary.average_gpa != null ? fmtNote(summary.average_gpa) : '—'} hint="notes publiées" />
         <StatTile icon={Award} tone="success" label="Crédits validés" value={summary.credits_earned ?? 0} />
         <StatTile icon={GraduationCap} label="Cours réussis" value={summary.passed_courses_count ?? 0} />
         <StatTile icon={BookOpen} tone={pendingEnrollments ? 'warning' : 'neutral'} label="Inscriptions" value={enrollments.length} hint={pendingEnrollments ? `${pendingEnrollments} en attente` : null} />

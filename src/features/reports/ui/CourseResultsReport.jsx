@@ -18,7 +18,7 @@ const SELECT =
 const pct = (v) => (v == null ? '—' : `${String(v).replace('.', ',')} %`)
 
 /** Distribution des moyennes publiées par tranche d'un point (0–1, …, 9–10), une seule teinte. */
-function Distribution({ bins }) {
+function Distribution({ bins, scaleMax = 10, passMark = 5 }) {
   const max = Math.max(1, ...bins)
   const total = bins.reduce((a, b) => a + b, 0)
   if (!total) return <span className="text-[var(--app-muted)]">—</span>
@@ -27,8 +27,8 @@ function Distribution({ bins }) {
       {bins.map((n, i) => (
         <span
           key={i}
-          title={`${i} à ${i + 1} : ${n} note(s)`}
-          className={cn('w-1.5 rounded-t-[2px]', i < 5 ? 'bg-zinc-400 dark:bg-zinc-500' : 'bg-brand-500 dark:bg-brand-400')}
+          title={`${(i * scaleMax) / 10} à ${((i + 1) * scaleMax) / 10} : ${n} note(s)`}
+          className={cn('w-1.5 rounded-t-[2px]', (i + 1) * (scaleMax / 10) <= passMark ? 'bg-zinc-400 dark:bg-zinc-500' : 'bg-brand-500 dark:bg-brand-400')}
           style={{ height: `${n ? Math.max(12, (100 * n) / max) : 4}%`, opacity: n ? 1 : 0.25 }}
         />
       ))}
@@ -112,7 +112,7 @@ export function CourseResultsReport() {
     { key: 'pass', header: 'Réussite', align: 'right', sortValue: (r) => r.pass_rate ?? -1, cell: (r) => <span className="tabular-nums">{pct(r.pass_rate)}</span> },
     { key: 'makeup', header: 'Rattr.', align: 'right', sortValue: (r) => r.makeup, cell: (r) => <span className={r.makeup ? 'text-amber-700 dark:text-amber-300' : 'text-[var(--app-muted)]'}>{r.makeup}</span> },
     { key: 'debt', header: 'Dettes', align: 'right', sortValue: (r) => r.debt, cell: (r) => <span className={r.debt ? 'font-semibold text-red-700 dark:text-red-300' : 'text-[var(--app-muted)]'}>{r.debt}</span> },
-    { key: 'dist', header: 'Distribution', cell: (r) => <Distribution bins={r.distribution} /> },
+    { key: 'dist', header: 'Distribution', cell: (r) => <Distribution bins={r.distribution} scaleMax={r.scale_max} passMark={r.pass_mark} /> },
   ]
 
   return (
@@ -142,7 +142,7 @@ export function CourseResultsReport() {
         initialSort={{ key: 'program', dir: 'asc' }}
         empty={{ title: 'Aucun cours', description: 'Les cours de l’année de votre périmètre apparaîtront ici.' }}
       />
-      <p className="text-[12px] text-[var(--app-muted)]">Calculs sur les notes publiées uniquement. Distribution : moyennes par tranche d’un point, en gris sous 5/10.</p>
+      <p className="text-[12px] text-[var(--app-muted)]">Calculs sur les notes publiées uniquement. Distribution : moyennes par dixième du barème, en gris sous le seuil de validation.</p>
     </div>
   )
 }

@@ -4,6 +4,7 @@ export function NotationTable({
   courseId,
   rows,
   editable,
+  grading,
   rowSaving,
   setRowSaving,
   onGradeSaved,
@@ -15,9 +16,11 @@ export function NotationTable({
           <tr className="border-b border-zinc-200 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:border-[var(--app-border)] dark:text-zinc-400">
             <th className="py-2.5 pl-4 pr-2">Matricule</th>
             <th className="py-2.5 pr-2">Étudiant</th>
-            <th className="py-2.5 px-1.5 text-center">N1 (30%)</th>
-            <th className="py-2.5 px-1.5 text-center">N2 (30%)</th>
-            <th className="py-2.5 px-1.5 text-center">N3 (40%)</th>
+            {(grading?.weights ?? [30, 30, 40]).map((w, i) => (
+              <th key={i} className="py-2.5 px-1.5 text-center">
+                N{i + 1} ({w}%)
+              </th>
+            ))}
             <th className="py-2.5 px-1.5 text-center">Rattr.</th>
             <th className="py-2.5 px-2 text-center">Moy.</th>
             <th className="py-2.5 pl-2 pr-4">Résultat</th>
@@ -30,6 +33,7 @@ export function NotationTable({
               courseId={courseId}
               row={row}
               editable={editable}
+              scaleMax={grading?.scale_max ?? 10}
               rowSaving={rowSaving}
               setRowSaving={setRowSaving}
               onGradeSaved={onGradeSaved}

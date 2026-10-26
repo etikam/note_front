@@ -1,4 +1,4 @@
-import { KeyRound, ShieldCheck, SlidersHorizontal, UserCog } from 'lucide-react'
+import { KeyRound, Scale, ShieldCheck, SlidersHorizontal, UserCog } from 'lucide-react'
 
 /** Onglets de Paramètres : préférences pour tous, configuration selon les droits. */
 export function settingsTabs(access) {
@@ -10,6 +10,12 @@ export function settingsTabs(access) {
       label: 'Rôles & permissions',
       icon: KeyRound,
       visible: access.can('access.manage_roles') || access.canManage('access.assign_roles'),
+    },
+    {
+      to: '/settings/regulation',
+      label: 'Règlement des études',
+      icon: Scale,
+      visible: access.can('system.settings') || access.isManager,
     },
     { to: '/settings/grade-circuit', label: 'Circuit des notes', icon: SlidersHorizontal, visible: access.can('system.settings') },
   ].filter((t) => t.visible)

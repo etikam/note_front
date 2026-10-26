@@ -31,9 +31,9 @@ function flatColumns(structure) {
 export function GradeCell({ cell }) {
   if (!cell) return <span className="text-[var(--app-border-strong)]">·</span>
   if (cell.state !== 'graded') return <span className="text-[var(--app-muted)]" title={cell.state === 'pending' ? 'Fiche non publiée' : 'Note manquante'}>…</span>
-  const mark = cell.status === 'NEEDS_MAKEUP' ? 'R' : cell.status === 'DEBT' ? 'D' : null
+  const mark = cell.compensated ? 'C' : cell.status === 'NEEDS_MAKEUP' ? 'R' : cell.status === 'DEBT' ? 'D' : null
   return (
-    <span className={cn('tabular-nums', mark === 'D' && 'font-semibold text-red-700 dark:text-red-300', mark === 'R' && 'text-amber-700 dark:text-amber-300')} title={mark === 'R' ? 'Rattrapage' : mark === 'D' ? 'Dette' : 'Validé'}>
+    <span className={cn('tabular-nums', mark === 'D' && 'font-semibold text-red-700 dark:text-red-300', mark === 'R' && 'text-amber-700 dark:text-amber-300')} title={mark === 'C' ? 'Compensé (UE ou semestre validé)' : mark === 'R' ? 'Rattrapage' : mark === 'D' ? 'Dette' : 'Validé'}>
       {fmtNote(cell.average)}
       {mark ? <sup className="ml-0.5 text-[9px] font-bold">{mark}</sup> : null}
     </span>
@@ -114,7 +114,7 @@ export function DeliberationReport() {
           const cell = s.cells[c.id]
           if (!cell) return ''
           if (cell.state !== 'graded') return '…'
-          return `${fmtNote(cell.average)}${cell.status === 'NEEDS_MAKEUP' ? ' R' : cell.status === 'DEBT' ? ' D' : ''}`
+          return `${fmtNote(cell.average)}${cell.compensated ? ' C' : cell.status === 'NEEDS_MAKEUP' ? ' R' : cell.status === 'DEBT' ? ' D' : ''}`
         }),
         fmtNote(s.units[String(u.id)]),
       ]),
@@ -131,7 +131,7 @@ export function DeliberationReport() {
       ],
       tables: [{ head, body }],
       orientation: 'landscape',
-      footer: `Admis : ${data.summary.admitted} · Admis avec dette : ${data.summary.admitted_debt} · Rattrapage : ${data.summary.makeup} · En attente : ${data.summary.pending}    Le président du jury : ______________________`,
+      footer: `Admis : ${data.summary.admitted} · Admis avec dette : ${data.summary.admitted_debt} · Rattrapage : ${data.summary.makeup} · Ajournés : ${data.summary.repeat ?? 0} · En attente : ${data.summary.pending}    Le président du jury : ______________________`,
     })
   }
 
@@ -272,6 +272,9 @@ export function DeliberationReport() {
               Rattrapage <strong className="tabular-nums text-[var(--app-fg)]">{data.summary.makeup}</strong>
             </span>
             <span>
+              Ajournés <strong className="tabular-nums text-[var(--app-fg)]">{data.summary.repeat ?? 0}</strong>
+            </span>
+            <span>
               En attente <strong className="tabular-nums text-[var(--app-fg)]">{data.summary.pending}</strong>
             </span>
             {data.summary.pass_rate != null ? (
@@ -279,7 +282,7 @@ export function DeliberationReport() {
                 Taux d’admission <strong className="tabular-nums text-[var(--app-fg)]">{String(data.summary.pass_rate).replace('.', ',')} %</strong>
               </span>
             ) : null}
-            <span className="w-full text-[11.5px] text-[var(--app-muted)]">R : rattrapage · D : dette · … : fiche non publiée · · : non inscrit. Moyennes sur 10, pondérées par les crédits.</span>
+            <span className="w-full text-[11.5px] text-[var(--app-muted)]">C : compensé · R : rattrapage · D : dette · … : fiche non publiée · · : non inscrit. Moyennes pondérées par les crédits, décisions selon le règlement des études de l’année.</span>
           </div>
         </SectionCard>
       ) : null}

@@ -5,12 +5,12 @@ import { NotationNumberInput } from '@/features/teacherFacultyDashboard/pedagogy
 import { NotationGradeStatusBadge } from '@/features/teacherFacultyDashboard/pedagogy/notation/ui/NotationStatusBadges'
 import { dispatchToast } from '@/shared/notifications/toastBridge'
 
-/** @returns {null|number|undefined} undefined = invalide */
-function toPayloadPart(v) {
-  const t = String(v ?? '').trim()
+/** @returns {null|number|undefined} undefined = invalide (hors 0..barème) */
+function toPayloadPart(v, scaleMax) {
+  const t = String(v ?? '').trim().replace(',', '.')
   if (t === '') return null
   const n = Number(t)
-  if (!Number.isFinite(n) || n < 0 || n > 10) return undefined
+  if (!Number.isFinite(n) || n < 0 || n > scaleMax) return undefined
   return Math.round(n * 100) / 100
 }
 
@@ -30,7 +30,7 @@ function hasPersistedNote4(grade) {
 }
 
 /** ``editable`` : la fiche de notes du cours autorise la saisie (sinon lecture seule). */
-export function NotationRow({ courseId, row, editable, rowSaving, setRowSaving, onGradeSaved }) {
+export function NotationRow({ courseId, row, editable, scaleMax = 10, rowSaving, setRowSaving, onGradeSaved }) {
   const g = row.grade
   const [n1, setN1] = useState('')
   const [n2, setN2] = useState('')
@@ -58,12 +58,12 @@ export function NotationRow({ courseId, row, editable, rowSaving, setRowSaving, 
     for (const [key, local] of keys) {
       const prev = serverNote(g, key)
       if (String(local).trim() === String(prev).trim()) continue
-      const p = toPayloadPart(local)
-      if (p === undefined) return { body: null, error: 'Chaque note doit être entre 0 et 10 (ou vide).' }
+      const p = toPayloadPart(local, scaleMax)
+      if (p === undefined) return { body: null, error: `Chaque note doit être entre 0 et ${scaleMax} (ou vide).` }
       body[key] = p
     }
     return { body, error: null }
-  }, [g, n1, n2, n3, n4])
+  }, [g, n1, n2, n3, n4, scaleMax])
 
   const flush = useCallback(async () => {
     if (!editable) return

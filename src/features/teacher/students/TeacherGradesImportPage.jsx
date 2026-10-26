@@ -291,7 +291,7 @@ export function TeacherGradesImportPage({ embedded = false }) {
             requiredColumns={GRADE_IMPORT_TEMPLATE_COLUMNS}
             detailsSlot={
               <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                Colonnes : matricule (obligatoire), nom, prénom (indicatifs), note1, note2, note3 (0–10, vides
+                Colonnes : matricule (obligatoire), nom, prénom (indicatifs), note1, note2, note3 (0 au barème du règlement, vides
                 autorisées). Le modèle est prérempli avec les inscrits actuels du cours.
               </p>
             }
