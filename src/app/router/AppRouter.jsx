@@ -27,7 +27,6 @@ import { StudentPromotionPage } from '@/features/student/pages/StudentPromotionP
 import { TeacherMyCoursesPage } from '@/features/teacher/courses/TeacherMyCoursesPage'
 import { TeacherStudentDetailPage } from '@/features/teacher/students/TeacherStudentDetailPage'
 import { TeacherGradesImportPage } from '@/features/teacher/students/TeacherGradesImportPage'
-import { TeacherStudentGradesPage } from '@/features/teacher/students/grades/TeacherStudentGradesPage'
 import { TeacherStudentsImportPage } from '@/features/teacher/students/TeacherStudentsImportPage'
 import { TeacherStudentsLayout } from '@/features/teacher/students/TeacherStudentsLayout'
 import { TeacherStudentsListPage } from '@/features/teacher/students/TeacherStudentsListPage'
@@ -64,6 +63,12 @@ const NominationsPage = lazy(() => import('@/features/admin/pages/NominationsPag
 const RolesPage = lazy(() => import('@/features/admin/pages/RolesPage'))
 const GradeValidationPage = lazy(() => import('@/features/gradeWorkflow/pages/GradeValidationPage'))
 const GradeCircuitPage = lazy(() => import('@/features/gradeWorkflow/pages/GradeCircuitPage'))
+const GradesExplorerPage = lazy(() => import('@/features/notes/pages/GradesExplorerPage'))
+const TranscriptsPage = lazy(() => import('@/features/notes/pages/TranscriptsPage'))
+const MakeupsPage = lazy(() => import('@/features/notes/pages/MakeupsPage'))
+const GradeHistoryPage = lazy(() => import('@/features/notes/pages/GradeHistoryPage'))
+const DocumentSettingsPage = lazy(() => import('@/features/notes/pages/DocumentSettingsPage'))
+const VerifyTranscriptPage = lazy(() => import('@/features/notes/pages/VerifyTranscriptPage'))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageLoading label="Chargement" />}>{children}</Suspense>
@@ -82,6 +87,9 @@ export function AppRouter() {
           <Route path="/auth/activate/*" element={<Navigate to="/auth/activate" replace />} />
         </Route>
       </Route>
+
+      {/* Vérification publique d'un relevé (QR code) : accessible connecté ou non. */}
+      <Route path="/verify/:code?" element={<Lazy><VerifyTranscriptPage /></Lazy>} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<StudentRoute />}>
@@ -103,9 +111,21 @@ export function AppRouter() {
               <Route path="/structure" element={<Lazy><StructurePage /></Lazy>} />
             </Route>
             <Route path="/admin/:section" element={<RedirectAdminToSettings />} />
-            <Route element={<RequirePermission perms={['grades.validate', 'grades.publish']} />}>
-              <Route path="/teacher/validations" element={<Lazy><GradeValidationPage /></Lazy>} />
+            <Route element={<RequirePermission perms="grades.view" />}>
+              <Route path="/grades" element={<Lazy><GradesExplorerPage /></Lazy>} />
+              <Route path="/grades/makeups" element={<Lazy><MakeupsPage /></Lazy>} />
+              <Route path="/grades/history" element={<Lazy><GradeHistoryPage /></Lazy>} />
             </Route>
+            <Route element={<RequirePermission perms="reports.view" />}>
+              <Route path="/grades/transcripts" element={<Lazy><TranscriptsPage /></Lazy>} />
+            </Route>
+            <Route element={<RequirePermission perms={['grades.validate', 'grades.publish']} />}>
+              <Route path="/grades/validation" element={<Lazy><GradeValidationPage /></Lazy>} />
+            </Route>
+            <Route element={<RequirePermission perms="grades.bulk_import" />}>
+              <Route path="/grades/import" element={<TeacherGradesImportPage />} />
+            </Route>
+            <Route path="/teacher/validations" element={<Navigate to="/grades/validation" replace />} />
             <Route path="/teacher/my-courses" element={<TeacherMyCoursesPage />} />
             <Route path="/teacher/academie" element={<Lazy><CurriculumPage /></Lazy>} />
             <Route path="/teacher/pedagogy" element={<RedirectPedagogyToAcademie />} />
@@ -114,8 +134,8 @@ export function AppRouter() {
             <Route path="/teacher/students" element={<TeacherStudentsLayout />}>
               <Route path="list" element={<TeacherStudentsListPage />} />
               <Route path="import-export" element={<TeacherStudentsImportPage />} />
-              <Route path="grades-import" element={<TeacherGradesImportPage />} />
-              <Route path="grades" element={<TeacherStudentGradesPage />} />
+              <Route path="grades-import" element={<Navigate to="/grades/import" replace />} />
+              <Route path="grades" element={<Navigate to="/grades/transcripts?tab=batch" replace />} />
               <Route path=":studentId" element={<TeacherStudentDetailPage />} />
             </Route>
             <Route path="/teacher/faculty" element={<TeacherFacultyLayout />}>
@@ -139,7 +159,7 @@ export function AppRouter() {
                 </RequirePermission>
               }
             />
-            <Route path="/teacher/grades" element={<Navigate to="/teacher/dashboard" replace />} />
+            <Route path="/teacher/grades" element={<Navigate to="/grades" replace />} />
           </Route>
           <Route element={<StudentRoute />}>
             <Route path="/student/dashboard" element={<StudentDashboardPage />} />
@@ -162,6 +182,9 @@ export function AppRouter() {
             <Route path="regulation" element={<Lazy><RegulationPage /></Lazy>} />
             <Route element={<RequirePermission perms="system.settings" mode="global" />}>
               <Route path="grade-circuit" element={<Lazy><GradeCircuitPage /></Lazy>} />
+            </Route>
+            <Route element={<RequirePermission perms={['system.settings', 'transcripts.issue']} />}>
+              <Route path="documents" element={<Lazy><DocumentSettingsPage /></Lazy>} />
             </Route>
           </Route>
         </Route>

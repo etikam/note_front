@@ -1,4 +1,4 @@
-import { KeyRound, Scale, ShieldCheck, SlidersHorizontal, UserCog } from 'lucide-react'
+import { FileBadge, KeyRound, Scale, ShieldCheck, SlidersHorizontal, UserCog } from 'lucide-react'
 
 /** Onglets de Paramètres : préférences pour tous, configuration selon les droits. */
 export function settingsTabs(access) {
@@ -16,6 +16,12 @@ export function settingsTabs(access) {
       label: 'Règlement des études',
       icon: Scale,
       visible: access.can('system.settings') || access.isManager,
+    },
+    {
+      to: '/settings/documents',
+      label: 'Documents officiels',
+      icon: FileBadge,
+      visible: access.can('system.settings') || access.canManage('transcripts.issue'),
     },
     { to: '/settings/grade-circuit', label: 'Circuit des notes', icon: SlidersHorizontal, visible: access.can('system.settings') },
   ].filter((t) => t.visible)

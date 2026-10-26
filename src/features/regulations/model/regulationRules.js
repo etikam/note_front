@@ -29,6 +29,7 @@ export const RULE_FIELDS = {
     { key: 'semester_compensation', label: 'Compensation du semestre', help: 'Toutes les UE d’un semestre sont validées si la moyenne générale du semestre atteint le seuil.' },
     { key: 'makeup_scope', label: 'Cours envoyés au rattrapage', help: 'Avec la compensation, faut-il rattraper les cours compensés ?' },
     { key: 'max_debts', label: 'Dettes autorisées', help: 'Nombre maximal de cours en dette pour être admis ; au-delà, l’étudiant est ajourné.' },
+    { key: 'mentions', label: 'Mentions', help: 'Mention portée sur les relevés des étudiants admis, selon la moyenne générale (seuils croissants).' },
   ],
 }
 
@@ -74,6 +75,7 @@ export function describeRule(section, key, value) {
   if (key === 'weights') return value.map((w) => `${w} %`).join(' / ')
   if (key === 'makeup_mode') return MAKEUP_MODES.find((m) => m.value === value)?.label ?? value
   if (key === 'makeup_scope') return MAKEUP_SCOPES.find((m) => m.value === value)?.label ?? value
+  if (key === 'mentions') return value.length ? value.map((m) => `${m.label} ≥ ${String(m.min).replace('.', ',')}`).join(' · ') : 'aucune'
   return String(value).replace('.', ',')
 }
 
@@ -82,3 +84,11 @@ export function countOverrides(overrides) {
 }
 
 export const sameRules = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+
+/** Mention d'une moyenne (la plus haute dont le seuil est atteint) — même logique que le serveur. */
+export function mentionFor(average, mentions) {
+  if (average == null) return null
+  let label = null
+  for (const m of mentions ?? []) if (Number(average) >= Number(m.min)) label = m.label
+  return label
+}

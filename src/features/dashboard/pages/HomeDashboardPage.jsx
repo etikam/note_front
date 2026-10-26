@@ -87,8 +87,8 @@ function TodoCard({ todo, access, loading }) {
   }
   const canAssignRoles = access.canManage('access.assign_roles')
   const items = [
-    todo.to_validate && { icon: ClipboardCheck, count: todo.to_validate, label: 'Fiches de notes à valider', to: '/teacher/validations', tone: 'brand' },
-    todo.to_republish && { icon: Upload, count: todo.to_republish, label: 'Fiches corrigées à republier', to: '/teacher/validations', tone: 'brand' },
+    todo.to_validate && { icon: ClipboardCheck, count: todo.to_validate, label: 'Fiches de notes à valider', to: '/grades/validation', tone: 'brand' },
+    todo.to_republish && { icon: Upload, count: todo.to_republish, label: 'Fiches corrigées à republier', to: '/grades/validation', tone: 'brand' },
     todo.incomplete_drafts && { icon: FileWarning, count: todo.incomplete_drafts, label: 'Fiches en saisie avec des notes manquantes', to: '/teacher/reports?report=progress', canOpen: access.canManage('reports.view') },
     todo.unassigned_courses && {
       icon: BookOpen,
@@ -264,7 +264,7 @@ export default function HomeDashboardPage() {
               </Button>
             ) : null}
             {access.canManageAny('grades.validate', 'grades.publish') ? (
-              <Button as={Link} to="/teacher/validations">
+              <Button as={Link} to="/grades/validation">
                 <ClipboardCheck size={15} aria-hidden /> Valider des notes
                 {data?.todo?.to_validate ? (
                   <span className="rounded-full bg-white/25 px-1.5 text-[11px] font-semibold tabular-nums">{data.todo.to_validate}</span>

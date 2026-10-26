@@ -127,6 +127,10 @@
   --app-border-strong: var(--color-zinc-300);
   --app-fg-soft: var(--color-zinc-700);
   --app-overlay: rgb(9 9 11 / 0.45);
+  /* Grille des notes : échelle divergente autour du seuil (rouge ← gris → bleu) */
+  --heat-neg: #e34948;
+  --heat-mid: #f0efec;
+  --heat-pos: #2a78d6;
 }
 
 html[data-theme="dark"] {
@@ -154,6 +158,9 @@ html[data-theme="dark"] {
   --app-border-strong: #2c4b7d;
   --app-fg-soft: #dbe5f3;
   --app-overlay: rgb(2 6 23 / 0.66);
+  --heat-neg: #e66767;
+  --heat-mid: #1e3358;
+  --heat-pos: #3987e5;
 }
 
 /* Halo icône lune (toggle thème header) */
@@ -383,5 +390,46 @@ html[data-theme='dark'] .rdp-caption_label {
   }
   table {
     font-size: 10px;
+  }
+}
+
+/* ─── Documents officiels (relevés) : feuille A4 et impression isolée ─── */
+.print-portal {
+  display: none;
+}
+.doc-sheet {
+  width: 100%;
+  max-width: 210mm;
+  min-height: 297mm;
+  background: #fff;
+  color: #111827;
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  body.is-printing-docs > *:not(.print-portal) {
+    display: none !important;
+  }
+  body.is-printing-docs .print-portal {
+    display: block !important;
+  }
+  body.is-printing-docs .doc-sheet {
+    box-shadow: none !important;
+    border: 0 !important;
+    margin: 0 !important;
+    max-width: none;
+    width: 210mm;
+    min-height: 297mm;
+    break-after: page;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body.is-printing-docs .doc-sheet:last-child {
+    break-after: auto;
+  }
+  body.is-printing-docs table {
+    font-size: inherit;
   }
 }

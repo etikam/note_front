@@ -236,6 +236,11 @@ export function TeacherStudentDetailPage() {
         }
         actions={
           <>
+            {access.canManage('reports.view') ? (
+              <Button as={Link} to={`/grades/transcripts?student=${s.id}`} variant="ghost">
+                <FileText size={15} aria-hidden /> Relevé de notes
+              </Button>
+            ) : null}
             <Button variant="ghost" onClick={() => setModal('notify')}>
               <Bell size={15} aria-hidden /> Notifier
             </Button>

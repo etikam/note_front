@@ -42,6 +42,58 @@ function Optional({ value, onChange, disabled, enableLabel, defaultValue, ...inp
   )
 }
 
+/** Liste ordonnée de mentions : libellé + seuil, ajout et suppression. */
+function MentionsEditor({ value, onChange, disabled, scale }) {
+  const set = (i, patch) => onChange(value.map((m, j) => (j === i ? { ...m, ...patch } : m)))
+  const sorted = value.every((m, i) => i === 0 || Number(m.min) > Number(value[i - 1].min))
+  const next = value.length ? Math.min(Number(scale), Number(value[value.length - 1].min) + 1) : Number(scale) / 2
+  return (
+    <div className="flex flex-col gap-2">
+      {value.map((m, i) => (
+        <div key={i} className="flex flex-wrap items-center gap-2">
+          <input
+            className={cn(INPUT, 'w-44')}
+            value={m.label}
+            maxLength={40}
+            disabled={disabled}
+            onChange={(e) => set(i, { label: e.target.value })}
+            aria-label={`Libellé de la mention ${i + 1}`}
+          />
+          <span className="text-[12.5px] text-[var(--app-muted)]">à partir de</span>
+          <input
+            type="number"
+            min={0}
+            max={scale}
+            step={0.25}
+            className={cn(INPUT, 'w-20')}
+            value={m.min}
+            disabled={disabled}
+            onChange={(e) => set(i, { min: num(e.target.value) })}
+            aria-label={`Seuil de la mention ${m.label}`}
+          />
+          <span className="text-[12.5px] text-[var(--app-muted)]">/ {scale}</span>
+          {!disabled ? (
+            <button type="button" onClick={() => onChange(value.filter((_, j) => j !== i))} className="rounded-md px-2 py-1 text-[12px] text-[var(--app-muted)] hover:bg-[var(--app-hover)] hover:text-red-700">
+              Retirer
+            </button>
+          ) : null}
+        </div>
+      ))}
+      {!value.length ? <p className="text-[12.5px] text-[var(--app-muted)]">Aucune mention sur les relevés.</p> : null}
+      {!sorted ? <p className="text-[12px] font-medium text-red-700 dark:text-red-300">Les seuils doivent être croissants, du plus bas au plus haut.</p> : null}
+      {!disabled && value.length < 8 ? (
+        <button
+          type="button"
+          onClick={() => onChange([...value, { label: '', min: next }])}
+          className="self-start rounded-lg border border-dashed border-[var(--app-border-strong)] px-3 py-1.5 text-[12.5px] font-medium text-[var(--app-fg-soft)] hover:bg-[var(--app-hover)]"
+        >
+          + Ajouter une mention
+        </button>
+      ) : null}
+    </div>
+  )
+}
+
 function Control({ section, field, value, onChange, disabled, rules, scaleLocked }) {
   const scale = rules.notation.scale_max
   switch (`${section}.${field.key}`) {
@@ -94,6 +146,8 @@ function Control({ section, field, value, onChange, disabled, rules, scaleLocked
       return <Optional value={value} onChange={onChange} disabled={disabled} enableLabel="Appliquer une note éliminatoire" defaultValue={Math.max(0, Number(rules.notation.pass_mark) - 2)} min={0} max={scale} step={0.25} />
     case 'deliberation.makeup_scope':
       return <Choice options={MAKEUP_SCOPES} value={value} onChange={onChange} disabled={disabled} />
+    case 'deliberation.mentions':
+      return <MentionsEditor value={value ?? []} onChange={onChange} disabled={disabled} scale={scale} />
     case 'deliberation.max_debts':
       return <Optional value={value} onChange={onChange} disabled={disabled} enableLabel="Limiter les dettes" defaultValue={2} min={0} max={20} step={1} />
     default:

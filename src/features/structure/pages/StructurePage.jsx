@@ -403,7 +403,7 @@ function ProgramDetail({ program, roles, yearLabel, access, onOpen, onNominate, 
           />
         ) : null}
         {covers('reports.view') ? (
-          <Shortcut to="/teacher/reports" icon={BookOpen} title="Rapports" description="Relevés et procès-verbaux par niveau et cohorte." />
+          <Shortcut to="/teacher/reports" icon={BookOpen} title="Rapports" description="Procès-verbaux et rapports de pilotage par niveau." />
         ) : null}
       </div>
       {program.can?.manage_structure && empty ? (

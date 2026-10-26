@@ -82,7 +82,7 @@ export default function GradeValidationPage() {
   return (
     <div>
       <PageHeader
-        breadcrumbs={[{ label: 'Pédagogie' }, { label: 'Validation des notes' }]}
+        breadcrumbs={[{ label: 'Notes' }, { label: 'Validation des notes' }]}
         title="Validation des notes"
         description="Fiches de notes qui attendent votre décision. Ouvrez un cours pour relire les notes, puis validez ou renvoyez la fiche avec un motif."
         actions={

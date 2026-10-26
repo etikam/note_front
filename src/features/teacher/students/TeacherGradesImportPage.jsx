@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { FileSearch } from 'lucide-react'
+import { PageHeader } from '@/shared/ui/PageHeader'
 
 import { useAuth } from '@/features/auth/model/AuthContext'
 import { useAccess } from '@/features/access/model/useAccess'
@@ -24,7 +25,6 @@ import { GRADE_IMPORT_TEMPLATE_COLUMNS } from '@/features/teacher/students/ui/gr
 import { canLaunchGradeImport, gradeImportLaunchHint } from '@/features/teacher/students/ui/gradesImport/gradeImport.utils'
 import {
   FileDropzone,
-  ImportPageHeader,
   ImportProgressBlock,
   ImportStepCard,
   SelectedFileRow,
@@ -259,19 +259,14 @@ export function TeacherGradesImportPage({ embedded = false }) {
           cours si nécessaire, sans contrôle d’éligibilité.
         </p>
       ) : (
-        <ImportPageHeader
+        <PageHeader
+          breadcrumbs={[{ label: 'Notes' }, { label: 'Import des notes' }]}
           title="Import des notes"
-          description={
-            <>
-              Importez les notes d’un cours passé ou en cours à partir d’un fichier Excel. Les étudiants du
-              fichier seront inscrits au cours si nécessaire. Réservé aux responsables habilités à l’import
-              administratif.
-            </>
-          }
+          description="Importez les notes d’un cours passé ou en cours à partir d’un fichier Excel. Les étudiants du fichier seront inscrits au cours si nécessaire. Réservé aux responsables habilités à l’import administratif."
         />
       )}
 
-      <div className={embedded ? 'flex flex-col gap-8' : 'mt-8 flex flex-col gap-8'}>
+      <div className="flex flex-col gap-8">
         <ImportStepCard step={1} title="Cible" accent="brand">
           <GradeImportCourseSelector
             departmentId={departmentId}

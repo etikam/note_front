@@ -1,11 +1,10 @@
-import { useSearchParams } from 'react-router-dom'
-import { BarChart3, ClipboardList, FileCheck2, FileText, Users } from 'lucide-react'
+import { Navigate, useSearchParams } from 'react-router-dom'
+import { BarChart3, ClipboardList, FileCheck2, Users } from 'lucide-react'
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { CourseResultsReport } from '@/features/reports/ui/CourseResultsReport'
 import { DeliberationReport } from '@/features/reports/ui/DeliberationReport'
 import { EntryProgressReport } from '@/features/reports/ui/EntryProgressReport'
-import { TranscriptReport } from '@/features/reports/ui/TranscriptReport'
 import { DetailedReportPage } from '@/features/teacherFacultyDashboard/report/DetailedReportPage'
 import { cn } from '@/shared/lib/cn'
 import { PageHeader } from '@/shared/ui/PageHeader'
@@ -13,7 +12,6 @@ import { StatusPill } from '@/shared/ui/StatusPill'
 
 const REPORTS = [
   { id: 'deliberation', icon: FileCheck2, label: 'PV de délibération', description: 'Notes publiées d’un niveau, moyennes d’UE, crédits et décisions.', Component: DeliberationReport },
-  { id: 'transcript', icon: FileText, label: 'Relevé de notes', description: 'Relevé individuel d’un étudiant, par semestre, année ou parcours.', Component: TranscriptReport },
   { id: 'courses', icon: BarChart3, label: 'Résultats par cours', description: 'Moyennes, réussite, rattrapages et dettes de chaque cours.', Component: CourseResultsReport },
   { id: 'progress', icon: ClipboardList, label: 'Avancement de la saisie', description: 'Fiches en saisie, en validation ou publiées, notes manquantes.', Component: EntryProgressReport },
   { id: 'levels', icon: Users, label: 'Statistiques par niveau', description: 'Effectifs, admis, dettes et abandons par niveau et par sexe.', Component: DetailedReportPage },
@@ -25,17 +23,18 @@ export default function ReportsPage() {
   const [params, setParams] = useSearchParams()
   const current = REPORTS.find((r) => r.id === params.get('report')) ?? REPORTS[0]
   const Report = current.Component
+  if (params.get('report') === 'transcript') return <Navigate to="/grades/transcripts" replace />
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
         breadcrumbs={[{ label: 'Pilotage' }, { label: 'Rapports' }, { label: current.label }]}
         title="Rapports"
-        description="Documents officiels (PV, relevés) établis sur les notes publiées, et rapports de pilotage de l’année."
+        description="Procès-verbaux de délibération établis sur les notes publiées, et rapports de pilotage de l’année. Les relevés sont dans Notes → Relevés de notes."
         meta={academicYearLabel ? <StatusPill tone="info" dot={false}>Année {academicYearLabel}</StatusPill> : null}
       />
 
-      <nav aria-label="Rapports" className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+      <nav aria-label="Rapports" className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {REPORTS.map((r) => {
           const active = r.id === current.id
           const Icon = r.icon

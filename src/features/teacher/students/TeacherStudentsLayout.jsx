@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { ClipboardList, FileUp, GraduationCap, Upload } from 'lucide-react'
+import { GraduationCap, Upload } from 'lucide-react'
 
 import { useAccess } from '@/features/access/model/useAccess'
 import { PageHeader } from '@/shared/ui/PageHeader'
@@ -10,8 +10,6 @@ function studentSectionTabs(access) {
   return [
     { to: '/teacher/students/list', label: 'Annuaire', icon: GraduationCap, visible: access.canManage('students.view') },
     { to: '/teacher/students/import-export', label: 'Import / export', icon: Upload, visible: access.canManage('students.import') },
-    { to: '/teacher/students/grades-import', label: 'Import des notes', icon: FileUp, visible: access.canManage('grades.bulk_import') },
-    { to: '/teacher/students/grades', label: 'Relevés de notes', icon: ClipboardList, visible: access.canManage('reports.view') },
   ].filter((t) => t.visible)
 }
 
@@ -37,7 +35,7 @@ export function TeacherStudentsLayout() {
             className="mb-4"
             breadcrumbs={[{ label: 'Personnes' }, { label: 'Étudiants' }, { label: current?.label ?? '' }]}
             title="Étudiants"
-            description="Dossiers, inscriptions et notes des étudiants de votre périmètre."
+            description="Dossiers et inscriptions des étudiants de votre périmètre."
           />
           <RouteTabs tabs={tabs} ariaLabel="Sections étudiants" className="mb-5" />
         </>

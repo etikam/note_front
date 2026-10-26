@@ -3,10 +3,14 @@ import {
   Building2,
   ClipboardCheck,
   FileText,
+  FileUp,
   GraduationCap,
+  History,
   LayoutDashboard,
   Library,
+  ListChecks,
   PieChart,
+  RotateCcw,
   UserCog,
   Users,
 } from 'lucide-react'
@@ -31,16 +35,27 @@ export function buildStaffNavigation(access) {
       ],
     },
     {
-      id: 'pedagogy',
-      label: 'Pédagogie',
+      id: 'grades',
+      label: 'Notes',
       items: [
-        { to: '/structure', label: 'Structure', icon: Building2, visible: access.isManager },
+        { to: '/grades', end: true, label: 'Notes', icon: ListChecks, visible: access.canManage('grades.view') },
+        { to: '/grades/transcripts', label: 'Relevés de notes', icon: FileText, visible: access.canManage('reports.view') },
         {
-          to: '/teacher/validations',
+          to: '/grades/validation',
           label: 'Validation des notes',
           icon: ClipboardCheck,
           visible: access.canManageAny('grades.validate', 'grades.publish'),
         },
+        { to: '/grades/makeups', label: 'Rattrapages & dettes', icon: RotateCcw, visible: access.canManage('grades.view') },
+        { to: '/grades/import', label: 'Import des notes', icon: FileUp, visible: access.canManage('grades.bulk_import') },
+        { to: '/grades/history', label: 'Journal des notes', icon: History, visible: access.canManage('grades.view') },
+      ],
+    },
+    {
+      id: 'pedagogy',
+      label: 'Pédagogie',
+      items: [
+        { to: '/structure', label: 'Structure', icon: Building2, visible: access.isManager },
         {
           to: '/teacher/academie',
           label: 'Référentiel',
