@@ -18,12 +18,22 @@ export async function fetchTranscript(studentId, { semester, allYears } = {}) {
   return data
 }
 
-export async function fetchCourseResults({ program, level } = {}) {
-  const { data } = await apiClient.get(`${BASE}/course-results/`, { params: { ...(program ? { program } : {}), ...(level ? { level } : {}) }, ...quiet })
+/** Retire les filtres vides. */
+const clean = (params = {}) => Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v != null))
+
+/** Résultats par cours : ``{ department, program, level, semester }``. */
+export async function fetchCourseResults(query = {}) {
+  const { data } = await apiClient.get(`${BASE}/course-results/`, { params: clean(query), ...quiet })
   return data
 }
 
-export async function fetchEntryProgress({ program } = {}) {
-  const { data } = await apiClient.get(`${BASE}/entry-progress/`, { params: program ? { program } : {}, ...quiet })
+export async function fetchEntryProgress(query = {}) {
+  const { data } = await apiClient.get(`${BASE}/entry-progress/`, { params: clean(query), ...quiet })
+  return data
+}
+
+/** Statistiques par niveau (décisions du règlement, ventilation filles / garçons). */
+export async function fetchLevelStatistics(query = {}, { publishedOnly = true } = {}) {
+  const { data } = await apiClient.get(`${BASE}/level-statistics/`, { params: { ...clean(query), published_only: publishedOnly ? 1 : 0 }, ...quiet })
   return data
 }

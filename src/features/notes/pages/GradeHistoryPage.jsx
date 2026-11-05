@@ -118,6 +118,7 @@ export default function GradeHistoryPage() {
           className={cn(SELECT, 'max-w-[17rem]')}
           options={scopeOptions}
           departmentId=""
+          programOnly
           programId={programId}
           onChange={({ programId: p }) => set({ program: p || '', page: 1 })}
           allLabel="Tous les programmes"

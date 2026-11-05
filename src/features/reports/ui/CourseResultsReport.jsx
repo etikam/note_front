@@ -2,19 +2,17 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileSpreadsheet } from 'lucide-react'
 
-import { fetchLevels } from '@/features/academicYear/api/academicsApi'
-import { useScopeOptions } from '@/features/access/model/useScopeOptions'
-import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
+import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { SHEET_STATUS } from '@/features/gradeWorkflow/model/gradeSheetLabels'
 import { fetchCourseResults } from '@/features/reports/api/reportsApi'
 import { downloadCsv, fmtNote } from '@/features/reports/model/reportExport'
+import { useReportFilters } from '@/features/reports/model/useReportFilters'
+import { ReportFilterBar } from '@/features/reports/ui/ReportFilterBar'
 import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/ui/Button'
 import { DataTable } from '@/shared/ui/DataTable'
 import { StatusPill } from '@/shared/ui/StatusPill'
 
-const SELECT =
-  'h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-elevated)] px-2.5 text-[13px] text-[var(--app-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-focus)] disabled:opacity-50'
 const pct = (v) => (v == null ? '—' : `${String(v).replace('.', ',')} %`)
 
 /** Distribution des moyennes publiées par tranche d'un point (0–1, …, 9–10), une seule teinte. */
@@ -39,30 +37,22 @@ function Distribution({ bins, scaleMax = 10, passMark = 5 }) {
 /** Résultats par cours (notes publiées) : moyenne, réussite, rattrapages, dettes, distribution. */
 export function CourseResultsReport() {
   const navigate = useNavigate()
-  const scopeOptions = useScopeOptions('reports.view')
-  const [programId, setProgramId] = useState('')
-  const [levels, setLevels] = useState([])
-  const [levelId, setLevelId] = useState('')
+  const { academicYearId } = useAcademicYear()
+  const f = useReportFilters('reports.view')
   const [rows, setRows] = useState(null)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    setLevelId('')
-    if (!programId) return setLevels([])
-    fetchLevels({ program: programId }).then(setLevels).catch(() => setLevels([]))
-  }, [programId])
 
   useEffect(() => {
     let cancelled = false
     setRows(null)
     setError('')
-    fetchCourseResults({ program: programId, level: levelId })
+    fetchCourseResults(f.query)
       .then((r) => !cancelled && setRows(r))
       .catch((err) => !cancelled && setError(err?.message || 'Chargement impossible.'))
     return () => {
       cancelled = true
     }
-  }, [programId, levelId])
+  }, [f.query, academicYearId])
 
   function exportCsv() {
     downloadCsv(
@@ -117,22 +107,13 @@ export function CourseResultsReport() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <ScopeSelect className={cn(SELECT, 'max-w-[16rem]')} options={scopeOptions} departmentId="" programId={programId} onChange={({ programId: p }) => setProgramId(p || '')} allLabel="Tous les programmes" />
-        <select className={SELECT} value={levelId} onChange={(e) => setLevelId(e.target.value)} disabled={!levels.length} aria-label="Niveau">
-          <option value="">Tous les niveaux</option>
-          {levels.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.name}
-            </option>
-          ))}
-        </select>
+      <ReportFilterBar filters={f}>
         {rows?.length ? (
-          <Button size="sm" variant="ghost" className="ml-auto" onClick={exportCsv}>
+          <Button size="sm" variant="ghost" onClick={exportCsv}>
             <FileSpreadsheet size={14} aria-hidden /> Excel (CSV)
           </Button>
         ) : null}
-      </div>
+      </ReportFilterBar>
       <DataTable
         columns={columns}
         rows={rows ?? []}

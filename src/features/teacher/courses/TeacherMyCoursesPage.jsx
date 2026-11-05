@@ -1,190 +1,255 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, ChevronRight, GraduationCap, Layers } from 'lucide-react'
+import { ArrowRight, BookOpen, Building2, CalendarClock, CalendarRange, ClipboardCheck, Layers, PencilLine, Users } from 'lucide-react'
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
-import { fetchCoursesList } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
 import { SHEET_STATUS } from '@/features/gradeWorkflow/model/gradeSheetLabels'
-import { Card } from '@/shared/ui/Card'
-import { StatusPill } from '@/shared/ui/StatusPill'
-import { Spinner } from '@/shared/ui/Spinner'
-import { dispatchToast } from '@/shared/notifications/toastBridge'
+import { Metric } from '@/features/notes/ui/GradeVisuals'
+import { apiClient } from '@/shared/api/client'
+import { API_PREFIX } from '@/shared/api/endpoints'
 import { cn } from '@/shared/lib/cn'
+import { EmptyState } from '@/shared/ui/EmptyState'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { SearchInput } from '@/shared/ui/SearchInput'
+import { SectionCard } from '@/shared/ui/SectionCard'
+import { SkeletonLines } from '@/shared/ui/Skeleton'
+import { StatusPill } from '@/shared/ui/StatusPill'
 
-/** @param {{ course: Record<string, unknown> }} props */
-function TeacherCourseMiniCard({ course: c }) {
-  const credits = c.credits != null ? Number(c.credits) : null
-  const title = [c.code, c.name].filter(Boolean).join(' — ')
+const shortDate = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' })
+const fmtDate = (v) => (v ? shortDate.format(new Date(v)) : '—')
+
+const FILTERS = [
+  { id: '', label: 'Tous' },
+  { id: 'todo', label: 'À saisir' },
+  { id: 'review', label: 'En validation' },
+  { id: 'published', label: 'Publiées' },
+]
+
+function matches(c, filter) {
+  if (!filter) return true
+  if (filter === 'todo') return c.sheet.status === 'draft' || c.sheet.status === 'unlocked'
+  return c.sheet.status === filter
+}
+
+/** Avancement de la saisie : notes complètes / inscrits. */
+function EntryProgress({ graded, enrolled }) {
+  const pct = enrolled ? Math.round((100 * graded) / enrolled) : 0
+  const done = enrolled > 0 && graded >= enrolled
   return (
-    <Link
-      to={`/teacher/courses/${c.id}?tab=grades`}
-      aria-label={title ? `Ouvrir le cours ${title}` : 'Ouvrir le détail du cours'}
-      className={cn(
-        'group relative flex min-h-[7.5rem] flex-col overflow-hidden rounded-xl border border-zinc-200/90 bg-[var(--app-elevated)] p-3.5 shadow-sm',
-        'dark:border-[var(--app-border)]',
-        'transition-[border-color,box-shadow,transform] duration-200 ease-out',
-        'hover:-translate-y-0.5 hover:border-brand-400/45 hover:shadow-md dark:hover:border-brand-500/35',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-canvas)]',
-      )}
-    >
-      <span
-        className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand-500 via-secondary-500 to-brand-600 opacity-90"
-        aria-hidden
-      />
-      <div className="flex items-start justify-between gap-2">
-        <span className="inline-flex items-center rounded-md bg-brand-500/[0.12] px-2 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-brand-800 dark:bg-brand-400/15 dark:text-brand-100">
-          {c.code ?? '—'}
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline justify-between text-[11.5px]">
+        <span className="text-[var(--app-muted)]">Saisie des notes</span>
+        <span className="tabular-nums font-medium text-[var(--app-fg-soft)]">
+          {enrolled ? `${graded}/${enrolled}` : 'aucun inscrit'}
         </span>
-        {SHEET_STATUS[c.grade_sheet_status] ? (
-          <StatusPill tone={SHEET_STATUS[c.grade_sheet_status].tone} className="ml-auto mr-1" title="Fiche de notes">
-            {SHEET_STATUS[c.grade_sheet_status].label}
-          </StatusPill>
-        ) : null}
-        <ChevronRight
-          size={18}
-          strokeWidth={2}
-          className="shrink-0 text-zinc-300 opacity-0 transition-[opacity,transform] duration-200 group-hover:translate-x-0.5 group-hover:opacity-100 dark:text-zinc-600"
-          aria-hidden
-        />
       </div>
-      <p className="mt-2.5 line-clamp-2 min-h-[2.5rem] text-left text-[0.9375rem] font-semibold leading-snug tracking-tight text-zinc-900 dark:text-zinc-50">
-        {c.name ?? '—'}
-      </p>
-      <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3">
-        <span className="inline-flex max-w-full items-center gap-1 rounded-md border border-zinc-200/80 bg-zinc-50/90 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400">
-          <Layers size={11} strokeWidth={2} className="shrink-0 opacity-70" aria-hidden />
-          <span className="truncate font-mono tabular-nums">{c.teaching_unit_code ?? '—'}</span>
-        </span>
-        {c.level_name ? (
-          <span className="inline-flex max-w-full items-center gap-1 rounded-md border border-zinc-200/80 bg-zinc-50/90 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400">
-            <GraduationCap size={11} strokeWidth={2} className="shrink-0 opacity-70" aria-hidden />
-            <span className="truncate">{String(c.level_name)}</span>
-          </span>
-        ) : null}
-        <span className="inline-flex items-center gap-1 rounded-md border border-zinc-200/80 bg-zinc-50/90 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400">
-          <BookOpen size={11} strokeWidth={2} className="shrink-0 opacity-70" aria-hidden />
-          <span className="truncate">{c.module_label ?? '—'}</span>
-          {c.semester != null ? (
-            <span className="font-mono tabular-nums text-zinc-500 dark:text-zinc-500">· S{c.semester}</span>
-          ) : null}
-        </span>
-        {credits != null && !Number.isNaN(credits) ? (
-          <span className="ml-auto inline-flex rounded-md bg-secondary-500/12 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-secondary-800 dark:bg-secondary-400/15 dark:text-secondary-100">
-            {credits} cr.
-          </span>
-        ) : null}
-      </div>
-      {c.teaching_unit_name ? (
-        <p className="mt-1.5 line-clamp-1 text-left text-[10px] leading-tight text-zinc-500 dark:text-zinc-500">{c.teaching_unit_name}</p>
-      ) : null}
-    </Link>
+      <span className="block h-1.5 overflow-hidden rounded-full bg-[var(--app-subtle)] ring-1 ring-inset ring-[var(--app-border)]">
+        <span className={cn('block h-full rounded-full', done ? 'bg-green-500' : 'bg-brand-600 dark:bg-brand-400')} style={{ width: `${pct}%` }} />
+      </span>
+    </div>
   )
 }
 
+function CourseCard({ course: c }) {
+  const sheet = SHEET_STATUS[c.sheet.status]
+  return (
+    <article className="group flex h-full flex-col rounded-xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-[border-color,box-shadow] hover:border-brand-400/50 hover:shadow-md dark:hover:border-brand-500/40">
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className="rounded-md bg-brand-50 px-1.5 py-0.5 font-mono text-[11.5px] font-semibold text-brand-800 ring-1 ring-inset ring-brand-600/15 dark:bg-brand-500/10 dark:text-brand-100">{c.code}</span>
+            <span className="rounded-md bg-[var(--app-subtle)] px-1.5 py-0.5 font-mono text-[10.5px] text-[var(--app-muted)] ring-1 ring-inset ring-[var(--app-border)]" title={c.teaching_unit.name}>
+              {c.teaching_unit.code}
+            </span>
+          </span>
+          {sheet ? (
+            <StatusPill tone={sheet.tone} title={c.sheet.step_label ? `Étape : ${c.sheet.step_label}` : 'Fiche de notes'}>
+              {sheet.label}
+            </StatusPill>
+          ) : null}
+        </div>
+
+        <div>
+          <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug text-[var(--app-fg)]">{c.name}</h3>
+          <p className="mt-0.5 truncate text-[12px] text-[var(--app-muted)]" title={c.teaching_unit.name}>
+            {c.teaching_unit.name}
+          </p>
+        </div>
+
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[12px]">
+          <div className="flex items-center gap-1.5 text-[var(--app-fg-soft)]">
+            <Layers size={13} className="shrink-0 text-[var(--app-muted)]" aria-hidden />
+            <span className="truncate">
+              {c.level?.name ?? '—'}
+              {c.semester ? ` · S${c.semester}` : ''}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[var(--app-fg-soft)]">
+            <Users size={13} className="shrink-0 text-[var(--app-muted)]" aria-hidden />
+            <span className="tabular-nums">
+              {c.enrolled} inscrit{c.enrolled > 1 ? 's' : ''} · {c.credits} cr.
+            </span>
+          </div>
+          <div className="col-span-2 flex items-center gap-1.5 text-[var(--app-fg-soft)]">
+            <CalendarRange size={13} className="shrink-0 text-[var(--app-muted)]" aria-hidden />
+            <span>
+              Module {c.module.number} · {fmtDate(c.module.start_date)} → {fmtDate(c.module.end_date)}
+            </span>
+          </div>
+          <div className="col-span-2 flex items-center gap-1.5">
+            <CalendarClock size={13} className="shrink-0 text-[var(--app-muted)]" aria-hidden />
+            {c.schedule ? (
+              <span className="text-[var(--app-fg-soft)]">{c.schedule.label}</span>
+            ) : (
+              <span className="text-[var(--app-muted)]">
+                Emploi du temps : <span className="italic">pas encore planifié</span>
+              </span>
+            )}
+          </div>
+        </dl>
+
+        <div className="mt-auto">
+          <EntryProgress graded={c.graded} enrolled={c.enrolled} />
+        </div>
+      </div>
+      <Link
+        to={`/teacher/courses/${c.id}?tab=grades`}
+        className="flex items-center justify-between gap-2 rounded-b-xl border-t border-[var(--app-border)] px-4 py-2.5 text-[12.5px] font-medium text-brand-700 transition-colors hover:bg-brand-50/60 dark:text-brand-200 dark:hover:bg-white/[0.04]"
+      >
+        <span className="inline-flex items-center gap-1.5">
+          {c.sheet.status === 'published' ? <ClipboardCheck size={14} aria-hidden /> : <PencilLine size={14} aria-hidden />}
+          {c.sheet.status === 'published' ? 'Voir les notes publiées' : c.sheet.status === 'review' ? 'Suivre la validation' : 'Saisir les notes'}
+        </span>
+        <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" aria-hidden />
+      </Link>
+    </article>
+  )
+}
+
+/** Mes cours : cours affectés de l'année, groupés par département et programme. */
 export function TeacherMyCoursesPage() {
   const { academicYearId, academicYearLabel } = useAcademicYear()
-  const [loading, setLoading] = useState(false)
-  const [search, setSearch] = useState('')
-  const [rows, setRows] = useState([])
+  const [courses, setCourses] = useState(null)
+  const [error, setError] = useState('')
+  const [q, setQ] = useState('')
+  const [filter, setFilter] = useState('')
 
   useEffect(() => {
-    if (!academicYearId) {
-      setRows([])
-      return
-    }
     let cancelled = false
-    setLoading(true)
-    ;(async () => {
-      try {
-        const data = await fetchCoursesList({
-          academic_year_id: academicYearId,
-          page: 1,
-          page_size: 500,
-          ordering: 'name',
-          assigned_teacher_only: 1,
-        })
-        if (!cancelled) setRows(data.results ?? [])
-      } catch (err) {
-        if (!cancelled) {
-          setRows([])
-          dispatchToast({ type: 'error', message: err?.message ?? 'Impossible de charger vos cours.' })
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
+    setCourses(null)
+    setError('')
+    apiClient
+      .get(`${API_PREFIX}/academics/my-courses/`, { skipErrorToast: true })
+      .then(({ data }) => !cancelled && setCourses(data.courses ?? []))
+      .catch((err) => !cancelled && setError(err?.message || 'Impossible de charger vos cours.'))
     return () => {
       cancelled = true
     }
   }, [academicYearId])
 
-  const filteredRows = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return rows
-    return rows.filter((c) =>
-      [c.code, c.name, c.teaching_unit_code, c.teaching_unit_name, c.level_name, c.module_label]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-        .includes(q),
-    )
-  }, [rows, search])
+  const list = useMemo(() => courses ?? [], [courses])
+  const totals = useMemo(
+    () => ({
+      courses: list.length,
+      students: list.reduce((n, c) => n + c.enrolled, 0),
+      missing: list.reduce((n, c) => n + Math.max(0, c.enrolled - c.graded), 0),
+      published: list.filter((c) => c.sheet.status === 'published').length,
+      todo: list.filter((c) => matches(c, 'todo')).length,
+    }),
+    [list],
+  )
+
+  const groups = useMemo(() => {
+    const needle = q.trim().toLowerCase()
+    const map = new Map()
+    for (const c of list) {
+      if (!matches(c, filter)) continue
+      if (needle && ![c.code, c.name, c.teaching_unit.code, c.teaching_unit.name, c.program.name, c.program.code, c.level?.name].join(' ').toLowerCase().includes(needle)) continue
+      const key = c.program.id
+      if (!map.has(key)) map.set(key, { program: c.program, department: c.department, courses: [] })
+      map.get(key).courses.push(c)
+    }
+    return [...map.values()]
+  }, [list, q, filter])
 
   return (
-    <div className="space-y-5">
-      <div className="space-y-1">
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Mes cours</h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Cours qui vous sont assignés pour l’année académique{' '}
-          <strong className="text-zinc-700 dark:text-zinc-200">{academicYearLabel ?? '—'}</strong>.
-        </p>
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        breadcrumbs={[{ label: 'Mon espace' }, { label: 'Mes cours' }]}
+        title="Mes cours"
+        description="Les cours qui vous sont affectés cette année, par programme : saisie des notes, état de la fiche, période et emploi du temps."
+        meta={academicYearLabel ? <StatusPill tone="info" dot={false}>Année {academicYearLabel}</StatusPill> : null}
+      />
+
+      {courses?.length ? (
+        <div className="grid grid-cols-2 gap-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-4 sm:grid-cols-4">
+          <Metric label="Cours" value={totals.courses} hint={`${groups.length} programme${groups.length > 1 ? 's' : ''}`} />
+          <Metric label="Étudiants inscrits" value={totals.students} />
+          <Metric label="Notes à compléter" value={totals.missing} hint={totals.todo ? `${totals.todo} fiche${totals.todo > 1 ? 's' : ''} en saisie` : 'tout est saisi'} />
+          <Metric label="Fiches publiées" value={`${totals.published}/${totals.courses}`} />
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchInput value={q} onChange={setQ} placeholder="Cours, UE, programme, niveau" className="w-full max-w-xs" ariaLabel="Rechercher un cours" />
+        <div role="tablist" aria-label="État de la fiche" className="inline-flex rounded-lg border border-[var(--app-border)] bg-[var(--app-subtle)] p-0.5">
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              role="tab"
+              aria-selected={filter === f.id}
+              onClick={() => setFilter(f.id)}
+              className={cn(
+                'h-8 rounded-md px-3 text-[12.5px] font-medium transition-colors',
+                filter === f.id ? 'bg-[var(--app-elevated)] text-[var(--app-fg)] shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-fg)]',
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <Card className="border-zinc-300/90 dark:border-[var(--app-border)]">
-        <div className="grid gap-3 p-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Recherche</span>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Code, matière, UE, niveau..."
-              className="h-9 rounded-lg border border-zinc-300 bg-white px-3 text-sm outline-none focus:border-brand-500 dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]"
-            />
-          </label>
-          <div className="flex items-end justify-end">
-            <span className="text-xs text-zinc-500">{filteredRows.length} cours</span>
-          </div>
-        </div>
-      </Card>
-
-      {!academicYearId ? (
-        <Card className="p-8 border border-zinc-200/90 dark:border-[var(--app-border)] text-center text-sm text-zinc-500">
-          Sélectionnez d’abord une année académique via le sélecteur global.
-        </Card>
-      ) : loading ? (
-        <div className="flex min-h-[25vh] items-center justify-center">
-          <Spinner label="Chargement de vos cours" />
-        </div>
+      {error ? (
+        <SectionCard>
+          <EmptyState tone="error" title="Chargement impossible" description={error} />
+        </SectionCard>
+      ) : !courses ? (
+        <SectionCard>
+          <SkeletonLines lines={6} />
+        </SectionCard>
+      ) : !groups.length ? (
+        <SectionCard>
+          <EmptyState
+            icon={BookOpen}
+            title={courses.length ? 'Aucun cours ne correspond' : 'Aucun cours affecté'}
+            description={courses.length ? 'Modifiez la recherche ou le filtre.' : 'Les cours qui vous sont affectés pour l’année sélectionnée apparaîtront ici.'}
+          />
+        </SectionCard>
       ) : (
-        <Card className="border border-zinc-200/90 p-4 shadow-sm dark:border-[var(--app-border)] sm:p-5">
-          {filteredRows.length === 0 ? (
-            <div className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 px-6 py-12 text-center dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_94%,black)]">
-              <BookOpen className="h-10 w-10 text-zinc-300 dark:text-zinc-600" strokeWidth={1.5} aria-hidden />
-              <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Aucun cours assigné</p>
-              <p className="max-w-sm text-xs text-zinc-500 dark:text-zinc-500">
-                Ajustez la recherche ou vérifiez l’année académique sélectionnée.
-              </p>
-            </div>
-          ) : (
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredRows.map((c) => (
+        groups.map((g) => (
+          <section key={g.program.id} aria-label={g.program.name} className="flex flex-col gap-3">
+            <header className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="inline-flex items-center gap-1.5 text-[12px] text-[var(--app-muted)]">
+                <Building2 size={13} aria-hidden /> {g.department.name}
+              </span>
+              <span className="text-[var(--app-border-strong)]">›</span>
+              <h2 className="font-heading text-[15px] font-semibold text-[var(--app-fg)]">{g.program.name}</h2>
+              <span className="rounded bg-[var(--app-subtle)] px-1.5 py-0.5 font-mono text-[10.5px] text-[var(--app-muted)] ring-1 ring-inset ring-[var(--app-border)]">{g.program.code}</span>
+              <span className="text-[12px] text-[var(--app-muted)]">
+                · {g.courses.length} cours
+              </span>
+            </header>
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {g.courses.map((c) => (
                 <li key={c.id}>
-                  <TeacherCourseMiniCard course={c} />
+                  <CourseCard course={c} />
                 </li>
               ))}
             </ul>
-          )}
-        </Card>
+          </section>
+        ))
       )}
     </div>
   )

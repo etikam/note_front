@@ -50,19 +50,19 @@ const DECISION_FILL = {
 }
 
 /** Répartition des décisions (barre empilée + légende chiffrée). */
-export function DecisionBar({ decisions = {}, total }) {
+export function DecisionBar({ decisions = {}, total, compact = false }) {
   const sum = total ?? DECISION_ORDER.reduce((n, k) => n + (decisions[k] || 0), 0)
   if (!sum) return null
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex h-2.5 w-full gap-[2px] overflow-hidden rounded-full" role="img" aria-label="Répartition des décisions">
+      <div className={cn('flex w-full gap-[2px] overflow-hidden rounded-full', compact ? 'h-2' : 'h-2.5')} role="img" aria-label={DECISION_ORDER.filter((k) => decisions[k]).map((k) => `${DECISION_LABEL[k]} ${decisions[k]}`).join(', ')}>
         {DECISION_ORDER.map((k) =>
           decisions[k] ? (
             <span key={k} className={cn('h-full first:rounded-l-full last:rounded-r-full', DECISION_FILL[k])} style={{ width: `${(100 * decisions[k]) / sum}%` }} title={`${DECISION_LABEL[k]} : ${decisions[k]}`} />
           ) : null,
         )}
       </div>
-      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-[var(--app-fg-soft)]">
+      {compact ? null : <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-[var(--app-fg-soft)]">
         {DECISION_ORDER.map((k) =>
           decisions[k] ? (
             <li key={k} className="inline-flex items-center gap-1.5">
@@ -71,7 +71,7 @@ export function DecisionBar({ decisions = {}, total }) {
             </li>
           ) : null,
         )}
-      </ul>
+      </ul>}
     </div>
   )
 }

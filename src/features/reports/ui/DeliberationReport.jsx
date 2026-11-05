@@ -1,23 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, Download, FileSpreadsheet, Printer } from 'lucide-react'
 
-import { fetchLevels } from '@/features/academicYear/api/academicsApi'
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
-import { defaultScope } from '@/features/access/model/scopeFilter'
-import { useScopeOptions } from '@/features/access/model/useScopeOptions'
-import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
 import { fetchDeliberation } from '@/features/reports/api/reportsApi'
 import { downloadCsv, downloadPdf, fmtNote } from '@/features/reports/model/reportExport'
 import { DECISION_TONE } from '@/features/reports/model/reportLabels'
+import { useReportFilters } from '@/features/reports/model/useReportFilters'
+import { ReportFilterBar } from '@/features/reports/ui/ReportFilterBar'
 import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { SectionCard } from '@/shared/ui/SectionCard'
 import { SkeletonLines } from '@/shared/ui/Skeleton'
 import { StatusPill } from '@/shared/ui/StatusPill'
-
-const SELECT =
-  'h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-elevated)] px-2.5 text-[13px] text-[var(--app-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-focus)] disabled:opacity-50'
 
 /** Colonnes à plat : par UE, ses cours puis la moyenne d'UE. */
 function flatColumns(structure) {
@@ -42,30 +37,17 @@ export function GradeCell({ cell }) {
 
 export function DeliberationReport() {
   const { academicYearLabel } = useAcademicYear()
-  const scopeOptions = useScopeOptions('reports.view')
-  const [programId, setProgramId] = useState('')
-  const [levels, setLevels] = useState([])
-  const [levelId, setLevelId] = useState('')
-  const [semester, setSemester] = useState('')
+  const f = useReportFilters('reports.view')
+  const { levelId, semester } = f
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (scopeOptions.loading || programId) return
-    const locked = defaultScope(scopeOptions)
-    if (locked.programId) setProgramId(locked.programId)
-  }, [scopeOptions, programId])
-
-  useEffect(() => {
-    setLevelId('')
-    setData(null)
-    if (!programId) return setLevels([])
-    fetchLevels({ program: programId }).then(setLevels).catch(() => setLevels([]))
-  }, [programId])
-
-  useEffect(() => {
-    if (!levelId) return undefined
+    if (!levelId) {
+      setData(null)
+      return undefined
+    }
     let cancelled = false
     setLoading(true)
     setError('')
@@ -137,26 +119,9 @@ export function DeliberationReport() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <ScopeSelect className={cn(SELECT, 'max-w-[16rem]')} options={scopeOptions} departmentId="" programId={programId} onChange={({ programId: p }) => setProgramId(p || '')} allLabel="Choisir un programme" />
-        <select className={SELECT} value={levelId} onChange={(e) => setLevelId(e.target.value)} disabled={!levels.length} aria-label="Niveau">
-          <option value="">{programId ? 'Choisir un niveau' : 'Niveau'}</option>
-          {levels.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.name}
-            </option>
-          ))}
-        </select>
-        <select className={SELECT} value={semester} onChange={(e) => setSemester(e.target.value)} aria-label="Semestre">
-          <option value="">Année complète</option>
-          {[1, 2, 3, 4, 5, 6].map((n) => (
-            <option key={n} value={n}>
-              Semestre {n}
-            </option>
-          ))}
-        </select>
+      <ReportFilterBar filters={f} programOnly>
         {data?.students?.length ? (
-          <div className="ml-auto flex gap-2">
+          <div className="flex gap-2">
             <Button size="sm" variant="ghost" onClick={exportCsv}>
               <FileSpreadsheet size={14} aria-hidden /> Excel (CSV)
             </Button>
@@ -168,7 +133,7 @@ export function DeliberationReport() {
             </Button>
           </div>
         ) : null}
-      </div>
+      </ReportFilterBar>
 
       {!levelId ? (
         <SectionCard>

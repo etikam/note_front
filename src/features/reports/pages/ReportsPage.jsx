@@ -5,7 +5,7 @@ import { useAcademicYear } from '@/features/academicYear/model/AcademicYearConte
 import { CourseResultsReport } from '@/features/reports/ui/CourseResultsReport'
 import { DeliberationReport } from '@/features/reports/ui/DeliberationReport'
 import { EntryProgressReport } from '@/features/reports/ui/EntryProgressReport'
-import { DetailedReportPage } from '@/features/teacherFacultyDashboard/report/DetailedReportPage'
+import { LevelStatisticsReport } from '@/features/reports/ui/LevelStatisticsReport'
 import { cn } from '@/shared/lib/cn'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { StatusPill } from '@/shared/ui/StatusPill'
@@ -14,7 +14,7 @@ const REPORTS = [
   { id: 'deliberation', icon: FileCheck2, label: 'PV de délibération', description: 'Notes publiées d’un niveau, moyennes d’UE, crédits et décisions.', Component: DeliberationReport },
   { id: 'courses', icon: BarChart3, label: 'Résultats par cours', description: 'Moyennes, réussite, rattrapages et dettes de chaque cours.', Component: CourseResultsReport },
   { id: 'progress', icon: ClipboardList, label: 'Avancement de la saisie', description: 'Fiches en saisie, en validation ou publiées, notes manquantes.', Component: EntryProgressReport },
-  { id: 'levels', icon: Users, label: 'Statistiques par niveau', description: 'Effectifs, admis, dettes et abandons par niveau et par sexe.', Component: DetailedReportPage },
+  { id: 'levels', icon: Users, label: 'Statistiques par niveau', description: 'Effectifs, décisions du jury, réussite et moyennes par niveau, filles et garçons.', Component: LevelStatisticsReport },
 ]
 
 /** Catalogue des rapports académiques ; le rapport ouvert est conservé dans l'URL (``?report=``). */
@@ -43,7 +43,16 @@ export default function ReportsPage() {
               key={r.id}
               type="button"
               aria-current={active ? 'page' : undefined}
-              onClick={() => setParams({ report: r.id }, { replace: true })}
+              onClick={() =>
+                setParams(
+                  (prev) => {
+                    const next = new URLSearchParams(prev)
+                    next.set('report', r.id)
+                    return next
+                  },
+                  { replace: true },
+                )
+              }
               className={cn(
                 'flex items-start gap-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)]',
                 active ? 'border-brand-500 bg-brand-50/60 dark:border-brand-400 dark:bg-white/[0.05]' : 'border-[var(--app-border)] bg-[var(--app-elevated)] hover:border-[var(--app-border-strong)] hover:bg-[var(--app-hover)]',

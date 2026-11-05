@@ -25,6 +25,7 @@ import { GRADE_IMPORT_TEMPLATE_COLUMNS } from '@/features/teacher/students/ui/gr
 import { canLaunchGradeImport, gradeImportLaunchHint } from '@/features/teacher/students/ui/gradesImport/gradeImport.utils'
 import {
   FileDropzone,
+  ImportChecklist,
   ImportProgressBlock,
   ImportStepCard,
   SelectedFileRow,
@@ -251,8 +252,21 @@ export function TeacherGradesImportPage({ embedded = false }) {
     ? 'Résolvez tous les conflits avant de valider.'
     : gradeImportLaunchHint(analysis)
 
+  const steps = [
+    { state: selectedCourse ? 'done' : 'todo', title: selectedCourse ? 'Cours choisi' : 'Choisir le cours', detail: selectedCourse ? courseLabel : 'Département, semestre puis cours.' },
+    { state: pendingFile ? 'done' : 'todo', title: 'Modèle Excel', detail: 'Prérempli avec les inscrits du cours.' },
+    { state: pendingFile ? 'done' : 'todo', title: pendingFile ? 'Fichier chargé' : 'Déposer le fichier', detail: pendingFile ? pendingFile.name : 'Notes au barème du règlement.' },
+    {
+      state: busy ? 'busy' : analysis ? (canLaunchGradeImport(analysis) ? 'done' : 'error') : 'todo',
+      title: 'Analyse du fichier',
+      detail: analysis ? (canLaunchGradeImport(analysis) ? `${conflicts.length} conflit${conflicts.length > 1 ? 's' : ''} · ${rowErrors.length} ligne${rowErrors.length > 1 ? 's' : ''} ignorée${rowErrors.length > 1 ? 's' : ''}` : gradeImportLaunchHint(analysis)) : 'Comparaison avec les notes existantes.',
+    },
+    { state: committing ? 'busy' : commitResult ? 'done' : 'todo', title: commitResult ? 'Notes enregistrées' : 'Validation', detail: commitResult ? 'Voir le résultat ci-contre.' : 'Écriture des notes et journal.' },
+  ]
+  const cardState = (done, active) => (done ? 'done' : active ? 'current' : 'todo')
+
   return (
-    <div className="w-full max-w-7xl text-zinc-900 dark:text-zinc-100">
+    <div className="w-full text-[var(--app-fg)]">
       {embedded ? (
         <p className="mb-6 text-sm text-zinc-500 dark:text-zinc-400 max-w-2xl">
           Importez les notes d’un cours à partir d’un fichier Excel. Les étudiants du fichier seront inscrits au
@@ -266,8 +280,9 @@ export function TeacherGradesImportPage({ embedded = false }) {
         />
       )}
 
-      <div className="flex flex-col gap-8">
-        <ImportStepCard step={1} title="Cible" accent="brand">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+      <div className="flex min-w-0 flex-col gap-5">
+        <ImportStepCard step={1} title="Cours concerné" state={cardState(Boolean(selectedCourse), true)} description="Les notes importées sont rattachées à ce cours ; les étudiants absents du cours y sont inscrits.">
           <GradeImportCourseSelector
             departmentId={departmentId}
             onDepartmentIdChange={setDepartmentId}
@@ -280,9 +295,11 @@ export function TeacherGradesImportPage({ embedded = false }) {
           />
         </ImportStepCard>
 
-        <ImportStepCard step={2} title="Modèle Excel" accent="brand">
+        <ImportStepCard step={2} title="Modèle Excel" state={cardState(Boolean(pendingFile), Boolean(selectedCourse))} description="Le modèle reprend les inscrits du cours : il suffit de compléter les notes.">
           <TemplateSection
             onDownload={downloadTemplate}
+            fileKind="xlsx"
+            disabled={!selectedCourse}
             requiredColumns={GRADE_IMPORT_TEMPLATE_COLUMNS}
             detailsSlot={
               <p className="text-xs text-zinc-600 dark:text-zinc-400">
@@ -292,11 +309,11 @@ export function TeacherGradesImportPage({ embedded = false }) {
             }
           />
           {!selectedCourse ? (
-            <p className="text-sm text-zinc-500">Sélectionnez un cours à l’étape 1 pour télécharger le modèle.</p>
+            <p className="text-[12.5px] text-[var(--app-muted)]">Sélectionnez un cours à l’étape 1 pour télécharger le modèle.</p>
           ) : null}
         </ImportStepCard>
 
-        <ImportStepCard step={3} title="Fichier à importer" accent="orange">
+        <ImportStepCard step={3} title="Fichier à importer" state={cardState(Boolean(analysis), Boolean(selectedCourse))} description="Déposez le fichier complété, puis lancez l’analyse : rien n’est enregistré à ce stade.">
           <Stack size="md">
             {!pendingFile ? (
               <FileDropzone
@@ -344,7 +361,7 @@ export function TeacherGradesImportPage({ embedded = false }) {
 
         {analysis ? (
           <div ref={analysisRef}>
-            <ImportStepCard step={4} title="Rapport et validation" accent="orange">
+            <ImportStepCard step={4} title="Rapport et validation" state={commitResult ? 'done' : canLaunchGradeImport(analysis) ? 'current' : 'error'} description="Vérifiez les écarts avec les notes existantes et tranchez les conflits avant d’enregistrer.">
               <Stack size="md">
                 <GradeImportAnalysisPanel analysis={analysis} />
                 {conflicts.length ? (
@@ -375,13 +392,13 @@ export function TeacherGradesImportPage({ embedded = false }) {
         ) : null}
 
         {error ? (
-          <p className="text-error text-sm" role="alert">
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100" role="alert">
             {error}
           </p>
         ) : null}
 
         {commitResult ? (
-          <ImportStepCard step={5} title="Résultat" accent="brand">
+          <ImportStepCard step={5} title="Résultat" state="done" description="Les notes sont enregistrées et tracées dans le journal des notes.">
             <AdminGradeImportResultPanel
               result={commitResult}
               courseId={courseId}
@@ -392,6 +409,10 @@ export function TeacherGradesImportPage({ embedded = false }) {
             />
           </ImportStepCard>
         ) : null}
+      </div>
+      <aside className="lg:sticky lg:top-20 lg:self-start" aria-label="Suivi de l’import">
+        <ImportChecklist steps={steps} />
+      </aside>
       </div>
 
       <ConfirmModal

@@ -2,27 +2,25 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileSpreadsheet } from 'lucide-react'
 
-import { useScopeOptions } from '@/features/access/model/useScopeOptions'
-import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
+import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { SheetProgressBar } from '@/features/dashboard/ui/DashboardCharts'
 import { SHEET_STATUS, formatDateTime } from '@/features/gradeWorkflow/model/gradeSheetLabels'
 import { fetchEntryProgress } from '@/features/reports/api/reportsApi'
 import { downloadCsv } from '@/features/reports/model/reportExport'
-import { cn } from '@/shared/lib/cn'
+import { useReportFilters } from '@/features/reports/model/useReportFilters'
+import { ReportFilterBar, SELECT } from '@/features/reports/ui/ReportFilterBar'
 import { Button } from '@/shared/ui/Button'
 import { DataTable } from '@/shared/ui/DataTable'
 import { SectionCard } from '@/shared/ui/SectionCard'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { StatusPill } from '@/shared/ui/StatusPill'
 
-const SELECT =
-  'h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-elevated)] px-2.5 text-[13px] text-[var(--app-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-focus)]'
 
 /** Où en sont les fiches de notes : en saisie (notes manquantes), en validation (étape), publiées. */
 export function EntryProgressReport() {
   const navigate = useNavigate()
-  const scopeOptions = useScopeOptions('reports.view')
-  const [programId, setProgramId] = useState('')
+  const { academicYearId } = useAcademicYear()
+  const f = useReportFilters('reports.view')
   const [status, setStatus] = useState('')
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
@@ -31,13 +29,13 @@ export function EntryProgressReport() {
     let cancelled = false
     setData(null)
     setError('')
-    fetchEntryProgress({ program: programId })
+    fetchEntryProgress(f.query)
       .then((d) => !cancelled && setData(d))
       .catch((err) => !cancelled && setError(err?.message || 'Chargement impossible.'))
     return () => {
       cancelled = true
     }
-  }, [programId])
+  }, [f.query, academicYearId])
 
   const rows = useMemo(() => (data?.courses ?? []).filter((r) => !status || r.status === status), [data, status])
 
@@ -99,8 +97,7 @@ export function EntryProgressReport() {
   return (
     <div className="flex flex-col gap-4">
       <SectionCard title="Fiches de notes de l’année">{data ? <SheetProgressBar counts={data.counts} /> : <Skeleton className="h-16 w-full" />}</SectionCard>
-      <div className="flex flex-wrap items-center gap-2">
-        <ScopeSelect className={cn(SELECT, 'max-w-[16rem]')} options={scopeOptions} departmentId="" programId={programId} onChange={({ programId: p }) => setProgramId(p || '')} allLabel="Tous les programmes" />
+      <ReportFilterBar filters={f}>
         <select className={SELECT} value={status} onChange={(e) => setStatus(e.target.value)} aria-label="État">
           <option value="">Tous les états</option>
           {Object.entries(SHEET_STATUS).map(([k, s]) => (
@@ -113,7 +110,6 @@ export function EntryProgressReport() {
           <Button
             size="sm"
             variant="ghost"
-            className="ml-auto"
             onClick={() =>
               downloadCsv(
                 'avancement_saisie.csv',
@@ -125,7 +121,7 @@ export function EntryProgressReport() {
             <FileSpreadsheet size={14} aria-hidden /> Excel (CSV)
           </Button>
         ) : null}
-      </div>
+      </ReportFilterBar>
       <DataTable
         columns={columns}
         rows={rows}

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Play } from 'lucide-react'
 
 import { useAccess } from '@/features/access/model/useAccess'
 import { validateTeacherImportCsv } from '@/features/teacher/faculty/teacherCsvValidation'
@@ -16,6 +15,7 @@ import {
   FileDropzone,
   getImportDisabledHint,
   HeaderIssuesAlert,
+  ImportActionBar,
   ImportPageHeader,
   ImportProgressBlock,
   ImportResultPanel,
@@ -27,7 +27,6 @@ import {
   TemplateSection,
 } from '@/features/teacher/students/ui/import'
 import { PREVIEW_ROW_CAP } from '@/features/teacher/students/ui/import/import.constants'
-import { Button } from '@/shared/ui/Button'
 import { Stack } from '@/shared/ui/Stack'
 
 
@@ -190,12 +189,18 @@ export function TeacherFacultyImportPage() {
     </div>
   )
 
+  const stepTwoState = result
+    ? 'done'
+    : preview && pendingFile && (preview.headerIssues.length > 0 || rowIssuesCount > 0)
+      ? 'error'
+      : 'current'
+
   if (!canProvision) {
     return <Navigate to="/teacher/faculty/list" replace />
   }
 
   return (
-    <div className="w-full max-w-7xl text-zinc-900 dark:text-zinc-100">
+    <div className="w-full text-[var(--app-fg)]">
       <ImportPageHeader
         canViewReports={canViewReports}
         backTo="/teacher/faculty/list"
@@ -211,9 +216,9 @@ export function TeacherFacultyImportPage() {
         }
       />
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_17.5rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-        <div className="flex min-w-0 flex-col gap-8">
-          <ImportStepCard step={1} title="Modèle CSV" accent="brand">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+        <div className="flex min-w-0 flex-col gap-5">
+          <ImportStepCard step={1} title="Modèle CSV" state={pendingFile ? 'done' : 'current'} description="Partez du modèle officiel : les intitulés de colonnes sont ceux attendus par la plateforme.">
             <TemplateSection
               onDownload={downloadTemplate}
               requiredColumns={TEACHER_IMPORT_REQUIRED_COLUMNS}
@@ -221,7 +226,7 @@ export function TeacherFacultyImportPage() {
             />
           </ImportStepCard>
 
-          <ImportStepCard step={2} title="Fichier à importer" accent="orange">
+          <ImportStepCard step={2} title="Fichier à importer" state={stepTwoState} description="Déposez le fichier rempli : colonnes et lignes sont contrôlées immédiatement, avant tout envoi.">
             <Stack size="md">
               {!pendingFile ? (
                 <FileDropzone
@@ -263,35 +268,28 @@ export function TeacherFacultyImportPage() {
                     headers={preview.headers}
                     dataRows={preview.dataRows}
                     totalDataRows={preview.totalDataRows}
+                    requiredKeys={TEACHER_IMPORT_REQUIRED_COLUMNS}
                   />
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Button type="button" variant="primary" disabled={!canStartImport} onClick={runImport}>
-                      <Play size={16} aria-hidden />
-                      Lancer l’import
-                    </Button>
-                    {!canStartImport && importHint ? (
-                      <span className="text-sm text-zinc-500 dark:text-zinc-400">{importHint}</span>
-                    ) : null}
-                  </div>
+                  <ImportActionBar ready={canStartImport} count={preview.totalDataRows} entityLabel="enseignant" hint={importHint} busy={busy} onRun={runImport} />
                 </Stack>
               ) : null}
             </Stack>
           </ImportStepCard>
 
           {error ? (
-            <p className="text-error text-sm" role="alert">
+            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100" role="alert">
               {error}
             </p>
           ) : null}
 
           {result ? (
-            <ImportStepCard step={3} title="Résultat" accent="brand">
+            <ImportStepCard step={3} title="Résultat" state={(result?.error_count ?? 0) > 0 ? 'error' : 'done'} description="Bilan de l’import ligne par ligne.">
               <ImportResultPanel result={result} />
             </ImportStepCard>
           ) : null}
         </div>
 
-        <aside className="lg:sticky lg:top-6 lg:self-start" aria-label="Résumé fichier et statut d’import">
+        <aside className="lg:sticky lg:top-20 lg:self-start" aria-label="Résumé fichier et statut d’import">
           <ImportSidebar
             pendingFile={pendingFile}
             preview={preview}

@@ -433,3 +433,13 @@ html[data-theme='dark'] .rdp-caption_label {
     font-size: inherit;
   }
 }
+
+/* Barre de progression d'import (rayures qui défilent). */
+@keyframes import-stripes {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 1.25rem 0;
+  }
+}

@@ -37,6 +37,7 @@ export function NotesFilterBar({ filters: f, requireLevel = true, showPublished 
         className={cn(SELECT, 'max-w-[17rem]')}
         options={f.scopeOptions}
         departmentId=""
+          programOnly
         programId={f.programId}
         onChange={({ programId }) => f.setProgram(programId || '')}
         allLabel="Choisir un programme"

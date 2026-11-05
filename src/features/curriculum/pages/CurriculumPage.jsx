@@ -150,6 +150,7 @@ export default function CurriculumPage() {
               className={cn(SELECT, 'max-w-[16rem]')}
               options={scopeOptions}
               departmentId=""
+              programOnly
               programId={programId}
               onChange={({ programId: p }) => update({ program: p })}
               allLabel="Tous les programmes"

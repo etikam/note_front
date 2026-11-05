@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Award, Ban, Bell, BookOpen, Download, FileImage, FileText, GraduationCap, Layers, Pencil, Sigma } from 'lucide-react'
+import { Award, Ban, Bell, BookOpen, Copy, Download, FileImage, FileText, GraduationCap, Layers, Pencil, Sigma } from 'lucide-react'
 
 import { useAccess } from '@/features/access/model/useAccess'
+import { StudentTrajectory } from '@/features/notes/ui/StudentTrajectory'
 import { useStudentDetail } from '@/features/teacher/students/hooks/useStudentDetail'
 import { STUDENT_STATUS } from '@/features/teacher/students/ui/directory/studentDirectory.constants'
 import { StudentEditModal } from '@/features/teacher/students/ui/StudentEditModal'
 import { StudentNotifyModal } from '@/features/teacher/students/ui/StudentNotifyModal'
 import { StudentSuspendModal } from '@/features/teacher/students/ui/StudentSuspendModal'
 import { formatCohortDisplay } from '@/shared/lib/formatCohortDisplay'
+import { dispatchToast } from '@/shared/notifications/toastBridge'
 import { Avatar } from '@/shared/ui/Avatar'
 import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
@@ -49,6 +51,28 @@ function groupGradesByUe(rows) {
     groups.get(key).rows.push(r)
   }
   return [...groups.values()]
+}
+
+/** Matricule : identifiant principal de l'étudiant, bien visible et copiable. */
+function MatriculeBadge({ value }) {
+  if (!value) return null
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        navigator.clipboard
+          ?.writeText(value)
+          .then(() => dispatchToast({ type: 'success', message: `Matricule ${value} copié.` }))
+          .catch(() => {})
+      }
+      title="Copier le matricule"
+      className="group inline-flex items-center gap-2 rounded-lg bg-brand-50 px-2.5 py-1 ring-1 ring-inset ring-brand-600/20 transition-colors hover:bg-brand-100 dark:bg-brand-500/10 dark:ring-brand-400/25 dark:hover:bg-brand-500/20"
+    >
+      <span className="text-[10.5px] font-semibold uppercase tracking-wider text-brand-700/80 dark:text-brand-200/80">Matricule</span>
+      <span className="font-mono text-[14px] font-bold tracking-wide text-brand-800 dark:text-brand-100">{value}</span>
+      <Copy size={13} className="text-brand-700/60 group-hover:text-brand-700 dark:text-brand-200/60" aria-hidden />
+    </button>
+  )
 }
 
 function Info({ label, children, mono = false }) {
@@ -229,8 +253,8 @@ export function TeacherStudentDetailPage() {
         description={[s.program_code ? `${s.program_code}${s.program_name && s.program_name !== s.program_code ? ` — ${s.program_name}` : ''}` : s.department_name, s.level_name, formatCohortDisplay(s)].filter(Boolean).join(' · ') || 'Sans niveau rattaché'}
         meta={
           <>
+            <MatriculeBadge value={s.matricule} />
             {status ? <StatusPill tone={status.tone}>{status.label}</StatusPill> : null}
-            <span className="font-mono text-[12px] text-[var(--app-muted)]">{s.matricule}</span>
             <span className="text-[12px] text-[var(--app-muted)]">{s.is_activated ? 'Compte activé' : 'Compte non activé'}</span>
           </>
         }
@@ -265,6 +289,8 @@ export function TeacherStudentDetailPage() {
         <StatTile icon={BookOpen} tone={pendingEnrollments ? 'warning' : 'neutral'} label="Inscriptions" value={enrollments.length} hint={pendingEnrollments ? `${pendingEnrollments} en attente` : null} />
       </div>
 
+      {access.can('grades.view') ? <StudentTrajectory studentId={s.id} /> : null}
+
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <SectionCard flush>
           <Tabs
@@ -298,6 +324,9 @@ export function TeacherStudentDetailPage() {
         <div className="flex flex-col gap-6">
           <SectionCard title="Informations personnelles">
             <dl className="-my-2 divide-y divide-[var(--app-border)]">
+              <Info label="Matricule" mono>
+                <span className="font-semibold">{s.matricule}</span>
+              </Info>
               <Info label="INE" mono>
                 {s.INE}
               </Info>

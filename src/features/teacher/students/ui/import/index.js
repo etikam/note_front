@@ -6,7 +6,7 @@ export { ImportProgressBlock } from '@/features/teacher/students/ui/import/Impor
 export { ImportResultPanel, getImportDisabledHint } from '@/features/teacher/students/ui/import/ImportResultPanel'
 export { ImportResultAlertModal } from '@/features/teacher/students/ui/import/ImportResultAlertModal'
 export { getImportResultSummary } from '@/features/teacher/students/ui/import/importResultSummary'
-export { ImportSidebar } from '@/features/teacher/students/ui/import/ImportSidebar'
+export { ImportChecklist, ImportSidebar } from '@/features/teacher/students/ui/import/ImportSidebar'
 export { ImportStepCard } from '@/features/teacher/students/ui/import/ImportStepCard'
 export { PreviewTablePanel } from '@/features/teacher/students/ui/import/PreviewTablePanel'
 export { SelectedFileRow } from '@/features/teacher/students/ui/import/SelectedFileRow'
@@ -14,3 +14,4 @@ export { TemplateSection } from '@/features/teacher/students/ui/import/TemplateS
 export { PREVIEW_ROW_CAP, REQUIRED_COLUMNS, importTableClassName } from '@/features/teacher/students/ui/import/import.constants'
 export { getRequiredColumnMatchState } from '@/features/teacher/students/ui/import/columnMatchUtils'
 export { RequiredColumnsMatchList } from '@/features/teacher/students/ui/import/RequiredColumnsMatchList'
+export { ImportActionBar } from '@/features/teacher/students/ui/import/ImportActionBar'

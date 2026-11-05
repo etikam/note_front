@@ -7,11 +7,10 @@ import { cn } from '@/shared/lib/cn'
  */
 export function CsvRequirementsDetails() {
   return (
-    <details className="group rounded-lg border border-zinc-200 bg-zinc-50/50 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)]">
+    <details className="group rounded-xl border border-[var(--app-border)] bg-[var(--app-subtle)]">
       <summary
         className={cn(
-          'flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-zinc-800',
-          'dark:text-zinc-200',
+          'flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-[13px] font-medium text-[var(--app-fg)]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-canvas)] rounded-lg',
           '[&::-webkit-details-marker]:hidden',
         )}
@@ -23,7 +22,7 @@ export function CsvRequirementsDetails() {
           aria-hidden
         />
       </summary>
-      <div className="border-t border-zinc-200 px-4 py-3 text-sm leading-relaxed text-zinc-600 dark:border-[var(--app-border)] dark:text-zinc-400">
+      <div className="border-t border-[var(--app-border)] px-4 py-3 text-[13px] leading-relaxed text-[var(--app-fg-soft)]">
         <ul className="list-disc space-y-2 pl-4">
           <li>
             Encodage <strong className="text-zinc-800 dark:text-zinc-200">UTF-8</strong> obligatoire (caractères accentués).
