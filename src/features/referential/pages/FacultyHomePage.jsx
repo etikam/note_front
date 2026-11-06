@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertTriangle, ArrowUpRight, BookOpen, Building2, CopyPlus, GitCompareArrows, GraduationCap, Plus, UserRound, Users } from 'lucide-react'
 
+import { useAccess } from '@/features/access/model/useAccess'
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
+import { fetchModules } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
 import { CurriculumDiffDrawer } from '@/features/curriculum/ui/CurriculumDiffDrawer'
 import { ReconductionDialog } from '@/features/curriculum/ui/ReconductionDialog'
 import { refPaths, useReferential } from '@/features/referential/model/ReferentialContext'
@@ -158,6 +160,14 @@ export default function FacultyHomePage() {
   const vacantDepts = deptNodes.filter((d) => !d.holders?.length).length
   const vacantPrograms = ref.programs.filter((p) => !p.holders?.length).length
   const empty = deptNodes.length === 0
+  const access = useAccess()
+  const canCalendar = access.canGlobal('calendar.manage')
+  const [modules, setModules] = useState(null)
+  useEffect(() => {
+    if (!ref.yearId) return
+    fetchModules(ref.yearId, { skipErrorToast: true }).then(setModules).catch(() => setModules(null))
+  }, [ref.yearId])
+  const missingModules = modules ? [1, 2].filter((n) => !modules.some((m) => m.number === n)) : []
 
   return (
     <div className="flex flex-col gap-6">
@@ -208,6 +218,19 @@ export default function FacultyHomePage() {
           </div>
         </div>
       </section>
+
+      {missingModules.length ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-[12.5px] text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+          <AlertTriangle size={15} aria-hidden />
+          {missingModules.map((n) => `M${n}`).join(' et ')} {missingModules.length > 1 ? 'ne sont pas créés' : 'n’est pas créé'} pour {ref.yearLabel} :
+          les cours de ce module ne peuvent pas être offerts.
+          {canCalendar ? (
+            <Link to="/settings/calendar" className="ml-auto font-semibold underline-offset-2 hover:underline">Créer les modules</Link>
+          ) : (
+            <span className="ml-auto">À faire par la direction (Paramètres → Calendrier).</span>
+          )}
+        </div>
+      ) : null}
 
       {vacantDepts || vacantPrograms ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-[12.5px] text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">

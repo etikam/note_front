@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, CopyPlus } from 'lucide-react'
 
 import { apiErrorMessage, fetchReconduction, postReconduction } from '@/features/curriculum/api/curriculaApi'
@@ -227,7 +228,8 @@ export function ReconductionDialog({ open, yearId, yearLabel, onClose, onDone })
               <p className="flex gap-2 rounded-lg bg-secondary-50 p-2.5 text-[12px] text-secondary-900 dark:bg-secondary-500/10 dark:text-secondary-100">
                 <AlertTriangle size={15} className="mt-px shrink-0" aria-hidden />
                 Module{missingModules.length > 1 ? 's' : ''} {missingModules.map((n) => `M${n}`).join(' et ')} absent{missingModules.length > 1 ? 's' : ''} en {yearLabel} :
-                créez-{missingModules.length > 1 ? 'les' : 'le'} dans l’onglet Calendrier, sinon les cours correspondants ne seront pas recopiés.
+                créez-{missingModules.length > 1 ? 'les' : 'le'} dans{' '}
+                <Link to="/settings/calendar" className="font-semibold underline">Paramètres → Calendrier</Link>, sinon les cours correspondants ne seront pas recopiés.
               </p>
             ) : null}
           </div>
