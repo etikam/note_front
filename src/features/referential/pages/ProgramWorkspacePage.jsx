@@ -17,6 +17,7 @@ import {
   Settings2,
   Trash2,
   Users,
+  UsersRound,
 } from 'lucide-react'
 
 import { apiErrorMessage } from '@/features/access/api/accessApi'
@@ -27,6 +28,7 @@ import { ChecksList, CurriculumActionDialog, CurriculumStatusPill, plural, Semes
 import { MandatesCard } from '@/features/referential/ui/MandateTools'
 import { NotInYear } from '@/features/referential/ui/NotInYear'
 import { CurriculumBoard } from '@/features/referential/ui/program/CurriculumBoard'
+import { ProgramCohorts } from '@/features/referential/ui/program/ProgramCohorts'
 import { ProgramHistory } from '@/features/referential/ui/program/ProgramHistory'
 import { ProgramStudents } from '@/features/referential/ui/program/ProgramStudents'
 import { deleteProgram } from '@/features/structure/api/structureApi'
@@ -211,6 +213,7 @@ const TABS = [
   { id: '', label: 'Vue d’ensemble', icon: LayoutDashboard },
   { id: 'maquette', label: 'Maquette', icon: Layers, perm: 'curriculum' },
   { id: 'etudiants', label: 'Étudiants', icon: Users, perm: 'students.view' },
+  { id: 'promotions', label: 'Promotions', icon: UsersRound, perm: 'students.view' },
   { id: 'cours', label: 'Cours & enseignants', icon: BookOpen, perm: 'courses.view' },
   { id: 'resultats', label: 'Résultats', icon: BarChart3, perm: 'reports.view' },
   { id: 'historique', label: 'Historique', icon: History },
@@ -278,6 +281,8 @@ export default function ProgramWorkspacePage() {
           <CurriculumBoard program={program} />
         ) : current.id === 'etudiants' ? (
           <ProgramStudents program={program} />
+        ) : current.id === 'promotions' ? (
+          <ProgramCohorts program={program} />
         ) : current.id === 'cours' ? (
           <CoursesTab academicYearId={ref.yearId} programId={String(program.id)} />
         ) : current.id === 'resultats' ? (

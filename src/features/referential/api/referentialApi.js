@@ -12,3 +12,9 @@ export async function fetchProgramHistory(identity, config) {
   const { data } = await apiClient.get(`${API_PREFIX}/academics/program-identities/${identity}/history/`, config)
   return data
 }
+
+/** Promotions d'un programme et leur parcours d'une année à l'autre. */
+export async function fetchProgramCohorts(identity, config) {
+  const { data } = await apiClient.get(`${API_PREFIX}/academics/program-identities/${identity}/cohorts/`, config)
+  return data
+}
