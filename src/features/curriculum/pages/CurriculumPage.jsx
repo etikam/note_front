@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
-import { BookOpen, CalendarDays, FileText, Layers, School } from 'lucide-react'
+import { BookOpen, CalendarDays, ClipboardCheck, FileText, Layers, School } from 'lucide-react'
 
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { useAccess } from '@/features/access/model/useAccess'
@@ -9,6 +9,7 @@ import { useScopeOptions } from '@/features/access/model/useScopeOptions'
 import { ScopeSelect } from '@/features/access/ui/ScopeSelect'
 import { CalendarTab } from '@/features/curriculum/ui/CalendarTab'
 import { CoursesTab } from '@/features/curriculum/ui/CoursesTab'
+import { CurriculaTab } from '@/features/curriculum/ui/CurriculaTab'
 import { TeachingUnitsTab } from '@/features/curriculum/ui/TeachingUnitsTab'
 import { fetchModules, fetchTeachingUnits } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
 import { PedagogyLevelsSection } from '@/features/teacherFacultyDashboard/pedagogy/ui/PedagogyLevelsSection'
@@ -85,6 +86,7 @@ export default function CurriculumPage() {
   const access = useAccess()
   const canCalendar = access.canGlobal('calendar.manage')
   const canCurriculum = access.canManage('curriculum.manage')
+  const canCurricula = canCurriculum || access.canManage('curriculum.validate') || access.canManage('structure.manage')
   const { academicYearId, academicYearLabel } = useAcademicYear()
   const [params, setParams] = useSearchParams()
   const scopeOptions = useScopeOptions('curriculum.manage', { enabled: canCurriculum })
@@ -93,13 +95,14 @@ export default function CurriculumPage() {
   const tabs = useMemo(
     () =>
       [
+        canCurricula && { id: 'curricula', label: 'Maquettes', icon: ClipboardCheck },
         canCurriculum && { id: 'ue', label: 'UE & offre', icon: Layers },
         canCurriculum && { id: 'courses', label: 'Cours', icon: BookOpen },
         canCurriculum && { id: 'maquette', label: 'Maquette', icon: FileText },
         canCurriculum && { id: 'levels', label: 'Niveaux', icon: School },
         canCalendar && { id: 'calendar', label: 'Calendrier', icon: CalendarDays },
       ].filter(Boolean),
-    [canCurriculum, canCalendar],
+    [canCurriculum, canCurricula, canCalendar],
   )
   const requested = params.get('tab')
   const tab = tabs.find((t) => t.id === requested)?.id ?? tabs[0]?.id
@@ -126,14 +129,14 @@ export default function CurriculumPage() {
   if (!tabs.length) return <Navigate to="/teacher/my-courses" replace />
 
   const programLabel = programId ? scopeOptions.programById.get(Number(programId)) : null
-  const showProgram = tab !== 'calendar' && tab !== 'levels'
+  const showProgram = tab !== 'calendar' && tab !== 'levels' && tab !== 'curricula'
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
         breadcrumbs={[{ label: 'Pédagogie' }, { label: 'Référentiel' }, { label: tabs.find((t) => t.id === tab)?.label ?? '' }]}
         title="Référentiel académique"
-        description="Le programme d’études : unités d’enseignement et leurs crédits, cours offerts par module, maquette, niveaux et calendrier."
+        description="La maquette de chaque programme pour l’année : unités d’enseignement et leurs crédits, cours, niveaux et calendrier. Chaque année a la sienne."
         meta={
           <>
             {academicYearLabel ? <StatusPill tone="info" dot={false}>Année {academicYearLabel}</StatusPill> : null}
@@ -163,6 +166,8 @@ export default function CurriculumPage() {
         <SectionCard>
           <EmptyState title="Aucune année académique" description="Créez ou choisissez l’année en cours (onglet Calendrier) pour construire l’offre." />
         </SectionCard>
+      ) : tab === 'curricula' ? (
+        <CurriculaTab academicYearId={academicYearId} academicYearLabel={academicYearLabel} />
       ) : tab === 'ue' ? (
         <TeachingUnitsTab academicYearId={academicYearId} academicYearLabel={academicYearLabel} programId={programId} canEdit={canCurriculum} />
       ) : tab === 'courses' ? (
