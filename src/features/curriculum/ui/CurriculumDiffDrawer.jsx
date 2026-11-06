@@ -107,7 +107,7 @@ function ProgramDiff({ program }) {
 }
 
 /** Comparaison de la maquette de l'année consultée avec l'année précédente. */
-export function CurriculumDiffDrawer({ open, onClose }) {
+export function CurriculumDiffDrawer({ open, onClose, programIdentity = null }) {
   const [diff, setDiff] = useState(null)
   const [error, setError] = useState(null)
   const [showSame, setShowSame] = useState(false)
@@ -126,7 +126,9 @@ export function CurriculumDiffDrawer({ open, onClose }) {
   }, [open])
 
   const sm = diff?.summary ?? {}
-  const programs = (diff?.programs ?? []).filter((p) => showSame || p.status !== 'same')
+  const programs = (diff?.programs ?? []).filter((p) =>
+    programIdentity ? String(p.identity) === String(programIdentity) : showSame || p.status !== 'same',
+  )
   const chips = [
     ['Programmes nouveaux', sm.programs_added, 'text-green-700 dark:text-green-300'],
     ['Programmes retirés', sm.programs_removed, 'text-red-700 dark:text-red-300'],
@@ -151,6 +153,7 @@ export function CurriculumDiffDrawer({ open, onClose }) {
         <div className="space-y-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>
       ) : (
         <div className="space-y-4">
+          {programIdentity ? null : (<>
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {chips.map(([label, v, cls]) => (
               <div key={label} className="rounded-xl bg-[var(--app-subtle)] px-3 py-2">
@@ -160,10 +163,15 @@ export function CurriculumDiffDrawer({ open, onClose }) {
             ))}
           </dl>
           <Checkbox checked={showSame} onChange={setShowSame} label={<span className="text-[12.5px]">Afficher les programmes inchangés</span>} />
+          </>)}
           {programs.length ? (
             programs.map((p) => <ProgramDiff key={p.identity} program={p} />)
           ) : (
-            <EmptyState compact title="Aucun changement" description="Les maquettes sont identiques à celles de l’année précédente." />
+            <EmptyState
+              compact
+              title={programIdentity ? 'Programme absent de l’année précédente' : 'Aucun changement'}
+              description={programIdentity ? 'Rien à comparer : ce programme n’existait pas l’an dernier.' : 'Les maquettes sont identiques à celles de l’année précédente.'}
+            />
           )}
         </div>
       )}

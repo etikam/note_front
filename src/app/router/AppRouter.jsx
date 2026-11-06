@@ -55,10 +55,14 @@ function RedirectPedagogyToAcademie() {
 }
 
 const HomeDashboardPage = lazy(() => import('@/features/dashboard/pages/HomeDashboardPage'))
-const CurriculumPage = lazy(() => import('@/features/curriculum/pages/CurriculumPage'))
+const ReferentialShell = lazy(() => import('@/features/referential/ui/ReferentialShell').then((m) => ({ default: m.ReferentialShell })))
+const FacultyHomePage = lazy(() => import('@/features/referential/pages/FacultyHomePage'))
+const DepartmentPage = lazy(() => import('@/features/referential/pages/DepartmentPage'))
+const ProgramWorkspacePage = lazy(() => import('@/features/referential/pages/ProgramWorkspacePage'))
+const ExplorerPage = lazy(() => import('@/features/referential/pages/ExplorerPage'))
+const CalendarSettingsPage = lazy(() => import('@/features/curriculum/pages/CalendarSettingsPage'))
 const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage'))
 const RegulationPage = lazy(() => import('@/features/regulations/pages/RegulationPage'))
-const StructurePage = lazy(() => import('@/features/structure/pages/StructurePage'))
 const NominationsPage = lazy(() => import('@/features/admin/pages/NominationsPage'))
 const RolesPage = lazy(() => import('@/features/admin/pages/RolesPage'))
 const GradeValidationPage = lazy(() => import('@/features/gradeWorkflow/pages/GradeValidationPage'))
@@ -69,6 +73,8 @@ const MakeupsPage = lazy(() => import('@/features/notes/pages/MakeupsPage'))
 const GradeHistoryPage = lazy(() => import('@/features/notes/pages/GradeHistoryPage'))
 const DocumentSettingsPage = lazy(() => import('@/features/notes/pages/DocumentSettingsPage'))
 const VerifyTranscriptPage = lazy(() => import('@/features/notes/pages/VerifyTranscriptPage'))
+
+import { GoRedirect, LegacyReferentialRedirect } from '@/features/referential/pages/redirects'
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageLoading label="Chargement" />}>{children}</Suspense>
@@ -108,8 +114,15 @@ export function AppRouter() {
               }
             />
             <Route element={<RequirePermission perms={STRUCTURE_PERMS} />}>
-              <Route path="/structure" element={<Lazy><StructurePage /></Lazy>} />
+              <Route path="/referentiel" element={<Lazy><ReferentialShell /></Lazy>}>
+                <Route index element={<Lazy><FacultyHomePage /></Lazy>} />
+                <Route path="explorer" element={<Lazy><ExplorerPage /></Lazy>} />
+                <Route path="go" element={<GoRedirect />} />
+                <Route path="departements/:identity" element={<Lazy><DepartmentPage /></Lazy>} />
+                <Route path="programmes/:identity/:tab?" element={<Lazy><ProgramWorkspacePage /></Lazy>} />
+              </Route>
             </Route>
+            <Route path="/structure" element={<LegacyReferentialRedirect />} />
             <Route path="/admin/:section" element={<RedirectAdminToSettings />} />
             <Route element={<RequirePermission perms="grades.view" />}>
               <Route path="/grades" element={<Lazy><GradesExplorerPage /></Lazy>} />
@@ -127,7 +140,7 @@ export function AppRouter() {
             </Route>
             <Route path="/teacher/validations" element={<Navigate to="/grades/validation" replace />} />
             <Route path="/teacher/my-courses" element={<TeacherMyCoursesPage />} />
-            <Route path="/teacher/academie" element={<Lazy><CurriculumPage /></Lazy>} />
+            <Route path="/teacher/academie" element={<LegacyReferentialRedirect />} />
             <Route path="/teacher/pedagogy" element={<RedirectPedagogyToAcademie />} />
             <Route path="/teacher/courses/:courseId" element={<TeacherCourseDetailPage />} />
             <Route path="/teacher/departments" element={<Navigate to="/structure" replace />} />
@@ -180,6 +193,9 @@ export function AppRouter() {
               <Route path="roles" element={<Lazy><RolesPage /></Lazy>} />
             </Route>
             <Route path="regulation" element={<Lazy><RegulationPage /></Lazy>} />
+            <Route element={<RequirePermission perms="calendar.manage" mode="global" />}>
+              <Route path="calendar" element={<Lazy><CalendarSettingsPage /></Lazy>} />
+            </Route>
             <Route element={<RequirePermission perms="system.settings" mode="global" />}>
               <Route path="grade-circuit" element={<Lazy><GradeCircuitPage /></Lazy>} />
             </Route>

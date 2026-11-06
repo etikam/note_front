@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 
 import { useAccess } from '@/features/access/model/useAccess'
 import { IMPORT_REQUIRED_HEADERS } from '@/features/teacher/students/csvPreview'
@@ -33,6 +33,10 @@ export function TeacherStudentsImportPage() {
   const access = useAccess()
   const canImport = access.canManage('students.import')
   const canViewReports = access.canManage('reports.view')
+  // Import lancé depuis un programme du référentiel : le département et le programme sont déduits.
+  const [searchParams] = useSearchParams()
+  const programId = searchParams.get('program') ?? ''
+  const requiredHeaders = programId ? IMPORT_REQUIRED_HEADERS.filter((h) => h !== 'department_code') : IMPORT_REQUIRED_HEADERS
   const inputRef = useRef(null)
   const resultRef = useRef(null)
   const [drag, setDrag] = useState(false)
@@ -57,8 +61,8 @@ export function TeacherStudentsImportPage() {
     const reader = new FileReader()
     reader.onload = () => {
       const text = typeof reader.result === 'string' ? reader.result : ''
-      const base = buildCsvPreview(text, PREVIEW_ROW_CAP)
-      const rowValidation = validateStudentImportCsv(text)
+      const base = buildCsvPreview(text, PREVIEW_ROW_CAP, requiredHeaders)
+      const rowValidation = validateStudentImportCsv(text, requiredHeaders)
       setPreview({ ...base, rowValidation })
     }
     reader.onerror = () => {
@@ -67,7 +71,8 @@ export function TeacherStudentsImportPage() {
       setPreview(null)
     }
     reader.readAsText(file, 'UTF-8')
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [programId])
 
   const clearFile = useCallback(() => {
     setPendingFile(null)
@@ -105,6 +110,7 @@ export function TeacherStudentsImportPage() {
     try {
       const form = new FormData()
       form.append('file', pendingFile)
+      if (programId) form.append('program', programId)
       const data = await postStudentImport(form, {
         headers: { 'Content-Type': undefined },
         onUploadProgress: (e) => {
@@ -127,7 +133,7 @@ export function TeacherStudentsImportPage() {
       setBusy(false)
       setTimeout(() => setUploadProgress(null), 400)
     }
-  }, [pendingFile])
+  }, [pendingFile, programId])
 
   const onDrop = (e) => {
     e.preventDefault()
@@ -167,6 +173,12 @@ export function TeacherStudentsImportPage() {
   return (
     <div className="w-full text-[var(--app-fg)]">
       <ImportPageHeader canViewReports={canViewReports} />
+      {programId ? (
+        <p className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-brand-50 px-4 py-2.5 text-[12.5px] text-brand-900 dark:bg-brand-500/10 dark:text-brand-100">
+          Import dans un programme : la colonne <span className="font-mono">department_code</span> est facultative, les niveaux sont ceux du programme.
+          <Link to={`/referentiel/go?program=${programId}&tab=etudiants`} className="ml-auto font-semibold hover:underline">Revenir au programme</Link>
+        </p>
+      ) : null}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
         <div className="flex min-w-0 flex-col gap-5">
@@ -200,7 +212,7 @@ export function TeacherStudentsImportPage() {
                 />
               )}
 
-              {preview && pendingFile ? <RequiredColumnsMatchList headers={preview.headers} /> : null}
+              {preview && pendingFile ? <RequiredColumnsMatchList headers={preview.headers} requiredKeys={requiredHeaders} /> : null}
 
               {busy ? <ImportProgressBlock uploadProgress={uploadProgress} /> : null}
 
@@ -214,7 +226,7 @@ export function TeacherStudentsImportPage() {
                     headers={preview.headers}
                     dataRows={preview.dataRows}
                     totalDataRows={preview.totalDataRows}
-                    requiredKeys={IMPORT_REQUIRED_HEADERS}
+                    requiredKeys={requiredHeaders}
                   />
                   <ImportActionBar ready={canStartImport} count={preview.totalDataRows} entityLabel="étudiant" hint={importHint} busy={busy} onRun={runImport} />
                 </Stack>
@@ -248,6 +260,7 @@ export function TeacherStudentsImportPage() {
             uploadProgress={uploadProgress}
             result={result}
             globalError={error}
+            requiredColumnKeys={requiredHeaders}
           />
         </aside>
       </div>

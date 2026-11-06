@@ -1,6 +1,5 @@
 import {
   BookOpen,
-  Building2,
   ClipboardCheck,
   FileText,
   FileUp,
@@ -55,12 +54,11 @@ export function buildStaffNavigation(access) {
       id: 'pedagogy',
       label: 'Pédagogie',
       items: [
-        { to: '/structure', label: 'Structure', icon: Building2, visible: access.isManager },
         {
-          to: '/teacher/academie',
+          to: '/referentiel',
           label: 'Référentiel',
           icon: Library,
-          visible: access.canManage('curriculum.manage') || access.canGlobal('calendar.manage'),
+          visible: access.isManager || access.canManage('curriculum.manage'),
         },
       ],
     },

@@ -97,8 +97,9 @@ export function validateStudentImportCsv(text, requiredColumns = IMPORT_REQUIRED
       }
     }
 
-    if (!deptCode || !cycle || !levelNumRaw) {
-      pushIssue(line, 'department_code, level_cycle et level_number sont obligatoires.')
+    const needsDept = requiredColumns.includes('department_code')
+    if ((needsDept && !deptCode) || !cycle || !levelNumRaw) {
+      pushIssue(line, needsDept ? 'department_code, level_cycle et level_number sont obligatoires.' : 'level_cycle et level_number sont obligatoires.')
     }
 
     if (levelNumRaw && !/^-?\d+$/.test(levelNumRaw)) {

@@ -63,7 +63,7 @@ export function homePathFor(user) {
   if (user.role === 'teacher') {
     const access = buildAccess(user)
     if (access.canManage('stats.view')) return '/teacher/dashboard'
-    if (access.isManager) return '/structure'
+    if (access.isManager) return '/referentiel'
     return '/teacher/my-courses'
   }
   return '/auth/login'

@@ -34,7 +34,7 @@ function semestersFor(level) {
  *   unit?: { id: number; code: string; name: string; total_credits?: number; description?: string; program?: number } | null
  * }} props
  */
-export function TeachingUnitCreateModal({ open, onClose, onCreated, mode = 'create', unit = null }) {
+export function TeachingUnitCreateModal({ open, onClose, onCreated, mode = 'create', unit = null, defaults = null, lockProgram = false }) {
   const { programs } = usePrograms({ enabled: open })
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(empty)
@@ -53,7 +53,13 @@ export function TeachingUnitCreateModal({ open, onClose, onCreated, mode = 'crea
       })
       return
     }
-    setForm(empty)
+    setForm({
+      ...empty,
+      ...(defaults
+        ? Object.fromEntries(Object.entries(defaults).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]))
+        : {}),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, mode, unit])
 
   const [levels, setLevels] = useState([])
@@ -144,6 +150,7 @@ export function TeachingUnitCreateModal({ open, onClose, onCreated, mode = 'crea
             programs={programs}
             value={form.program}
             onChange={(value) => setForm((x) => ({ ...x, program: value, level: '', semester: '' }))}
+            disabled={lockProgram}
             required
           />
         </Field>

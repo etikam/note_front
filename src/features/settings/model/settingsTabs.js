@@ -1,4 +1,4 @@
-import { FileBadge, KeyRound, Scale, ShieldCheck, SlidersHorizontal, UserCog } from 'lucide-react'
+import { CalendarDays, FileBadge, KeyRound, Scale, ShieldCheck, SlidersHorizontal, UserCog } from 'lucide-react'
 
 /** Onglets de Paramètres : préférences pour tous, configuration selon les droits. */
 export function settingsTabs(access) {
@@ -17,6 +17,7 @@ export function settingsTabs(access) {
       icon: Scale,
       visible: access.can('system.settings') || access.isManager,
     },
+    { to: '/settings/calendar', label: 'Calendrier', icon: CalendarDays, visible: access.canGlobal('calendar.manage') },
     {
       to: '/settings/documents',
       label: 'Documents officiels',

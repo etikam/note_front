@@ -318,7 +318,7 @@ export default function HomeDashboardPage() {
               columns={programColumns}
               rows={data?.programs ?? []}
               loading={loading}
-              onRowClick={(p) => navigate(`/structure?node=program:${p.id}`)}
+              onRowClick={(p) => navigate(`/referentiel/go?program=${p.id}`)}
               initialSort={{ key: 'program', dir: 'asc' }}
               empty={{ title: 'Aucun programme', description: 'Les programmes de votre périmètre apparaîtront ici.' }}
             />

@@ -94,7 +94,7 @@ export function buildCommands(access) {
       icon: Library,
       title: 'Construire la maquette',
       subtitle: 'UE, cours et crédits',
-      to: '/teacher/academie?tab=maquette',
+      to: '/referentiel',
       visible: access.canManage('curriculum.manage'),
       keywords: 'maquette ue cours crédits référentiel',
     },
@@ -102,7 +102,7 @@ export function buildCommands(access) {
       id: 'action:structure',
       icon: Building2,
       title: 'Explorer la structure',
-      to: '/structure',
+      to: '/referentiel',
       visible: access.isManager,
       keywords: 'département programme structure',
     },
@@ -119,8 +119,8 @@ export const RESULT_GROUPS = [
   { key: 'students', label: 'Étudiants', icon: GraduationCap, to: (r) => `/teacher/students/${r.id}` },
   { key: 'teachers', label: 'Enseignants', icon: UserCog, to: (r) => `/teacher/faculty/${r.id}` },
   { key: 'courses', label: 'Cours', icon: BookOpen, to: (r) => `/teacher/courses/${r.id}` },
-  { key: 'programs', label: 'Programmes', icon: ShieldCheck, to: (r) => `/structure?node=program:${r.id}` },
-  { key: 'departments', label: 'Départements', icon: Building2, to: (r) => `/structure?node=department:${r.id}` },
+  { key: 'programs', label: 'Programmes', icon: ShieldCheck, to: (r) => `/referentiel/go?program=${r.id}` },
+  { key: 'departments', label: 'Départements', icon: Building2, to: (r) => `/referentiel/go?department=${r.id}` },
 ]
 
 export function normalize(text) {
