@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, ArrowUpRight, BookOpen, Building2, CopyPlus, GitCompareArrows, GraduationCap, Plus, UserRound, Users } from 'lucide-react'
+import { AlertTriangle, ArrowUpRight, BookOpen, Building2, CalendarRange, CopyPlus, GitCompareArrows, GraduationCap, Plus, UserRound, Users } from 'lucide-react'
 
 import { useAccess } from '@/features/access/model/useAccess'
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
@@ -205,6 +205,16 @@ export default function FacultyHomePage() {
         <div className="relative mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--app-border)]/70 pt-4">
           <YearRail />
           <div className="flex flex-wrap gap-2">
+            {!empty && access.canManage('students.view') ? (
+              <Button size="sm" variant="ghost" as={Link} to={`/referentiel/passage?parity=${ref.year?.active_semester_parity === 'even' ? 'odd' : 'even'}`}>
+                <CalendarRange size={14} aria-hidden /> Passage de semestre
+                {ref.year?.active_semester_parity ? (
+                  <span className="ml-1 rounded-full bg-[var(--app-subtle)] px-1.5 text-[10.5px] font-semibold">
+                    bloc {ref.year.active_semester_parity === 'even' ? 'pair' : 'impair'} ouvert
+                  </span>
+                ) : null}
+              </Button>
+            ) : null}
             {ref.previousYear && !empty ? (
               <Button variant="ghost" size="sm" onClick={() => setDiff(true)}>
                 <GitCompareArrows size={14} aria-hidden /> Comparer avec {ref.previousYear.label}

@@ -31,6 +31,11 @@ export const RULE_FIELDS = {
     { key: 'max_debts', label: 'Dettes autorisées', help: 'Nombre maximal de cours en dette pour être admis ; au-delà, l’étudiant est ajourné.' },
     { key: 'mentions', label: 'Mentions', help: 'Mention portée sur les relevés des étudiants admis, selon la moyenne générale (seuils croissants).' },
   ],
+  progression: [
+    { key: 'max_debts_same_parity', label: 'Dettes autorisées pour passer', help: 'Dettes non soldées admises sur les semestres antérieurs de même parité (S1 pour entrer en S3, S1 et S3 pour S5…) ; au-delà, l’étudiant redouble.' },
+    { key: 'block_on_pending_makeup', label: 'Rattrapage en attente', help: 'Un rattrapage non soldé sur ces semestres met le passage de l’étudiant en attente.' },
+    { key: 'published_only', label: 'Notes publiées seulement', help: 'Seules les notes publiées comptent pour le passage.' },
+  ],
 }
 
 const round2 = (n) => Math.round(n * 100) / 100

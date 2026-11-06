@@ -289,6 +289,24 @@ export function TeacherStudentDetailPage() {
         <StatTile icon={BookOpen} tone={pendingEnrollments ? 'warning' : 'neutral'} label="Inscriptions" value={enrollments.length} hint={pendingEnrollments ? `${pendingEnrollments} en attente` : null} />
       </div>
 
+      {s.registrations?.length ? (
+        <SectionCard title="Parcours" description="Une inscription par année : niveau, semestre, régime et résultat.">
+          <ol className="flex flex-wrap gap-3">
+            {s.registrations.map((r) => (
+              <li key={r.year_id} className="min-w-[12rem] flex-1 rounded-xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-3">
+                <p className="flex items-center justify-between gap-2 text-[12px] font-semibold">
+                  {r.year}
+                  <span className={'rounded-full px-2 py-0.5 text-[10.5px] ' + (r.outcome === 'pending' ? 'bg-[var(--app-subtle)] text-[var(--app-muted)]' : r.outcome === 'repeat' ? 'bg-secondary-50 text-secondary-800 dark:bg-secondary-500/10 dark:text-secondary-200' : 'bg-green-50 text-green-800 dark:bg-green-500/10 dark:text-green-200')}>
+                    {r.outcome_label}
+                  </span>
+                </p>
+                <p className="mt-1 text-[13px]"><span className="font-mono text-[12px] font-semibold">{r.program}</span> {r.level} · S{r.semester}</p>
+                {r.status !== 'enrolled' ? <p className="mt-0.5 text-[11.5px] text-secondary-800 dark:text-secondary-200">{r.status_label}</p> : null}
+              </li>
+            ))}
+          </ol>
+        </SectionCard>
+      ) : null}
       {access.can('grades.view') ? <StudentTrajectory studentId={s.id} /> : null}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">

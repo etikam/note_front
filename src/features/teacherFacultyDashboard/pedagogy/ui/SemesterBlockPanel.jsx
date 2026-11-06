@@ -5,6 +5,8 @@ import {
   postSemesterBlockActivate,
   postSemesterBlockDeactivate,
 } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
+import { Link } from 'react-router-dom'
+
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { ConfirmModal } from '@/shared/ui/ConfirmModal'
@@ -116,7 +118,7 @@ export function SemesterBlockPanel({ academicYearId, academicYearLabel, activeSe
                 S1–S2 (L1), S3–S4 (L2), S5–S6 (L3). L’activation d’un <strong className="font-semibold text-[var(--app-fg)]">bloc pair</strong>{' '}
                 fait passer les étudiants éligibles de S1→S2, S3→S4, S5→S6 et les inscrit aux cours du semestre d’arrivée (champ « Semestre
                 programme » sur chaque cours). Le <strong className="font-semibold text-[var(--app-fg)]">bloc impair</strong> fait S2→S3 et S4→S5.
-                Les positions semestrielles des étudiants pour l’année doivent être renseignées avant activation.
+                Chaque activation passe par une simulation détaillée (éligibilité selon le règlement, raisons) et laisse un rapport.
               </p>
               <p className="mt-2 text-[11px] font-medium text-[var(--app-muted)]">
                 Année cible :{' '}
@@ -146,16 +148,17 @@ export function SemesterBlockPanel({ academicYearId, academicYearLabel, activeSe
               size="sm"
               className="mt-3 w-full sm:w-auto bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-400"
               disabled={busy}
-              onClick={() => setConfirm({ kind: 'even' })}
+              as={Link}
+              to="/referentiel/passage?parity=even"
             >
               <Power size={14} className="opacity-90" aria-hidden />
-              Activer le bloc pair
+              Simuler et activer le bloc pair
             </Button>
           ) : null}
         </div>
         <div className="rounded-xl border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_96%,var(--app-canvas))] p-4 dark:bg-white/[0.04]">
           <p className="text-[11px] font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">Bloc impair</p>
-          <p className="mt-1.5 text-xs text-[var(--app-muted)]">Progression depuis S2 et S4 (S6 inchangé ici).</p>
+          <p className="mt-1.5 text-xs text-[var(--app-muted)]">Rentrée : S2 → S3, S4 → S5 (nouvelle inscription), redoublement ou diplôme après S6.</p>
           {canCalendar ? (
             <Button
               type="button"
@@ -163,10 +166,11 @@ export function SemesterBlockPanel({ academicYearId, academicYearLabel, activeSe
               size="sm"
               className="mt-3 w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-600 dark:hover:bg-amber-500"
               disabled={busy}
-              onClick={() => setConfirm({ kind: 'odd' })}
+              as={Link}
+              to="/referentiel/passage?parity=odd"
             >
               <Power size={14} className="opacity-90" aria-hidden />
-              Activer le bloc impair
+              Simuler et activer le bloc impair
             </Button>
           ) : null}
         </div>

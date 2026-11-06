@@ -148,6 +148,11 @@ function Control({ section, field, value, onChange, disabled, rules, scaleLocked
       return <Choice options={MAKEUP_SCOPES} value={value} onChange={onChange} disabled={disabled} />
     case 'deliberation.mentions':
       return <MentionsEditor value={value ?? []} onChange={onChange} disabled={disabled} scale={scale} />
+    case 'progression.max_debts_same_parity':
+      return <Optional value={value} onChange={onChange} disabled={disabled} enableLabel="Limiter les dettes" defaultValue={2} min={0} max={20} step={1} />
+    case 'progression.block_on_pending_makeup':
+    case 'progression.published_only':
+      return <Checkbox checked={Boolean(value)} disabled={disabled} onChange={onChange} label={value ? 'Oui' : 'Non'} />
     case 'deliberation.max_debts':
       return <Optional value={value} onChange={onChange} disabled={disabled} enableLabel="Limiter les dettes" defaultValue={2} min={0} max={20} step={1} />
     default:
@@ -158,6 +163,7 @@ function Control({ section, field, value, onChange, disabled, rules, scaleLocked
 const SECTIONS = [
   { id: 'notation', title: 'Notation d’un cours', description: 'Comment la moyenne et le résultat d’un cours sont calculés à partir de ses notes.' },
   { id: 'deliberation', title: 'Délibération', description: 'Comment le jury valide les UE et décide pour chaque étudiant (PV, relevés).' },
+  { id: 'progression', title: 'Passage de semestre', description: 'Qui passe au semestre suivant à l’ouverture d’un bloc du calendrier (pair ou impair).' },
 ]
 
 /**
@@ -167,8 +173,12 @@ const SECTIONS = [
 export function RulesForm({ value, onChange, base, mode = 'base', readOnly = false, scaleLocked = false }) {
   const override = mode === 'override'
   const resolved = override
-    ? { notation: { ...base.notation, ...(value.notation ?? {}) }, deliberation: { ...base.deliberation, ...(value.deliberation ?? {}) } }
-    : value
+    ? {
+        notation: { ...base.notation, ...(value.notation ?? {}) },
+        deliberation: { ...base.deliberation, ...(value.deliberation ?? {}) },
+        progression: { ...(base.progression ?? {}), ...(value.progression ?? {}) },
+      }
+    : { ...value, progression: value.progression ?? {} }
 
   function setRule(section, key, v) {
     onChange({ ...value, [section]: { ...(value[section] ?? {}), [key]: v } })
