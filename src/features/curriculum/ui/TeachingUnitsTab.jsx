@@ -238,7 +238,7 @@ function UnitItem({ unit: u, courses, open, onToggle, canEdit, onManage, onEdit,
           <span className="min-w-0">
             <span className="block truncate text-[13.5px] font-semibold text-[var(--app-fg)]">{u.name}</span>
             <span className="text-[11.5px] text-[var(--app-muted)]">
-              {u.program_code} · {u.total_credits} crédits · {courses.length} cours {academicYearLabel ? `en ${academicYearLabel}` : ''}
+              {[u.program_code, u.level_name, u.semester ? `S${u.semester}` : null].filter(Boolean).join(' · ')} · {u.total_credits} crédits · {courses.length} cours {academicYearLabel ? `en ${academicYearLabel}` : ''}
             </span>
           </span>
         </button>

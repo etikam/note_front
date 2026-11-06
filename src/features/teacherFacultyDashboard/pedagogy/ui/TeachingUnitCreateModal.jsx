@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Layers } from 'lucide-react'
 
+import { fetchLevels } from '@/features/academicYear/api/academicsApi'
 import { usePrograms } from '@/features/academicYear/hooks/usePrograms'
 import { ProgramSelect } from '@/features/academicYear/ui/ProgramSelect'
 import { patchTeachingUnit, postTeachingUnit } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
@@ -14,7 +15,15 @@ import { PedagogyModalFrame } from '@/features/teacherFacultyDashboard/pedagogy/
 const inputCls =
   'w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]'
 
-const empty = { code: '', name: '', total_credits: 6, description: '', program: '' }
+const empty = { code: '', name: '', total_credits: 6, description: '', program: '', level: '', semester: '' }
+
+/** Semestres de parcours d'un niveau (licence : L1 → S1/S2, L2 → S3/S4, L3 → S5/S6). */
+function semestersFor(level) {
+  if (!level) return []
+  if (String(level.cycle || '').toUpperCase() !== 'LICENCE') return [1, 2, 3, 4, 5, 6]
+  const n = Number(level.number)
+  return n >= 1 && n <= 3 ? [2 * n - 1, 2 * n] : []
+}
 
 /**
  * @param {{
@@ -39,11 +48,30 @@ export function TeachingUnitCreateModal({ open, onClose, onCreated, mode = 'crea
         total_credits: unit.total_credits ?? 6,
         description: unit.description ?? '',
         program: unit.program != null ? String(unit.program) : '',
+        level: unit.level != null ? String(unit.level) : '',
+        semester: unit.semester != null ? String(unit.semester) : '',
       })
       return
     }
     setForm(empty)
   }, [open, mode, unit])
+
+  const [levels, setLevels] = useState([])
+  useEffect(() => {
+    if (!open || !form.program) {
+      setLevels([])
+      return undefined
+    }
+    let cancelled = false
+    fetchLevels({ program: form.program }, { skipErrorToast: true })
+      .then((rows) => !cancelled && setLevels(rows))
+      .catch(() => !cancelled && setLevels([]))
+    return () => {
+      cancelled = true
+    }
+  }, [open, form.program])
+  const selectedLevel = useMemo(() => levels.find((lv) => String(lv.id) === String(form.level)) ?? null, [levels, form.level])
+  const semesters = semestersFor(selectedLevel)
 
   const submit = async (e) => {
     e.preventDefault()
@@ -55,6 +83,8 @@ export function TeachingUnitCreateModal({ open, onClose, onCreated, mode = 'crea
         total_credits: Number(form.total_credits) || 6,
         description: form.description,
         program: Number(form.program),
+        level: form.level ? Number(form.level) : null,
+        semester: form.semester ? Number(form.semester) : null,
       }
       if (mode === 'edit' && unit?.id) {
         await patchTeachingUnit(unit.id, payload)
@@ -66,7 +96,9 @@ export function TeachingUnitCreateModal({ open, onClose, onCreated, mode = 'crea
       await onCreated?.()
       onClose()
     } catch (err) {
-      dispatchToast({ type: 'error', message: err?.response?.data?.detail ?? err?.message ?? 'Erreur.' })
+      const details = err?.response?.data?.details
+      const first = details ? Object.values(details).flat()[0] : null
+      dispatchToast({ type: 'error', message: first ?? err?.response?.data?.detail ?? err?.response?.data?.message ?? err?.message ?? 'Erreur.' })
     } finally {
       setSaving(false)
     }
@@ -77,7 +109,7 @@ export function TeachingUnitCreateModal({ open, onClose, onCreated, mode = 'crea
       open={open}
       onClose={onClose}
       title={mode === 'edit' ? 'Modifier l’unité d’enseignement' : 'Nouvelle unité d’enseignement'}
-      subtitle="Code catalogue, intitulé, volume de crédits et programme (maquette) de rattachement."
+      subtitle="Élément de la maquette de l’année : programme, place dans le parcours (niveau, semestre) et crédits."
       icon={Layers}
       widthClass="max-w-xl"
       footer={
@@ -111,10 +143,52 @@ export function TeachingUnitCreateModal({ open, onClose, onCreated, mode = 'crea
             className={inputCls}
             programs={programs}
             value={form.program}
-            onChange={(value) => setForm((x) => ({ ...x, program: value }))}
+            onChange={(value) => setForm((x) => ({ ...x, program: value, level: '', semester: '' }))}
             required
           />
         </Field>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Niveau">
+            <select
+              className={inputCls}
+              value={form.level}
+              disabled={!form.program}
+              onChange={(e) => {
+                const level = levels.find((lv) => String(lv.id) === e.target.value)
+                setForm((x) => ({
+                  ...x,
+                  level: e.target.value,
+                  semester: semestersFor(level).includes(Number(x.semester)) ? x.semester : '',
+                }))
+              }}
+            >
+              <option value="">{form.program ? 'Choisir un niveau…' : 'Choisir d’abord un programme'}</option>
+              {levels.map((lv) => (
+                <option key={lv.id} value={lv.id}>
+                  {lv.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Semestre">
+            <select
+              className={inputCls}
+              value={form.semester}
+              disabled={!selectedLevel}
+              onChange={(e) => setForm((x) => ({ ...x, semester: e.target.value }))}
+            >
+              <option value="">{selectedLevel ? 'Choisir un semestre…' : '—'}</option>
+              {semesters.map((n) => (
+                <option key={n} value={n}>
+                  S{n}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+        <p className="text-[11.5px] leading-relaxed text-[var(--app-muted)]">
+          Les cours de l’UE prennent son niveau et son semestre ; le module (M1 ou M2) en découle.
+        </p>
       </form>
     </PedagogyModalFrame>
   )

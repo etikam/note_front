@@ -143,6 +143,9 @@ export function CourseOfferingFormBlock({
   const selectedDepartmentId = selectedUe?.department != null ? Number(selectedUe.department) : null
   const selectedDepartmentCode = selectedUe?.department_code ?? null
   const selectedProgramId = selectedUe?.program ?? null
+  // L'UE situe ses cours dans le parcours : son niveau et son semestre s'imposent à l'offre.
+  const ueLevel = selectedUe?.level != null ? String(selectedUe.level) : null
+  const ueSemester = selectedUe?.semester != null ? String(selectedUe.semester) : null
   const selectedLevel = useMemo(
     () => levels.find((lv) => String(lv.id) === String(offer.level)) ?? null,
     [levels, offer.level],
@@ -172,6 +175,17 @@ export function CourseOfferingFormBlock({
       cancelled = true
     }
   }, [selectedDepartmentId, selectedProgramId])
+
+  useEffect(() => {
+    if (ueLevel) setOffer((o) => (o.level === ueLevel ? o : { ...o, level: ueLevel }))
+  }, [ueLevel])
+
+  useEffect(() => {
+    if (!ueSemester) return
+    setOffer((o) =>
+      o.rows.every((r) => r.semester === ueSemester) ? o : { ...o, rows: o.rows.map((r) => ({ ...r, semester: ueSemester })) },
+    )
+  }, [ueSemester, offer.rows.length])
 
   useEffect(() => {
     if (!offer.module || modules.length === 0) return
@@ -353,7 +367,8 @@ export function CourseOfferingFormBlock({
             className={inputCls}
             value={offer.level}
             onChange={(e) => setOffer((o) => ({ ...o, level: e.target.value }))}
-            disabled={!selectedDepartmentId}
+            disabled={!selectedDepartmentId || Boolean(ueLevel)}
+            title={ueLevel ? 'Niveau fixé par l’UE' : undefined}
           >
             <option value="">{selectedDepartmentId ? 'Choisir un niveau…' : 'Choisir d’abord une UE…'}</option>
             {levels.map((lv) => (
@@ -495,7 +510,8 @@ export function CourseOfferingFormBlock({
                   <select
                     className={inputCls}
                     value={row.semester}
-                    disabled={!selectedLevel}
+                    disabled={!selectedLevel || Boolean(ueSemester)}
+                    title={ueSemester ? 'Semestre fixé par l’UE' : undefined}
                     onChange={(e) => {
                       const v = e.target.value
                       setOffer((o) => ({
