@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, ArrowUpRight, BookOpen, Building2, CalendarRange, CopyPlus, GitCompareArrows, GraduationCap, Plus, UserRound, Users } from 'lucide-react'
+import { AlertTriangle, ArrowUpRight, Award, BookOpen, Building2, CalendarRange, CopyPlus, GitCompareArrows, GraduationCap, Plus, UserRound, Users } from 'lucide-react'
 
 import { useAccess } from '@/features/access/model/useAccess'
 import { useAcademicYear } from '@/features/academicYear/model/AcademicYearContext'
 import { fetchModules } from '@/features/teacherFacultyDashboard/pedagogy/pedagogyApi'
+import { fetchGraduates } from '@/features/referential/api/referentialApi'
+import { ClosureBanner } from '@/features/referential/ui/GraduatesBoard'
 import { CurriculumDiffDrawer } from '@/features/curriculum/ui/CurriculumDiffDrawer'
 import { ReconductionDialog } from '@/features/curriculum/ui/ReconductionDialog'
 import { refPaths, useReferential } from '@/features/referential/model/ReferentialContext'
@@ -168,6 +170,11 @@ export default function FacultyHomePage() {
     fetchModules(ref.yearId, { skipErrorToast: true }).then(setModules).catch(() => setModules(null))
   }, [ref.yearId])
   const missingModules = modules ? [1, 2].filter((n) => !modules.some((m) => m.number === n)) : []
+  const [graduates, setGraduates] = useState(null)
+  useEffect(() => {
+    if (!ref.yearId || !access.canManage('students.view')) return
+    fetchGraduates(undefined, { skipErrorToast: true }).then(setGraduates).catch(() => setGraduates(null))
+  }, [ref.yearId, access])
 
   return (
     <div className="flex flex-col gap-6">
@@ -215,6 +222,12 @@ export default function FacultyHomePage() {
                 ) : null}
               </Button>
             ) : null}
+            {!empty && access.canManage('students.view') ? (
+              <Button size="sm" variant="ghost" as={Link} to="/referentiel/sortants">
+                <Award size={14} aria-hidden /> Sortants
+                {graduates?.totals.finalists ? <span className="ml-1 rounded-full bg-[var(--app-subtle)] px-1.5 text-[10.5px] font-semibold tabular-nums">{graduates.totals.finalists}</span> : null}
+              </Button>
+            ) : null}
             {ref.previousYear && !empty ? (
               <Button variant="ghost" size="sm" onClick={() => setDiff(true)}>
                 <GitCompareArrows size={14} aria-hidden /> Comparer avec {ref.previousYear.label}
@@ -228,6 +241,15 @@ export default function FacultyHomePage() {
           </div>
         </div>
       </section>
+
+      {graduates && !graduates.closed && graduates.totals.finalists ? (
+        <div className="flex flex-col gap-2">
+          <ClosureBanner data={graduates} />
+          <Link to="/referentiel/sortants" className="self-end text-[12.5px] font-semibold text-brand-700 hover:underline dark:text-brand-300">
+            Voir les sortants et le détail par programme
+          </Link>
+        </div>
+      ) : null}
 
       {missingModules.length ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-[12.5px] text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">

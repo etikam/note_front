@@ -18,3 +18,22 @@ export async function fetchProgramCohorts(identity, config) {
   const { data } = await apiClient.get(`${API_PREFIX}/academics/program-identities/${identity}/cohorts/`, config)
   return data
 }
+
+/** Sortants de l'année consultée (``programId`` pour un seul programme). */
+export async function fetchGraduates(programId, config) {
+  const { data } = await apiClient.get(`${API_PREFIX}/academics/graduates/`, { params: programId ? { program: programId } : {}, ...config })
+  return data
+}
+
+export async function downloadGraduatesCsv(programId, filename) {
+  const { data } = await apiClient.get(`${API_PREFIX}/academics/graduates/`, {
+    params: { export: 'csv', ...(programId ? { program: programId } : {}) },
+    responseType: 'blob',
+  })
+  const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], { type: 'text/csv;charset=utf-8' }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}

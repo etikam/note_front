@@ -61,6 +61,7 @@ const DepartmentPage = lazy(() => import('@/features/referential/pages/Departmen
 const ProgramWorkspacePage = lazy(() => import('@/features/referential/pages/ProgramWorkspacePage'))
 const ExplorerPage = lazy(() => import('@/features/referential/pages/ExplorerPage'))
 const PassagePage = lazy(() => import('@/features/referential/pages/PassagePage'))
+const GraduatesPage = lazy(() => import('@/features/referential/pages/GraduatesPage'))
 const CalendarSettingsPage = lazy(() => import('@/features/curriculum/pages/CalendarSettingsPage'))
 const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage'))
 const RegulationPage = lazy(() => import('@/features/regulations/pages/RegulationPage'))
@@ -119,6 +120,7 @@ export function AppRouter() {
                 <Route index element={<Lazy><FacultyHomePage /></Lazy>} />
                 <Route path="explorer" element={<Lazy><ExplorerPage /></Lazy>} />
                 <Route path="passage" element={<Lazy><PassagePage /></Lazy>} />
+                <Route path="sortants" element={<Lazy><GraduatesPage /></Lazy>} />
                 <Route path="go" element={<GoRedirect />} />
                 <Route path="departements/:identity" element={<Lazy><DepartmentPage /></Lazy>} />
                 <Route path="programmes/:identity/:tab?" element={<Lazy><ProgramWorkspacePage /></Lazy>} />

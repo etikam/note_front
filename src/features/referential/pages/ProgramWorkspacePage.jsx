@@ -18,6 +18,7 @@ import {
   Trash2,
   Users,
   UsersRound,
+  Award,
 } from 'lucide-react'
 
 import { apiErrorMessage } from '@/features/access/api/accessApi'
@@ -27,6 +28,7 @@ import { refPaths, useReferential } from '@/features/referential/model/Referenti
 import { ChecksList, CurriculumActionDialog, CurriculumStatusPill, plural, SemesterChip } from '@/features/referential/ui/curriculumBits'
 import { MandatesCard } from '@/features/referential/ui/MandateTools'
 import { NotInYear } from '@/features/referential/ui/NotInYear'
+import { GraduatesBoard } from '@/features/referential/ui/GraduatesBoard'
 import { CurriculumBoard } from '@/features/referential/ui/program/CurriculumBoard'
 import { ProgramCohorts } from '@/features/referential/ui/program/ProgramCohorts'
 import { ProgramHistory } from '@/features/referential/ui/program/ProgramHistory'
@@ -214,6 +216,7 @@ const TABS = [
   { id: 'maquette', label: 'Maquette', icon: Layers, perm: 'curriculum' },
   { id: 'etudiants', label: 'Étudiants', icon: Users, perm: 'students.view' },
   { id: 'promotions', label: 'Promotions', icon: UsersRound, perm: 'students.view' },
+  { id: 'sortants', label: 'Sortants', icon: Award, perm: 'students.view' },
   { id: 'cours', label: 'Cours & enseignants', icon: BookOpen, perm: 'courses.view' },
   { id: 'resultats', label: 'Résultats', icon: BarChart3, perm: 'reports.view' },
   { id: 'historique', label: 'Historique', icon: History },
@@ -281,6 +284,8 @@ export default function ProgramWorkspacePage() {
           <CurriculumBoard program={program} />
         ) : current.id === 'etudiants' ? (
           <ProgramStudents program={program} />
+        ) : current.id === 'sortants' ? (
+          <GraduatesBoard program={program} yearLabel={ref.yearLabel} />
         ) : current.id === 'promotions' ? (
           <ProgramCohorts program={program} />
         ) : current.id === 'cours' ? (
