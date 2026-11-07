@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Award, CheckCircle2, Download, FileWarning, GraduationCap, Hourglass, Wallet } from 'lucide-react'
+import { AlertTriangle, Award, CheckCircle2, ChevronRight, Download, FileWarning, GraduationCap, Hourglass, Wallet } from 'lucide-react'
 
 import { apiErrorMessage } from '@/features/curriculum/api/curriculaApi'
 import { downloadGraduatesCsv, fetchGraduates } from '@/features/referential/api/referentialApi'
 import { refPaths } from '@/features/referential/model/ReferentialContext'
+import { GraduateBlockersDialog } from '@/features/referential/ui/GraduateBlockersDialog'
 import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
@@ -20,6 +21,9 @@ export const GRADUATE_STATES = {
 }
 
 const SHEET = { draft: 'en saisie', review: 'en validation', unlocked: 'rouverte' }
+
+/** États qui empêchent (encore) de recevoir le diplôme. */
+const BLOCKED = ['debts', 'incomplete']
 
 function StatePill({ state }) {
   const s = GRADUATE_STATES[state]
@@ -73,6 +77,8 @@ export function GraduatesBoard({ program = null, yearLabel }) {
   const [error, setError] = useState(null)
   const [state, setState] = useState('')
   const [q, setQ] = useState('')
+  const [tab, setTab] = useState('blocked')
+  const [detail, setDetail] = useState(null)
 
   useEffect(() => {
     setData(null)
@@ -81,10 +87,19 @@ export function GraduatesBoard({ program = null, yearLabel }) {
       .catch((err) => setError(apiErrorMessage(err)))
   }, [program?.id])
 
+  const inTab = (s) => (tab === 'blocked' ? BLOCKED.includes(s.state) : !BLOCKED.includes(s.state))
   const students = useMemo(
-    () => (data?.students ?? []).filter((s) => (!state || s.state === state) && (!q || `${s.matricule} ${s.name}`.toLowerCase().includes(q.toLowerCase()))),
-    [data, state, q],
+    () =>
+      (data?.students ?? []).filter(
+        (s) => inTab(s) && (!state || s.state === state) && (!q || `${s.matricule} ${s.name}`.toLowerCase().includes(q.toLowerCase())),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data, state, q, tab],
   )
+  const tabCounts = useMemo(() => {
+    const all = data?.students ?? []
+    return { ok: all.filter((s) => !BLOCKED.includes(s.state)).length, blocked: all.filter((s) => BLOCKED.includes(s.state)).length }
+  }, [data])
 
   if (error) return <SectionCard><EmptyState tone="error" title="Sortants indisponibles" description={error} /></SectionCard>
   if (!data) return <div className="space-y-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}</div>
@@ -106,7 +121,10 @@ export function GraduatesBoard({ program = null, yearLabel }) {
           <button
             key={k}
             type="button"
-            onClick={() => setState(state === k ? '' : k)}
+            onClick={() => {
+              setTab(BLOCKED.includes(k) ? 'blocked' : 'ok')
+              setState(state === k ? '' : k)
+            }}
             className={cn('rounded-2xl border bg-[var(--app-elevated)] p-4 text-left transition-all hover:shadow-md', state === k ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-[var(--app-border)]')}
           >
             <div className="font-heading text-[24px] font-semibold tabular-nums">{t[k]}</div>
@@ -171,10 +189,32 @@ export function GraduatesBoard({ program = null, yearLabel }) {
         </SectionCard>
       ) : null}
 
+      <div className="flex flex-wrap gap-1 border-b border-[var(--app-border)]" role="tablist" aria-label="Finissants">
+        {[
+          ['blocked', 'Ne peuvent pas recevoir le diplôme', tabCounts.blocked, 'text-red-700 dark:text-red-300'],
+          ['ok', 'Peuvent recevoir le diplôme', tabCounts.ok, 'text-green-700 dark:text-green-300'],
+        ].map(([id, label, n, tone]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => { setTab(id); setState('') }}
+            className={cn(
+              '-mb-px flex items-center gap-2 border-b-2 px-3 py-2.5 text-[13px] font-medium',
+              tab === id ? 'border-brand-600 text-[var(--app-fg)] dark:border-brand-400' : 'border-transparent text-[var(--app-muted)] hover:text-[var(--app-fg)]',
+            )}
+          >
+            {label}
+            <span className={cn('rounded-full bg-[var(--app-subtle)] px-2 text-[11.5px] font-semibold tabular-nums', n && tone)}>{n}</span>
+          </button>
+        ))}
+      </div>
+
       <SectionCard
         flush
         title={`${students.length} finissant${students.length > 1 ? 's' : ''}`}
-        description={state ? GRADUATE_STATES[state].label : 'Tous les états'}
+        description={state ? GRADUATE_STATES[state].label : tab === 'blocked' ? 'Dettes à solder ou résultats incomplets — cliquez pour le détail' : 'Diplômables et diplômés'}
         actions={
           <div className="flex items-center gap-2">
             <SearchInput value={q} onChange={setQ} placeholder="Matricule ou nom" className="max-w-[14rem]" />
@@ -189,24 +229,48 @@ export function GraduatesBoard({ program = null, yearLabel }) {
             <table className="w-full text-[13px]">
               <tbody>
                 {students.map((s) => (
-                  <tr key={s.id} className="border-b border-[var(--app-border)] last:border-0">
+                  <tr
+                    key={s.id}
+                    onClick={BLOCKED.includes(s.state) ? () => setDetail(s) : undefined}
+                    className={cn('border-b border-[var(--app-border)] last:border-0', BLOCKED.includes(s.state) && 'cursor-pointer hover:bg-[var(--app-hover)]')}
+                  >
                     <td className="w-[15rem] px-4 py-2.5">
-                      <Link to={`/teacher/students/${s.id}`} className="font-medium hover:underline">{s.name}</Link>
+                      <Link to={`/teacher/students/${s.id}`} onClick={(e) => e.stopPropagation()} className="font-medium hover:underline">{s.name}</Link>
                       <span className="block font-mono text-[11px] text-[var(--app-muted)]">{s.matricule}</span>
                     </td>
                     {!program ? <td className="px-2 py-2.5 font-mono text-[12px]">{s.program.code}</td> : null}
                     <td className="px-2 py-2.5 text-[12px] text-[var(--app-fg-soft)]">{s.level} · S{s.semester}</td>
                     <td className="px-2 py-2.5"><StatePill state={s.state} /></td>
-                    <td className="px-4 py-2.5 text-[12px] text-[var(--app-fg-soft)]">{s.detail}</td>
+                    <td className="px-2 py-2.5 text-[12px] text-[var(--app-fg-soft)]">
+                      {BLOCKED.includes(s.state) ? (
+                        <span className="flex flex-wrap gap-1.5">
+                          {s.blockers.unpublished.length ? <span className="rounded-md bg-red-50 px-1.5 py-0.5 text-red-800 dark:bg-red-500/10 dark:text-red-200">{s.blockers.unpublished.length} note{s.blockers.unpublished.length > 1 ? 's' : ''} non publiée{s.blockers.unpublished.length > 1 ? 's' : ''}</span> : null}
+                          {s.blockers.debts.length ? <span className="rounded-md bg-secondary-50 px-1.5 py-0.5 text-secondary-800 dark:bg-secondary-500/10 dark:text-secondary-200">{s.blockers.debts.length} dette{s.blockers.debts.length > 1 ? 's' : ''}</span> : null}
+                          {s.blockers.pending.length ? <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">{s.blockers.pending.length} rattrapage{s.blockers.pending.length > 1 ? 's' : ''}</span> : null}
+                        </span>
+                      ) : (
+                        s.detail
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-[12px] tabular-nums text-[var(--app-muted)]">
+                      {s.credits.acquired}/{s.credits.required} cr.
+                      {BLOCKED.includes(s.state) ? <ChevronRight size={14} className="ml-1 inline text-[var(--app-muted)]" aria-hidden /> : null}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <EmptyState compact title="Aucun finissant" description={state || q ? 'Aucun ne correspond au filtre.' : 'Aucun étudiant inscrit au dernier niveau cette année.'} />
+          <EmptyState
+            compact
+            title={tab === 'blocked' ? 'Aucun finissant bloqué' : 'Aucun finissant diplômable'}
+            description={state || q ? 'Aucun ne correspond au filtre.' : tab === 'blocked' ? 'Tous les finissants peuvent recevoir leur diplôme.' : 'Aucun finissant n’a encore tout acquis.'}
+          />
         )}
       </SectionCard>
+
+      <GraduateBlockersDialog student={detail} onClose={() => setDetail(null)} />
 
       {data.closed && t.graduable ? (
         <p className="text-[12.5px] text-[var(--app-fg-soft)]">

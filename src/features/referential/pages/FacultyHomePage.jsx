@@ -46,9 +46,9 @@ function YearRail() {
               onClick={() => setAcademicYearId(y.id)}
               aria-current={active ? 'true' : undefined}
               className={cn(
-                'group flex items-center gap-2 rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-all',
+                'group flex items-center gap-2 rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors',
                 active
-                  ? 'bg-brand-600 text-white shadow-md shadow-brand-600/25 dark:bg-brand-500'
+                  ? 'bg-brand-600 text-white dark:bg-brand-500'
                   : 'bg-[var(--app-elevated)] text-[var(--app-fg-soft)] ring-1 ring-[var(--app-border)] hover:ring-brand-400',
               )}
             >
@@ -61,7 +61,7 @@ function YearRail() {
               />
               {y.year}
               {y.is_current ? (
-                <span className={cn('rounded-full px-1.5 text-[10px] font-semibold uppercase', active ? 'bg-white/20' : 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200')}>
+                <span className={cn('rounded-full px-1.5 text-[10.5px] font-semibold', active ? 'bg-white/20' : 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200')}>
                   en cours
                 </span>
               ) : null}
@@ -82,7 +82,7 @@ function Metric({ icon: Icon, label, value, tone }) {
           'flex h-10 w-10 items-center justify-center rounded-xl',
           tone === 'warning'
             ? 'bg-secondary-50 text-secondary-700 dark:bg-secondary-500/10 dark:text-secondary-200'
-            : 'bg-white/70 text-brand-700 ring-1 ring-brand-600/10 dark:bg-white/5 dark:text-brand-200',
+            : 'bg-[var(--app-subtle)] text-brand-700 dark:text-brand-200',
         )}
       >
         <Icon size={18} aria-hidden />
@@ -100,9 +100,8 @@ function DepartmentCard({ dept }) {
   return (
     <Link
       to={refPaths.department(dept)}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-5 transition-all hover:-translate-y-0.5 hover:border-brand-400/60 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)]"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-5 transition-colors hover:border-brand-400/60 hover:bg-[var(--app-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)]"
     >
-      <span className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand-500/5 transition-transform duration-500 group-hover:scale-150" aria-hidden />
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
           <span className="rounded-md bg-brand-50 px-2 py-0.5 font-mono text-[12px] font-bold text-brand-800 ring-1 ring-inset ring-brand-600/15 dark:bg-brand-500/10 dark:text-brand-200">
@@ -125,7 +124,7 @@ function DepartmentCard({ dept }) {
         ].map(([label, v]) => (
           <div key={label}>
             <dd className="font-heading text-[17px] font-semibold tabular-nums">{v}</dd>
-            <dt className="text-[10.5px] uppercase tracking-wider text-[var(--app-muted)]">{label}</dt>
+            <dt className="text-[11px] text-[var(--app-muted)]">{label}</dt>
           </div>
         ))}
       </dl>
@@ -178,11 +177,10 @@ export default function FacultyHomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="relative overflow-hidden rounded-3xl border border-[var(--app-border)] bg-gradient-to-br from-brand-50 via-[var(--app-elevated)] to-secondary-50/40 p-6 dark:from-brand-500/10 dark:via-[var(--app-elevated)] dark:to-secondary-500/5 sm:p-8">
-        <span className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-brand-500/10 blur-3xl" aria-hidden />
+      <section className="relative overflow-hidden rounded-3xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-6 sm:p-8">
         <div className="relative flex flex-wrap items-start justify-between gap-6">
           <div className="min-w-0 max-w-2xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-700 dark:text-brand-300">
+            <p className="text-[12px] font-semibold text-brand-700 dark:text-brand-300">
               {faculty?.code ?? 'Établissement'} · {ref.yearLabel ?? 'année'}
             </p>
             <h1 className="mt-2 font-heading text-[26px] font-semibold leading-tight tracking-tight sm:text-[30px]">{faculty?.name ?? 'Référentiel'}</h1>
@@ -192,7 +190,7 @@ export default function FacultyHomePage() {
             </p>
           </div>
           {readiness?.total ? (
-            <div className="flex items-center gap-3 rounded-2xl bg-white/60 p-3 pr-4 ring-1 ring-[var(--app-border)] backdrop-blur dark:bg-white/5">
+            <div className="flex items-center gap-3 rounded-2xl bg-[var(--app-subtle)] p-3 pr-4 ring-1 ring-[var(--app-border)]">
               <ReadinessRing validated={readiness.validated} total={readiness.total} />
               <div>
                 <p className="text-[13px] font-semibold">Maquettes validées</p>

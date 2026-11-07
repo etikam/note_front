@@ -292,7 +292,7 @@ export default function HomeDashboardPage() {
                   <SheetProgressBar counts={data.sheets.counts} />
                   {data.sheets.review_by_step.length ? (
                     <div className="mt-5 border-t border-[var(--app-border)] pt-4">
-                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--app-muted)]">En validation, par étape</p>
+                      <p className="mb-2 text-[12px] font-semibold text-[var(--app-fg-soft)]">En validation, par étape</p>
                       <ul className="flex flex-wrap gap-2">
                         {data.sheets.review_by_step.map((s) => (
                           <li key={s.label} className="rounded-lg border border-[var(--app-border)] px-3 py-1.5 text-[12.5px]">
