@@ -61,7 +61,7 @@ export const FileDropzone = forwardRef(function FileDropzone(
         }
       }}
       className={cn(
-        'group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed px-6 py-10 text-center outline-none transition-all',
+        'group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed px-6 py-10 text-center outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-canvas)]',
         disabled && 'pointer-events-none opacity-50',
         drag
@@ -77,7 +77,7 @@ export const FileDropzone = forwardRef(function FileDropzone(
       <span
         className={cn(
           'mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--app-elevated)] text-brand-600 shadow-sm ring-1 ring-[var(--app-border)] transition-transform dark:text-brand-300',
-          drag ? '-translate-y-1 scale-110' : 'group-hover:-translate-y-0.5',
+          drag ? 'scale-110' : '',
         )}
       >
         <FileUp size={26} strokeWidth={1.75} aria-hidden />

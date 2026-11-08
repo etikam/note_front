@@ -147,7 +147,7 @@ export function TeachingUnitDetailModal({
             <div className="overflow-hidden rounded-xl border border-zinc-200/90 dark:border-[var(--app-border)]">
               <table className="w-full min-w-[40rem] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-200 bg-zinc-50/95 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_88%,white)] text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  <tr className="border-b border-zinc-200 bg-zinc-50/95 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_88%,white)] text-[11.5px] font-semibold text-zinc-500 dark:text-zinc-400">
                     <th className="py-2.5 pl-3 pr-2 font-mono">Code</th>
                     <th className="py-2.5 pr-2">Matière</th>
                     <th className="py-2.5 pr-2 w-12 text-center">Cr.</th>

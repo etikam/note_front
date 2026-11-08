@@ -15,11 +15,11 @@ const STEPS_LABELS = ['Identification', 'Vérification', 'Activation']
 
 const BTN_PRIMARY =
   'inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg text-sm font-medium ' +
-  'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 dark:bg-brand-500 dark:hover:bg-brand-400 dark:active:bg-brand-600 dark:text-white shadow-sm transition-all disabled:opacity-50 disabled:pointer-events-none'
+  'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 dark:bg-brand-500 dark:hover:bg-brand-400 dark:active:bg-brand-600 dark:text-white shadow-sm transition-colors disabled:opacity-50 disabled:pointer-events-none'
 
 const BTN_SECONDARY =
   'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-sm font-medium ' +
-  'bg-transparent text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-[var(--app-border)] hover:bg-zinc-100 dark:hover:bg-[var(--app-nav-hover)] transition-all disabled:opacity-50 disabled:pointer-events-none'
+  'bg-transparent text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-[var(--app-border)] hover:bg-zinc-100 dark:hover:bg-[var(--app-nav-hover)] transition-colors disabled:opacity-50 disabled:pointer-events-none'
 
 function LookupStep({ flow, departments, isDepartmentsLoading }) {
   function onSubmit(e) {
@@ -243,7 +243,7 @@ export function ActivationWizard() {
                 key={type}
                 type="button"
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-medium transition-all',
+                  'flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-medium transition-colors',
                   flow.profileType === type
                     ? 'bg-white dark:bg-[var(--app-elevated)] text-secondary-700 dark:text-secondary-200 shadow-sm'
                     : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'

@@ -145,7 +145,7 @@ export function LevelStatisticsReport() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1040px] border-collapse text-[13px]">
                 <thead>
-                  <tr className="border-b border-[var(--app-border)] bg-[var(--app-subtle)] text-[11px] font-semibold uppercase tracking-wide text-[var(--app-muted)]">
+                  <tr className="border-b border-[var(--app-border)] bg-[var(--app-subtle)] text-[11.5px] font-semibold text-[var(--app-muted)]">
                     <th className="px-4 py-2.5 text-left">Niveau</th>
                     {COLUMNS.map((c) => (
                       <th key={c.key} className="px-3 py-2.5 text-right">
@@ -218,7 +218,7 @@ export function LevelStatisticsReport() {
                 </tbody>
                 <tfoot>
                   <tr className="bg-[var(--app-subtle)] font-semibold">
-                    <td className="px-4 py-2.5 text-[12.5px] uppercase tracking-wide text-[var(--app-muted)]">Total</td>
+                    <td className="px-4 py-2.5 text-[12.5px] font-semibold text-[var(--app-muted)]">Total</td>
                     {COLUMNS.map((c) => (
                       <td key={c.key} className="px-3 py-2.5 text-right">
                         <Split value={c.decision ? t.decisions[c.key] : t[c.key]} strong tone={c.tone} />

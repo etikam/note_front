@@ -17,12 +17,11 @@ export function ThemeLampToggle({ className }) {
       type="button"
       onClick={toggleMode}
       className={cn(
-        'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200',
+        'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-200',
         'border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_88%,var(--app-canvas))]',
-        'text-[var(--app-fg)] shadow-sm hover:bg-[color-mix(in_srgb,var(--app-elevated)_78%,var(--app-canvas))] hover:shadow-md',
+        'text-[var(--app-fg)] shadow-sm hover:bg-[color-mix(in_srgb,var(--app-elevated)_78%,var(--app-canvas))]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-elevated)]',
-        isDark &&
-          'border-amber-400/45 bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-zinc-900/40 shadow-[0_0_20px_-4px_rgba(251,191,36,0.55)] dark:from-amber-400/25 dark:via-amber-500/12 dark:to-zinc-950/50 dark:shadow-[0_0_24px_-2px_rgba(251,191,36,0.45)]',
+        isDark && 'border-amber-400/40 bg-amber-500/10 dark:bg-amber-400/10',
         className,
       )}
       aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
@@ -33,7 +32,7 @@ export function ThemeLampToggle({ className }) {
         <Moon
           size={22}
           strokeWidth={2.25}
-          className="theme-toggle-moon text-amber-200 drop-shadow-[0_0_8px_rgba(253,230,138,0.55)]"
+          className="theme-toggle-moon text-amber-200"
           aria-hidden
         />
       ) : (

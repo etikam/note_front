@@ -125,7 +125,7 @@ export function GraduatesBoard({ program = null, yearLabel }) {
               setTab(BLOCKED.includes(k) ? 'blocked' : 'ok')
               setState(state === k ? '' : k)
             }}
-            className={cn('rounded-2xl border bg-[var(--app-elevated)] p-4 text-left transition-all hover:shadow-md', state === k ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-[var(--app-border)]')}
+            className={cn('rounded-2xl border bg-[var(--app-elevated)] p-4 text-left transition-colors hover:bg-[var(--app-hover)]', state === k ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-[var(--app-border)]')}
           >
             <div className="font-heading text-[24px] font-semibold tabular-nums">{t[k]}</div>
             <StatePill state={k} />
@@ -137,7 +137,7 @@ export function GraduatesBoard({ program = null, yearLabel }) {
         <SectionCard flush title="Par programme" description="Dernier niveau de chaque programme et état de son dernier semestre.">
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
-              <thead className="text-left text-[11px] uppercase tracking-wider text-[var(--app-muted)]">
+              <thead className="text-left text-[11.5px] font-semibold text-[var(--app-muted)]">
                 <tr className="border-b border-[var(--app-border)]">
                   <th className="px-4 py-2 font-semibold">Programme</th>
                   <th className="px-4 py-2 font-semibold">Dernier niveau</th>

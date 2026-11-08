@@ -60,7 +60,7 @@ function StepIndicator({ current }) {
           <div key={num} className="flex items-center">
             <div
               className={cn(
-                'w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300',
+                'w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-300',
                 done && 'bg-brand-600 text-white shadow-sm',
                 active && 'bg-brand-600 text-white ring-4 ring-brand-100 dark:ring-brand-900/40 shadow-md',
                 !done && !active && 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500',
@@ -193,7 +193,7 @@ function Step2Personal({ form, onChange, errors }) {
               <label
                 key={value}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg border px-4 py-3 cursor-pointer transition-all',
+                  'flex items-center gap-3 rounded-lg border px-4 py-3 cursor-pointer transition-colors',
                   form.gender === value
                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 dark:border-brand-500'
                     : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600',
@@ -503,7 +503,7 @@ export function StudentOnboardingPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-brand-950/20 flex flex-col items-center justify-center px-3 py-6 sm:p-4">
+    <div className="min-h-screen bg-[var(--app-canvas)] flex flex-col items-center justify-center px-3 py-6 sm:p-4">
       {/* header */}
       <div className="flex items-center gap-2 mb-5 sm:mb-8">
         <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shadow">
@@ -573,7 +573,7 @@ export function StudentOnboardingPage() {
               onClick={handleNext}
               disabled={submitting || uploading}
               className={cn(
-                'flex items-center gap-1.5 px-5 h-10 rounded-lg text-sm font-semibold transition-all shadow-sm',
+                'flex items-center gap-1.5 px-5 h-10 rounded-lg text-sm font-semibold transition-colors shadow-sm',
                 'bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white',
                 'dark:bg-brand-500 dark:hover:bg-brand-400 dark:active:bg-brand-600',
                 'disabled:opacity-60 disabled:pointer-events-none',

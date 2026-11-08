@@ -110,7 +110,7 @@ export function LoginForm() {
 
         <button
           className={cn(
-            'mt-1 h-10 rounded-lg text-sm font-medium text-white transition-all',
+            'mt-1 h-10 rounded-lg text-sm font-medium text-white transition-colors',
             'bg-brand-600 hover:bg-brand-700 active:bg-brand-800 dark:bg-brand-500 dark:hover:bg-brand-400 dark:active:bg-brand-600 dark:text-white shadow-sm',
             'flex items-center justify-center gap-2',
             'disabled:opacity-60 disabled:pointer-events-none'

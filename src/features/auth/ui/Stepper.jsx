@@ -28,7 +28,7 @@ export function Stepper({ steps, currentStep, completedSteps = new Set() }) {
               <div
                 aria-current={isActive ? 'step' : undefined}
                 className={cn(
-                  'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200',
+                  'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors duration-200',
                   isCompleted && 'bg-brand-600 text-white dark:bg-brand-500 dark:text-white',
                   isActive && !isCompleted && 'bg-brand-600 text-white dark:bg-brand-500 dark:text-white ring-4 ring-brand-100 dark:ring-[color-mix(in_srgb,var(--app-elevated)_65%,white)]',
                   !isActive && !isCompleted && 'bg-zinc-100 dark:bg-[color-mix(in_srgb,var(--app-elevated)_78%,white)] text-zinc-400 dark:text-zinc-400'

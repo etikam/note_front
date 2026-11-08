@@ -44,7 +44,7 @@ export function StudentGradesTable({ grades }) {
   return (
     <div className="hidden lg:block overflow-x-auto rounded-2xl border border-[var(--app-border)]">
       <table className="w-full min-w-[720px] text-sm">
-        <thead className="bg-[var(--app-elevated)] text-left text-[11px] font-bold uppercase tracking-wide text-[var(--app-muted)]">
+        <thead className="bg-[var(--app-elevated)] text-left text-[11.5px] font-semibold text-[var(--app-muted)]">
           <tr>
             <th className="px-4 py-3">Cours</th>
             <th className="px-4 py-3">Année</th>

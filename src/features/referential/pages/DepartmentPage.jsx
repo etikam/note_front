@@ -48,7 +48,7 @@ function ProgramCard({ program }) {
   return (
     <Link
       to={refPaths.program(program)}
-      className="group relative flex flex-col rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-5 transition-all hover:-translate-y-0.5 hover:border-brand-400/60 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)]"
+      className="group relative flex flex-col rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-5 transition-colors hover:border-brand-400/60 hover:bg-[var(--app-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)]"
     >
       <div className="flex items-start justify-between gap-3">
         <span className="rounded-md bg-[var(--app-subtle)] px-2 py-0.5 font-mono text-[12px] font-bold ring-1 ring-inset ring-[var(--app-border)]">{program.code}</span>
@@ -110,7 +110,7 @@ export default function DepartmentPage() {
       <section className="rounded-3xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-600/25">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white">
               <Building2 size={24} aria-hidden />
             </span>
             <div className="min-w-0">

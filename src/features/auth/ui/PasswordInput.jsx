@@ -54,7 +54,7 @@ export function PasswordInput({ value, onChange, placeholder = 'Mot de passe', s
         <div className="flex items-center gap-2">
           <div className="flex-1 h-1.5 bg-zinc-100 dark:bg-[color-mix(in_srgb,var(--app-elevated)_80%,black)] rounded-full overflow-hidden">
             <div
-              className={cn('h-full rounded-full transition-all duration-300', level.color)}
+              className={cn('h-full rounded-full transition-[width,background-color] duration-300', level.color)}
               style={{ width: `${level.width}%` }}
             />
           </div>

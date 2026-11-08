@@ -239,7 +239,7 @@ export default function PassagePage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <section className="rounded-3xl border border-[var(--app-border)] bg-gradient-to-br from-brand-50 via-[var(--app-elevated)] to-violet-50/40 p-6 dark:from-brand-500/10 dark:to-violet-500/5">
+      <section className="rounded-3xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-700 dark:text-brand-300">Passage de semestre · {ref.yearLabel}</p>
         <h1 className="mt-1 font-heading text-[24px] font-semibold tracking-tight">Faire avancer les étudiants éligibles</h1>
         <p className="mt-1.5 max-w-3xl text-[13px] text-[var(--app-fg-soft)]">
@@ -253,7 +253,7 @@ export default function PassagePage() {
               type="button"
               onClick={() => { setReport(null); setParams({ parity: id }, { replace: true }) }}
               className={cn(
-                'rounded-2xl border p-4 text-left transition-all',
+                'rounded-2xl border p-4 text-left transition-colors',
                 parity === id ? 'border-brand-500 bg-[var(--app-elevated)] shadow-md ring-2 ring-brand-500/20' : 'border-[var(--app-border)] bg-[var(--app-elevated)]/60 hover:border-brand-400/60',
               )}
             >

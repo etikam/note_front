@@ -13,7 +13,7 @@ export function NotationTable({
     <div className="min-w-0 overflow-x-auto">
       <table className="w-full min-w-[48rem] text-left text-sm">
         <thead>
-          <tr className="border-b border-zinc-200 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:border-[var(--app-border)] dark:text-zinc-400">
+          <tr className="border-b border-zinc-200 text-[11.5px] font-semibold text-zinc-500 dark:border-[var(--app-border)] dark:text-zinc-400">
             <th className="py-2.5 pl-4 pr-2">Matricule</th>
             <th className="py-2.5 pr-2">Étudiant</th>
             {(grading?.weights ?? [30, 30, 40]).map((w, i) => (

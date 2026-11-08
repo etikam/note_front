@@ -56,7 +56,7 @@ export function GradeImportConflictResolution({ conflicts, disabled = false, onC
       <div className="max-h-[40vh] overflow-auto rounded-xl border border-[var(--app-border)]">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_88%,var(--app-canvas))] text-[10px] font-semibold uppercase tracking-wide text-[var(--app-muted)]">
+            <tr className="border-b border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-elevated)_88%,var(--app-canvas))] text-[11px] font-semibold text-[var(--app-muted)]">
               <th className="py-2 pl-3 pr-2">Étudiant</th>
               <th className="px-1 py-2">Champ</th>
               <th className="px-1 py-2 text-center">Base</th>

@@ -119,7 +119,7 @@ export function GradeImportConflictModal({ open, conflicts, onClose, onResolve }
         <div className="max-h-[55vh] overflow-auto px-5 py-3">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-zinc-200 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:border-[var(--app-border)]">
+              <tr className="border-b border-zinc-200 text-[11px] font-semibold text-zinc-500 dark:border-[var(--app-border)]">
                 <th className="py-2 pr-2">Étudiant</th>
                 <th className="py-2 px-1">Champ</th>
                 <th className="py-2 px-1 text-center">Base</th>

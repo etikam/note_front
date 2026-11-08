@@ -114,7 +114,7 @@ function NavSection({ section, collapsed, folded, onToggle, pathname, onNavigate
         aria-controls={listId}
         disabled={containsActive}
         title={containsActive ? 'Contient la page ouverte' : undefined}
-        className="group flex items-center justify-between rounded-md px-2.5 pb-1 pt-0.5 text-left text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--app-sidebar-muted)] outline-none hover:text-[var(--app-sidebar-fg)] focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)] disabled:cursor-default disabled:hover:text-[var(--app-sidebar-muted)]"
+        className="group flex items-center justify-between rounded-md px-2.5 pb-1 pt-0.5 text-left text-[11.5px] font-semibold text-[var(--app-sidebar-muted)] outline-none hover:text-[var(--app-sidebar-fg)] focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)] disabled:cursor-default disabled:hover:text-[var(--app-sidebar-muted)]"
       >
         {section.label}
         <ChevronDown size={13} className={cn('shrink-0 transition-transform duration-200', !open && '-rotate-90', containsActive && 'opacity-40')} aria-hidden />

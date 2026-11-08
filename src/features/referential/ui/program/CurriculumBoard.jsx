@@ -41,7 +41,7 @@ function UnitCard({ unit, courses, editable, onOpen, onEdit, onDelete }) {
   return (
     <article
       className={cn(
-        'group rounded-xl border bg-[var(--app-elevated)] p-3 shadow-sm transition-all hover:shadow-md',
+        'group rounded-xl border bg-[var(--app-elevated)] p-3 shadow-sm transition-colors hover:bg-[var(--app-hover)]',
         ok ? 'border-[var(--app-border)]' : 'border-secondary-400/50',
       )}
     >

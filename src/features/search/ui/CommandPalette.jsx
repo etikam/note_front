@@ -155,7 +155,7 @@ export function CommandPalette({ open, onClose }) {
           ) : (
             groups.map((g) => (
               <div key={g.label} className="mb-1.5" role="group" aria-label={g.label}>
-                <p className="px-3 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)]">{g.label}</p>
+                <p className="px-3 pb-1 pt-2 text-[11.5px] font-semibold text-[var(--app-muted)]">{g.label}</p>
                 {g.items.map((item) => {
                   index += 1
                   const i = index

@@ -166,7 +166,7 @@ export function DeliberationReport() {
               <table className="w-full border-collapse text-[12.5px]">
                 <thead className="bg-[var(--app-subtle)] text-[11px] text-[var(--app-muted)]">
                   <tr className="border-b border-[var(--app-border)]">
-                    <th rowSpan={2} className="sticky left-0 z-[1] min-w-[14rem] bg-[var(--app-subtle)] px-3 py-2 text-left font-semibold uppercase tracking-wider">
+                    <th rowSpan={2} className="sticky left-0 z-[1] min-w-[14rem] bg-[var(--app-subtle)] px-3 py-2 text-left font-semibold">
                       Étudiant
                     </th>
                     {units.map((u) => (
@@ -175,9 +175,9 @@ export function DeliberationReport() {
                         {u.code} <span className="font-normal">({u.credits} cr.)</span>
                       </th>
                     ))}
-                    <th rowSpan={2} className="border-l border-[var(--app-border)] px-3 py-2 text-right font-semibold uppercase">Moy.</th>
-                    <th rowSpan={2} className="px-3 py-2 text-right font-semibold uppercase">Crédits</th>
-                    <th rowSpan={2} className="px-3 py-2 text-left font-semibold uppercase">Décision</th>
+                    <th rowSpan={2} className="border-l border-[var(--app-border)] px-3 py-2 text-right font-semibold">Moy.</th>
+                    <th rowSpan={2} className="px-3 py-2 text-right font-semibold">Crédits</th>
+                    <th rowSpan={2} className="px-3 py-2 text-left font-semibold">Décision</th>
                   </tr>
                   <tr className="border-b border-[var(--app-border)]">
                     {units.flatMap((u) => [

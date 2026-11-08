@@ -49,8 +49,7 @@ export function PedagogyModalFrame({
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative overflow-hidden border-b border-zinc-200/90 dark:border-[var(--app-border)] bg-gradient-to-br from-brand-50/90 via-white to-zinc-50/80 dark:from-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:via-[var(--app-elevated)] dark:to-[color-mix(in_srgb,var(--app-elevated)_92%,white)] px-5 py-4">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.12),transparent_55%)] dark:bg-[radial-gradient(ellipse_at_top_right,rgba(249,115,22,0.12),transparent_52%)]" />
+        <div className="relative overflow-hidden border-b border-[var(--app-border)] bg-[var(--app-subtle)] px-5 py-4">
           <div className="relative flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
               {Icon ? (

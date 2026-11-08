@@ -28,10 +28,6 @@ export function ImportPageHeader({ title = DEFAULT_TITLE, description, actions, 
 
   return (
     <header className="relative overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)]">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(60rem_12rem_at_0%_0%,rgb(37_99_235/0.10),transparent_60%),radial-gradient(30rem_10rem_at_100%_100%,rgb(249_115_22/0.08),transparent_60%)]"
-      />
       <div className="relative flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
         <div className="flex min-w-0 gap-4">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm dark:bg-brand-500">

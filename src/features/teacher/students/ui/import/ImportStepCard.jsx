@@ -5,7 +5,7 @@ import { cn } from '@/shared/lib/cn'
 const BADGE = {
   done: 'bg-green-600 text-white ring-green-600 dark:bg-green-500 dark:ring-green-500',
   error: 'bg-red-600 text-white ring-red-600 dark:bg-red-500 dark:ring-red-500',
-  current: 'bg-brand-600 text-white ring-brand-600 shadow-[0_0_0_4px_rgb(37_99_235/0.15)] dark:bg-brand-500 dark:ring-brand-500',
+  current: 'bg-brand-600 text-white ring-2 ring-brand-600/30 dark:bg-brand-500 dark:ring-brand-500/40',
   todo: 'bg-[var(--app-elevated)] text-[var(--app-muted)] ring-[var(--app-border-strong)]',
 }
 

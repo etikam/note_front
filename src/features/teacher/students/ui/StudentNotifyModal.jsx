@@ -94,7 +94,7 @@ export function StudentNotifyModal({ open, onClose, studentLabel }) {
                     type="button"
                     onClick={() => setChannel(id)}
                     className={cn(
-                      'flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-xs font-medium transition-all',
+                      'flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-xs font-medium transition-colors',
                       selected
                         ? 'border-secondary-500 bg-secondary-50 text-secondary-900 ring-2 ring-secondary-500/20 dark:bg-secondary-950/25 dark:text-secondary-100 dark:border-secondary-500'
                         : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)] dark:text-zinc-300 dark:hover:border-secondary-600'

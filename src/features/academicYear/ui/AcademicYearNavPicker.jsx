@@ -93,7 +93,7 @@ export function AcademicYearNavPicker({ className }) {
       <button
         type="button"
         className={cn(
-          'flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium transition-all',
+          'flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium transition-colors',
           'border border-[var(--app-border)] bg-[var(--app-elevated)] text-[var(--app-fg)] hover:bg-[var(--app-nav-hover)]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-elevated)]',
           open && 'border-secondary-500 ring-2 ring-secondary-200/80 dark:ring-secondary-700/50',
@@ -130,7 +130,7 @@ export function AcademicYearNavPicker({ className }) {
         >
           {/* Header panel */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--app-border)]">
-            <span className="text-xs font-semibold text-[var(--app-muted)] uppercase tracking-wide">Années académiques</span>
+            <span className="text-xs font-semibold text-[var(--app-muted)]">Années académiques</span>
             <button
               type="button"
               className="flex items-center justify-center w-7 h-7 rounded-md text-[var(--app-muted)] hover:text-[var(--app-fg)] hover:bg-[var(--app-nav-hover)] transition-colors"

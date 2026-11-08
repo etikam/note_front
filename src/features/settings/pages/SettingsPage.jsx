@@ -141,7 +141,7 @@ export function SettingsPage() {
                     type="button"
                     onClick={() => setActive(s.id)}
                     className={cn(
-                      'flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all lg:px-3.5 lg:py-3',
+                      'flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors lg:px-3.5 lg:py-3',
                       isActive
                         ? 'border-brand-400/50 bg-brand-500/10 text-[var(--app-fg)] shadow-sm dark:border-brand-500/40'
                         : 'border-transparent bg-[color-mix(in_srgb,var(--app-elevated)_92%,transparent)] text-[var(--app-muted)] hover:border-[var(--app-border)] hover:text-[var(--app-fg)]',

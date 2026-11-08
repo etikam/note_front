@@ -53,7 +53,7 @@ function EntryProgress({ graded, enrolled }) {
 function CourseCard({ course: c }) {
   const sheet = SHEET_STATUS[c.sheet.status]
   return (
-    <article className="group flex h-full flex-col rounded-xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-[border-color,box-shadow] hover:border-brand-400/50 hover:shadow-md dark:hover:border-brand-500/40">
+    <article className="group flex h-full flex-col rounded-xl border border-[var(--app-border)] bg-[var(--app-elevated)] shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-colors hover:border-brand-400/50 hover:bg-[var(--app-hover)] dark:hover:border-brand-500/40">
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-2">
           <span className="flex flex-wrap items-center gap-1.5">

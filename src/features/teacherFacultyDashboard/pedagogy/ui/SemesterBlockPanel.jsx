@@ -103,10 +103,6 @@ export function SemesterBlockPanel({ academicYearId, academicYearLabel, activeSe
   return (
     <Card className="rounded-2xl border border-[var(--app-border)] p-5 sm:p-6 shadow-sm overflow-hidden">
       <div className="relative">
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-brand-500/[0.07] via-transparent to-violet-500/[0.06]"
-          aria-hidden
-        />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 gap-3">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-700 ring-1 ring-brand-500/20 dark:bg-brand-400/15 dark:text-brand-200 dark:ring-brand-400/25">

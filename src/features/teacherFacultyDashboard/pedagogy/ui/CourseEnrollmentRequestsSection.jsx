@@ -103,8 +103,7 @@ export function CourseEnrollmentRequestsSection({ courseId, enrollments = [], on
     return (
       <div
         className={cn(
-          'rounded-2xl border border-zinc-200/90 bg-gradient-to-br from-zinc-50/95 via-white to-emerald-50/20',
-          'dark:border-[var(--app-border)] dark:from-[color-mix(in_srgb,var(--app-elevated)_96%,black)] dark:via-[var(--app-elevated)] dark:to-emerald-950/15',
+          'rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)]',
           'px-6 py-16 text-center',
         )}
       >
@@ -143,7 +142,7 @@ export function CourseEnrollmentRequestsSection({ courseId, enrollments = [], on
       <div className="overflow-x-auto rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-[var(--app-border)] dark:bg-[var(--app-elevated)]">
         <table className="w-full min-w-[56rem] text-left text-[13px]">
           <thead>
-            <tr className="border-b border-zinc-200 bg-zinc-100/95 text-[11px] font-semibold uppercase tracking-wide text-zinc-600 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400">
+            <tr className="border-b border-zinc-200 bg-zinc-100/95 text-[11.5px] font-semibold text-zinc-600 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400">
               <th className="py-3 pl-4 pr-2 w-14" scope="col">
                 <span className="sr-only">Photo</span>
               </th>

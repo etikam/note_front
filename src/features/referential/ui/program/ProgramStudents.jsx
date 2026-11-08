@@ -159,7 +159,7 @@ export function ProgramStudents({ program }) {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
-            <thead className="text-left text-[11px] uppercase tracking-wider text-[var(--app-muted)]">
+            <thead className="text-left text-[11.5px] font-semibold text-[var(--app-muted)]">
               <tr className="border-b border-[var(--app-border)]">
                 <th className="px-4 py-2 font-semibold">Matricule</th>
                 <th className="px-4 py-2 font-semibold">Nom</th>

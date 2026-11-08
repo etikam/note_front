@@ -132,7 +132,7 @@ export function ServerTable({
                     scope="col"
                     aria-sort={active ? (desc ? 'descending' : 'ascending') : undefined}
                     className={cn(
-                      'whitespace-nowrap px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--app-muted)]',
+                      'whitespace-nowrap px-4 py-2.5 text-[11.5px] font-semibold text-[var(--app-muted)]',
                       ALIGN[c.align ?? 'left'],
                       c.headerClassName,
                     )}
@@ -141,7 +141,7 @@ export function ServerTable({
                       <button
                         type="button"
                         onClick={() => onOrderingChange(nextOrdering(ordering, field))}
-                        className={cn('inline-flex items-center gap-1 rounded uppercase tracking-[0.06em] hover:text-[var(--app-fg)]', active && 'text-[var(--app-fg)]')}
+                        className={cn('inline-flex items-center gap-1 rounded hover:text-[var(--app-fg)]', active && 'text-[var(--app-fg)]')}
                       >
                         {c.header}
                         <Icon size={12} className={active ? '' : 'opacity-50'} aria-hidden />

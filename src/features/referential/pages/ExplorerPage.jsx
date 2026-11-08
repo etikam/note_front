@@ -233,7 +233,7 @@ function ResultsTable({ columns, rows, onOpen }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[13px]">
-        <thead className="text-left text-[11px] uppercase tracking-wider text-[var(--app-muted)]">
+        <thead className="text-left text-[11.5px] font-semibold text-[var(--app-muted)]">
           <tr className="border-b border-[var(--app-border)]">
             {columns.map((c) => <th key={c.label} className={cn('px-4 py-2 font-semibold', c.align === 'right' && 'text-right')}>{c.label}</th>)}
           </tr>
@@ -318,8 +318,8 @@ export default function ExplorerPage() {
             type="button"
             onClick={() => st.setType(id)}
             className={cn(
-              'flex items-center gap-2 rounded-xl px-3.5 py-2 text-[13px] font-medium transition-all',
-              st.type === id ? 'bg-brand-600 text-white shadow-md shadow-brand-600/20 dark:bg-brand-500' : 'bg-[var(--app-elevated)] ring-1 ring-[var(--app-border)] hover:ring-brand-400',
+              'flex items-center gap-2 rounded-xl px-3.5 py-2 text-[13px] font-medium transition-colors',
+              st.type === id ? 'bg-brand-600 text-white dark:bg-brand-500' : 'bg-[var(--app-elevated)] ring-1 ring-[var(--app-border)] hover:ring-brand-400',
             )}
           >
             <t.icon size={15} aria-hidden /> {t.label}

@@ -115,8 +115,8 @@ export function ProfilePage() {
 
   return (
     <section className="space-y-6">
-      <header className="rounded-2xl border border-brand-200/70 bg-gradient-to-r from-brand-50 to-secondary-50 px-5 py-5 dark:border-brand-500/30 dark:from-brand-900/35 dark:to-secondary-900/20">
-        <h1 className="font-heading text-2xl font-bold text-zinc-900 dark:text-zinc-50">Mon profil</h1>
+      <header className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] px-5 py-5">
+        <h1 className="font-heading text-2xl font-semibold text-[var(--app-fg)]">Mon profil</h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
           {isStudent
             ? 'Votre dossier étudiant, coordonnées modifiables et préférences d’interface.'

@@ -133,7 +133,7 @@ function Results({ program }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {links.map((l) => (
-        <Link key={l.to} to={l.to} className="group flex items-start gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-4 transition-all hover:-translate-y-0.5 hover:border-brand-400/60 hover:shadow-md">
+        <Link key={l.to} to={l.to} className="group flex items-start gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-4 transition-colors hover:border-brand-400/60 hover:bg-[var(--app-hover)]">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-200"><l.icon size={18} aria-hidden /></span>
           <span>
             <span className="flex items-center gap-1 text-[13.5px] font-semibold">{l.title}<ArrowRight size={13} className="opacity-0 transition-opacity group-hover:opacity-100" aria-hidden /></span>
@@ -238,10 +238,10 @@ export default function ProgramWorkspacePage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <section className="rounded-3xl border border-[var(--app-border)] bg-gradient-to-br from-[var(--app-elevated)] via-[var(--app-elevated)] to-brand-50/50 p-6 pb-0 dark:to-brand-500/5">
+      <section className="rounded-3xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-6 pb-0">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-secondary-500 to-brand-600 text-white shadow-lg shadow-brand-600/20">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white">
               <GraduationCap size={26} aria-hidden />
             </span>
             <div className="min-w-0">

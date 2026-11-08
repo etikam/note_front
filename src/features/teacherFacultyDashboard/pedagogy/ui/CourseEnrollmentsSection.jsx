@@ -95,7 +95,7 @@ function SortTh({ label, field, ordering, onChange, align = 'left', className })
     <th
       scope="col"
       className={cn(
-        'border-b border-zinc-200 bg-zinc-100/95 px-3 py-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-600',
+        'border-b border-zinc-200 bg-zinc-100/95 px-3 py-3 text-[11.5px] font-semibold text-zinc-600',
         'dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400',
         align === 'right' && 'text-right',
         align === 'center' && 'text-center',
@@ -207,14 +207,13 @@ export function CourseEnrollmentsSection({ enrollments = [] }) {
     <div className="w-full min-w-0 max-w-full space-y-4">
       <div
         className={cn(
-          'w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-zinc-200/90 bg-gradient-to-br from-zinc-50/95 via-white to-secondary-50/30',
-          'dark:border-[var(--app-border)] dark:from-[color-mix(in_srgb,var(--app-elevated)_96%,black)] dark:via-[var(--app-elevated)] dark:to-secondary-950/20',
+          'w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)]',
         )}
       >
         <div className="flex flex-col gap-4 p-4 sm:p-5 border-b border-zinc-100/80 dark:border-[var(--app-border)]">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex items-start gap-3 min-w-0">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-secondary-500/20 to-brand-500/15 text-secondary-700 dark:text-secondary-300 ring-1 ring-zinc-200/60 dark:ring-white/10">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary-50 text-secondary-700 dark:bg-secondary-500/10 dark:text-secondary-300 ring-1 ring-[var(--app-border)]">
                 <Users size={22} strokeWidth={2} aria-hidden />
               </span>
               <div>
@@ -365,7 +364,7 @@ export function CourseEnrollmentsSection({ enrollments = [] }) {
                   <SortTh label="Validée le" field="approved_at" ordering={ordering} onChange={handleOrderingChange} />
                   <th
                     scope="col"
-                    className="border-b border-zinc-200 bg-zinc-100/95 px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-zinc-600 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400"
+                    className="border-b border-zinc-200 bg-zinc-100/95 px-3 py-3 text-right text-[11.5px] font-semibold text-zinc-600 dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_92%,black)] dark:text-zinc-400"
                   >
                     Fiche
                   </th>
@@ -471,15 +470,14 @@ export function CourseEnrollmentsSection({ enrollments = [] }) {
                     <article
                       className={cn(
                         'group flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-sm',
-                        'transition-all duration-200 hover:shadow-md hover:border-secondary-300/50',
+                        'transition-colors duration-200 hover:border-secondary-300/50 hover:bg-[var(--app-hover)]',
                         'dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_98%,black)]',
                         'dark:hover:border-secondary-600/30',
                       )}
                     >
                       <div
                         className={cn(
-                          'relative h-12 bg-gradient-to-r from-secondary-500/15 via-brand-500/10 to-amber-500/10',
-                          'dark:from-secondary-900/30 dark:via-brand-900/20 dark:to-amber-900/20',
+                          'relative h-12 bg-[var(--app-subtle)]',
                         )}
                       />
                       <div className="flex flex-1 flex-col px-3 pb-3 -mt-6 sm:-mt-7">
@@ -491,7 +489,7 @@ export function CourseEnrollmentsSection({ enrollments = [] }) {
                               className="size-12 shrink-0 rounded-xl object-cover ring-2 ring-white shadow-sm dark:ring-zinc-900"
                             />
                           ) : (
-                            <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-secondary-600 text-sm font-bold text-white shadow-sm ring-2 ring-white dark:ring-zinc-900">
+                            <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-sm font-bold text-white shadow-sm ring-2 ring-white dark:ring-zinc-900">
                               {initials(row.first_name, row.last_name)}
                             </span>
                           )}

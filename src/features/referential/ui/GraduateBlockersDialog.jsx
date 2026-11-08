@@ -25,7 +25,7 @@ function Section({ icon: Icon, title, count, tone, children, hint }) {
 function GradesTable({ rows }) {
   return (
     <table className="w-full text-[12.5px]">
-      <thead className="text-left text-[10.5px] uppercase tracking-wider text-[var(--app-muted)]">
+      <thead className="text-left text-[11.5px] font-semibold text-[var(--app-muted)]">
         <tr className="border-b border-[var(--app-border)]">
           <th className="px-4 py-1.5 font-semibold">Cours</th>
           <th className="px-2 py-1.5 font-semibold">UE</th>

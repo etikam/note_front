@@ -70,7 +70,7 @@ function Crumb({ icon: Icon, label, sublabel, to, items, currentKey, onPick, sea
             <div className="max-h-80 overflow-y-auto">
               {groups.map(([group, list]) => (
                 <div key={group || 'all'}>
-                  {group ? <p className="px-2 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wider text-[var(--app-muted)]">{group}</p> : null}
+                  {group ? <p className="px-2 pb-1 pt-2 text-[11.5px] font-semibold text-[var(--app-muted)]">{group}</p> : null}
                   {list.map((it) => (
                     <button
                       key={it.key}
@@ -188,7 +188,7 @@ function ShellBody() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="hidden text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] sm:inline">Référentiel</span>
+          <span className="hidden text-[12px] font-semibold text-[var(--app-muted)] sm:inline">Référentiel</span>
           <Breadcrumbs />
         </div>
         <ModeSwitch />

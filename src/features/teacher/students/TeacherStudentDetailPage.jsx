@@ -84,7 +84,7 @@ function Info({ label, children, mono = false }) {
   )
 }
 
-const TH = 'px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--app-muted)]'
+const TH = 'px-4 py-2.5 text-left text-[11.5px] font-semibold text-[var(--app-muted)]'
 const TD = 'px-4 py-2.5 align-middle text-[13px] text-[var(--app-fg)]'
 
 function GradesTable({ rows }) {

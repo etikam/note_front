@@ -472,12 +472,9 @@ export function TeacherCourseDetailPage() {
                       <li key={a.id} className="min-w-0 list-none">
                         <article
                           className={cn(
-                            'group relative flex h-full min-h-[12rem] flex-col overflow-hidden rounded-2xl border border-zinc-200/90 bg-white/80 p-3 shadow-sm',
-                            'transition-[transform,box-shadow,border-color,ring-color] duration-200 ease-out',
-                            'hover:-translate-y-0.5 hover:border-secondary-400/50 hover:shadow-md',
-                            'hover:ring-2 hover:ring-secondary-400/70 hover:ring-offset-2 hover:ring-offset-[var(--app-canvas)]',
-                            'dark:border-[var(--app-border)] dark:bg-[color-mix(in_srgb,var(--app-elevated)_96%,black)]',
-                            'dark:hover:border-secondary-500/45 dark:hover:shadow-lg dark:hover:shadow-black/20 dark:hover:ring-secondary-500/55',
+                            'group relative flex h-full min-h-[12rem] flex-col overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-elevated)] p-3 shadow-sm',
+                            'transition-colors duration-200',
+                            'hover:border-secondary-400/60 hover:bg-[var(--app-hover)]',
                           )}
                         >
                           <div
