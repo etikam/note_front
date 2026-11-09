@@ -1,527 +1,657 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 
-const LOGO_B64 = "data:image/jpeg;base64,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";
+import { fetchLandingContent } from '@/features/landing/api/landingApi'
 
+/* ───────────────────────── styles (portée .ci-landing) ───────────────────────── */
+const CSS = `
+.ci-landing{
+  --bg:#ffffff; --bg-soft:#f4f6f3; --bg-mist:#eef2ec;
+  --fg:#15211b; --muted:#56655c; --faint:#8b978d;
+  --line:#e4e9e2; --line-soft:#eef1ec;
+  --green-deep:#13311f; --green:#1c4a2e; --green-soft:#eaf1e9;
+  --lime:#b7e017; --lime-bright:#c6f024; --lime-ink:#1a2e0c;
+  --radius:18px; --radius-sm:12px; --maxw:1200px;
+  --sans:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--bg); color:var(--fg); font-family:var(--sans); font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+.ci-landing *{box-sizing:border-box}
+.ci-landing h1,.ci-landing h2,.ci-landing h3,.ci-landing h4{margin:0;font-weight:800;letter-spacing:-.02em;line-height:1.06;text-wrap:balance}
+.ci-landing p{margin:0}
+.ci-landing a{color:inherit;text-decoration:none}
+.ci-landing img{max-width:100%}
+.ci-landing .wrap{width:100%;max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(16px,4vw,40px)}
+.ci-landing .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:700;color:var(--green)}
+.ci-landing .eyebrow::before{content:"";width:22px;height:11px;border-radius:999px;background:
+  radial-gradient(circle at 25% 50%, var(--green) 0 3.4px, transparent 3.6px),
+  radial-gradient(circle at 75% 50%, var(--lime) 0 3.4px, transparent 3.6px), var(--green-soft)}
+.ci-landing .btn{display:inline-flex;align-items:center;gap:9px;height:48px;padding:0 22px;border-radius:999px;
+  font-weight:700;font-size:14.5px;cursor:pointer;border:1px solid transparent;transition:background-color .18s,color .18s,border-color .18s}
+.ci-landing .btn svg{width:17px;height:17px}
+.ci-landing .btn-primary{background:var(--green-deep);color:#fff}
+.ci-landing .btn-primary:hover{background:var(--green)}
+.ci-landing .btn-lime{background:var(--lime);color:var(--lime-ink)}
+.ci-landing .btn-lime:hover{background:var(--lime-bright)}
+.ci-landing .btn-ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.ci-landing .btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.ci-landing .btn-outline-light{background:transparent;color:#fff;border-color:rgba(255,255,255,.28)}
+.ci-landing .btn-outline-light:hover{background:rgba(255,255,255,.1)}
+.ci-landing .link-arrow{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:14.5px;color:var(--fg);border-bottom:2px solid var(--lime);padding-bottom:3px}
+.ci-landing .link-arrow svg{width:16px;height:16px;transition:transform .18s}
+.ci-landing .link-arrow:hover svg{transform:translateX(3px)}
+.ci-landing .arrow-circle{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:999px;background:var(--lime);color:var(--lime-ink)}
+.ci-landing .arrow-circle svg{width:15px;height:15px}
 
-function Counter({ target, suffix }) {
-  const [count, setCount] = useState(isNaN(parseInt(target)) ? target : 0);
-  const ref = useRef(null);
-  const started = useRef(false);
+/* photos — rendu N&B cohérent */
+.ci-landing .panel img,.ci-landing .cover img{display:block;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.04)}
+
+.ci-landing .topbar{background:var(--green-deep);color:#cfe0d3;font-size:13px}
+.ci-landing .topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:42px}
+.ci-landing .topbar ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;flex-wrap:wrap}
+.ci-landing .topbar li{display:inline-flex;align-items:center;gap:8px}
+.ci-landing .topbar svg{width:14px;height:14px;color:var(--lime)}
+.ci-landing .socials{display:flex;gap:8px}
+.ci-landing .socials a{display:grid;place-items:center;width:26px;height:26px;border-radius:999px;background:rgba(255,255,255,.08);color:#dfeae1}
+.ci-landing .socials a:hover{background:var(--lime);color:var(--lime-ink)}
+.ci-landing .socials svg{width:13px;height:13px}
+
+.ci-landing header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:saturate(1.3) blur(12px);border-bottom:1px solid var(--line-soft)}
+.ci-landing header.nav .wrap{display:flex;align-items:center;gap:24px;height:72px}
+.ci-landing .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:17px;letter-spacing:-.02em}
+.ci-landing .brand .mark{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--green-deep)}
+.ci-landing .brand .mark span{width:17px;height:9px;border-radius:999px;background:
+  radial-gradient(circle at 26% 50%, #fff 0 3px, transparent 3.2px),
+  radial-gradient(circle at 74% 50%, var(--lime) 0 3px, transparent 3.2px)}
+.ci-landing nav.links{display:flex;gap:4px;margin-left:8px}
+.ci-landing nav.links a{padding:8px 13px;border-radius:9px;font-size:14.5px;font-weight:600;color:var(--muted)}
+.ci-landing nav.links a:hover,.ci-landing nav.links a.active{color:var(--green);background:var(--green-soft)}
+.ci-landing header.nav .cta{margin-left:auto;display:flex;align-items:center;gap:10px}
+.ci-landing .menu-btn{display:none;width:44px;height:44px;border-radius:11px;border:1px solid var(--line);background:#fff;cursor:pointer}
+
+.ci-landing .hero{position:relative;overflow:hidden;background:
+  radial-gradient(130% 90% at 88% -8%, var(--bg-mist) 0%, transparent 46%),
+  linear-gradient(180deg,#fff 0%, var(--bg-soft) 100%)}
+.ci-landing .hero .wrap{position:relative;display:grid;grid-template-columns:1.04fr 1fr;gap:clamp(28px,4vw,60px);align-items:center;
+  padding-top:clamp(48px,6vw,78px);padding-bottom:clamp(52px,7vw,92px)}
+.ci-landing .hero-shape{position:absolute;border-radius:40px;z-index:0;pointer-events:none}
+.ci-landing .shape-b{width:320px;height:320px;right:-80px;bottom:-120px;border-radius:999px;
+  background:radial-gradient(circle at 40% 40%, rgba(183,224,23,.22), transparent 68%)}
+.ci-landing h1.hero-title{font-size:clamp(2.35rem,5.1vw,4rem);letter-spacing:-.035em}
+.ci-landing h1.hero-title em{font-style:normal;color:var(--green);position:relative;white-space:nowrap}
+.ci-landing h1.hero-title em::after{content:"";position:absolute;left:0;right:0;bottom:.04em;height:.16em;background:var(--lime);border-radius:999px;z-index:-1;opacity:.85}
+.ci-landing .hero-lead{margin-top:20px;max-width:30rem;color:var(--muted);font-size:17px}
+.ci-landing .hero-actions{margin-top:30px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.ci-landing .hero-foot{margin-top:34px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;color:var(--faint);font-size:13.5px;font-weight:600}
+.ci-landing .hero-foot .dot{width:5px;height:5px;border-radius:999px;background:var(--lime)}
+.ci-landing .stage{position:relative;height:clamp(380px,42vw,500px);perspective:1400px;z-index:1}
+.ci-landing .stage-inner{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.ci-landing .panel{position:absolute;border-radius:22px;overflow:hidden;background:#dfe3df;
+  box-shadow:0 34px 74px -36px rgba(13,49,31,.44),0 10px 26px -18px rgba(15,26,19,.22);border:5px solid #fff;will-change:transform}
+.ci-landing .p1{width:46%;height:62%;left:2%;top:6%}
+.ci-landing .p2{width:40%;height:50%;right:3%;top:0}
+.ci-landing .p3{width:44%;height:46%;right:8%;bottom:2%}
+.ci-landing .seal{position:absolute;left:40%;top:52%;width:92px;height:92px;z-index:5;will-change:transform}
+.ci-landing .seal svg{width:100%;height:100%}
+.ci-landing .spark{position:absolute;right:12%;bottom:16%;color:var(--lime);z-index:6;will-change:transform}
+.ci-landing .spark svg{width:38px;height:38px;filter:drop-shadow(0 2px 6px rgba(28,74,46,.3))}
+
+.ci-landing .marquee{background:var(--green-deep);color:#eaf3ec;overflow:hidden;border-block:1px solid rgba(255,255,255,.06)}
+.ci-landing .marquee-track{display:flex;gap:0;white-space:nowrap;width:max-content;animation:ci-scroll 34s linear infinite}
+.ci-landing .marquee:hover .marquee-track{animation-play-state:paused}
+.ci-landing .marquee span{display:inline-flex;align-items:center;gap:24px;padding:16px 24px;font-weight:700;font-size:17px;letter-spacing:-.01em}
+.ci-landing .marquee .star{color:var(--lime)}
+@keyframes ci-scroll{to{transform:translateX(-50%)}}
+
+.ci-landing section{padding-block:clamp(56px,7vw,96px)}
+.ci-landing .sec-head{text-align:center;max-width:640px;margin-inline:auto;margin-bottom:46px}
+.ci-landing .sec-head .eyebrow{justify-content:center}
+.ci-landing .sec-head h2{margin-top:14px;font-size:clamp(1.9rem,3.6vw,2.7rem)}
+.ci-landing .sec-head p{margin-top:14px;color:var(--muted)}
+
+.ci-landing .about .wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:clamp(28px,4vw,64px);align-items:center}
+.ci-landing .about-media{position:relative}
+.ci-landing .about-media .panel{position:relative;box-shadow:0 2px 8px rgba(15,26,19,.06),0 20px 42px -26px rgba(15,26,19,.26);margin-bottom:16px}
+.ci-landing .about-media .am1{height:210px}
+.ci-landing .about-media .am2{height:170px;width:84%}
+.ci-landing .about-badge{position:absolute;right:-6px;top:188px;width:96px;height:96px;z-index:3}
+.ci-landing .about-badge svg{width:100%;height:100%}
+.ci-landing .about h2{font-size:clamp(1.8rem,3.4vw,2.55rem);margin-top:14px}
+.ci-landing .about-lead{margin-top:16px;color:var(--muted)}
+.ci-landing .facts{margin-top:26px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ci-landing .fact{background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px}
+.ci-landing .fact .k{font-size:12px;font-weight:700;color:var(--green);margin-bottom:3px}
+.ci-landing .fact .v{font-size:13.5px;color:var(--muted);font-weight:600}
+.ci-landing .about .btn{margin-top:28px}
+
+.ci-landing .stats{border-block:1px solid var(--line);background:var(--bg);padding-block:0}
+.ci-landing .stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding-block:clamp(34px,4vw,52px)}
+.ci-landing .stat{position:relative;padding-inline:clamp(12px,2vw,28px);text-align:center}
+.ci-landing .stat + .stat::before{content:"";position:absolute;left:0;top:14%;height:72%;width:1px;background:var(--line)}
+.ci-landing .stat .num{font-size:clamp(2rem,3.4vw,2.7rem);font-weight:800;letter-spacing:-.03em;color:var(--green-deep);font-variant-numeric:tabular-nums}
+.ci-landing .stat .lab{margin-top:4px;color:var(--muted);font-size:14px;font-weight:600}
+
+.ci-landing .programs{background:var(--green-deep);color:#eaf3ec;position:relative;overflow:hidden}
+.ci-landing .programs::before{content:"";position:absolute;inset:0;background:
+  repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 2px, transparent 2px 22px);pointer-events:none}
+.ci-landing .programs .sec-head{text-align:left;margin:0 0 34px;max-width:none;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.ci-landing .programs .sec-head .eyebrow{justify-content:flex-start;color:var(--lime)}
+.ci-landing .programs .sec-head .eyebrow::before{background:
+  radial-gradient(circle at 25% 50%, #fff 0 3.4px, transparent 3.6px),
+  radial-gradient(circle at 75% 50%, var(--lime) 0 3.4px, transparent 3.6px), rgba(255,255,255,.12)}
+.ci-landing .programs h2{color:#fff;font-size:clamp(1.9rem,3.6vw,2.7rem);margin-top:12px;max-width:18ch}
+.ci-landing .dept{position:relative;z-index:1;margin-top:40px}
+.ci-landing .dept-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.ci-landing .dept-head .n{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.08);color:var(--lime);font-weight:800;font-size:14px}
+.ci-landing .dept-head h3{color:#fff;font-size:1.3rem}
+.ci-landing .dept-head p{color:#a9c3af;font-size:14px}
+.ci-landing .prog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.ci-landing .prog{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:12px;transition:background-color .18s,border-color .18s}
+.ci-landing .prog:hover{background:rgba(255,255,255,.075);border-color:rgba(183,224,23,.4)}
+.ci-landing .prog .cover{height:118px;border-radius:12px;overflow:hidden;background:#20402b;margin:-4px -4px 6px}
+.ci-landing .prog .deg{font-size:12px;font-weight:700;color:var(--lime);letter-spacing:.02em}
+.ci-landing .prog h4{color:#fff;font-size:1.12rem}
+.ci-landing .prog p{color:#b9cfbf;font-size:14px;flex:1}
+.ci-landing .prog .plink{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:13.5px;color:#eaf3ec}
+.ci-landing .prog .plink .arrow-circle{width:26px;height:26px}
+.ci-landing .prog .plink .arrow-circle svg{width:13px;height:13px}
+.ci-landing .prog .levels{display:flex;flex-wrap:wrap;gap:6px}
+.ci-landing .prog .lvl{font-size:11.5px;font-weight:700;color:#cfe0d3;background:rgba(255,255,255,.08);border-radius:999px;padding:3px 10px}
+.ci-landing .prog.feature{background:var(--lime);border-color:var(--lime)}
+.ci-landing .prog.feature .deg{color:#38571a}
+.ci-landing .prog.feature h4{color:var(--lime-ink)}
+.ci-landing .prog.feature p{color:#30491c}
+.ci-landing .prog.feature .plink{color:var(--lime-ink)}
+.ci-landing .prog.feature .lvl{color:#38571a;background:rgba(26,46,12,.12)}
+.ci-landing .prog.feature .plink .arrow-circle{background:var(--green-deep);color:var(--lime)}
+
+.ci-landing .news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.ci-landing .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:border-color .18s,box-shadow .18s}
+.ci-landing .card:hover{border-color:var(--green);box-shadow:0 2px 8px rgba(15,26,19,.06),0 20px 42px -26px rgba(15,26,19,.26)}
+.ci-landing .card .cover{height:168px;overflow:hidden;background:#dfe3df}
+.ci-landing .card .body{padding:20px 22px 24px;display:flex;flex-direction:column;gap:10px;flex:1}
+.ci-landing .meta{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--faint);font-weight:600}
+.ci-landing .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:var(--green-soft);color:var(--green);font-size:11.5px;font-weight:700}
+.ci-landing .card h3{font-size:1.14rem;letter-spacing:-.02em}
+.ci-landing .card .body p{color:var(--muted);font-size:14px;flex:1}
+
+.ci-landing .admission{background:var(--bg-soft)}
+.ci-landing .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.ci-landing .step{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px}
+.ci-landing .step .no{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--green-soft);color:var(--green);font-weight:800;margin-bottom:16px}
+.ci-landing .step h4{font-size:1.08rem;margin-bottom:7px}
+.ci-landing .step p{color:var(--muted);font-size:14px}
+
+.ci-landing .cta-band{background:var(--green-deep);color:#fff;position:relative;overflow:hidden}
+.ci-landing .cta-band::after{content:"";position:absolute;right:-60px;top:-40px;width:280px;height:280px;border-radius:999px;background:radial-gradient(circle,rgba(183,224,23,.18),transparent 70%)}
+.ci-landing .cta-band .wrap{position:relative;display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center}
+.ci-landing .cta-band h2{color:#fff;font-size:clamp(1.9rem,3.6vw,2.7rem);max-width:16ch}
+.ci-landing .cta-band p{margin-top:14px;color:#bcd3c2;max-width:40ch}
+.ci-landing .cta-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px}
+.ci-landing .contact-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius);padding:26px}
+.ci-landing .contact-card h4{color:#fff;font-size:1.1rem;margin-bottom:16px}
+.ci-landing .contact-card ul{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.ci-landing .contact-card li{display:flex;align-items:center;gap:12px;color:#cfe0d3;font-size:14.5px}
+.ci-landing .contact-card svg{width:18px;height:18px;color:var(--lime);flex-shrink:0}
+
+.ci-landing footer.foot{background:#0c2316;color:#9fb6a6;font-size:14px}
+.ci-landing footer.foot .wrap{padding-block:46px;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px}
+.ci-landing footer.foot .brand{color:#fff;margin-bottom:14px}
+.ci-landing footer.foot .brand .mark{background:rgba(255,255,255,.08)}
+.ci-landing footer.foot h5{color:#fff;font-size:13px;font-weight:700;margin:0 0 14px}
+.ci-landing footer.foot ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ci-landing footer.foot a:hover{color:var(--lime)}
+.ci-landing footer.foot .fcol p{max-width:30ch;color:#8ba694}
+.ci-landing .footbar{border-top:1px solid rgba(255,255,255,.08)}
+.ci-landing .footbar .wrap{padding-block:18px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:#7d9686;font-size:13px}
+
+@media (max-width:980px){
+  .ci-landing nav.links,.ci-landing .topbar li.hide-sm{display:none}
+  .ci-landing .menu-btn{display:grid;place-items:center;margin-left:auto}
+  .ci-landing header.nav .cta .cta-hide{display:none}
+  .ci-landing .hero .wrap,.ci-landing .about .wrap,.ci-landing .cta-band .wrap{grid-template-columns:1fr}
+  .ci-landing .stage{height:360px;order:-1}
+  .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr 1fr}
+  .ci-landing footer.foot .wrap{grid-template-columns:1fr 1fr}
+}
+@media (max-width:620px){
+  .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr}
+  .ci-landing .stat + .stat::before{display:none}
+  .ci-landing .stats .wrap{gap:22px}
+  .ci-landing .about-media .am2{width:100%}
+  .ci-landing .facts{grid-template-columns:1fr}
+  .ci-landing footer.foot .wrap{grid-template-columns:1fr}
+  .ci-landing .topbar .wrap{justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){
+  .ci-landing .marquee-track{animation:none}
+}
+`
+
+/* ───────────────────────── photos (Unsplash, rendues N&B) ───────────────────────── */
+const U = (id, w, h) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=80`
+const PH = {
+  hero: [
+    { src: U('1522202176988-66273c2fd55f', 520, 680), alt: 'Étudiants en informatique' },
+    { src: U('1591117207239-788bf8de6c3b', 520, 460), alt: 'Amphithéâtre' },
+    { src: U('1588072432836-e10032774350', 560, 440), alt: 'Salle informatique' },
+  ],
+  about: [
+    { src: U('1523240795612-9a054b0db644', 760, 440), alt: 'Travail en équipe' },
+    { src: U('1543269865-cbf427effbad', 640, 360), alt: 'Groupe d’étudiants' },
+  ],
+  prog: [
+    U('1517694712202-14dd9538aa97', 640, 360),
+    U('1558494949-ef010cbdcc31', 640, 360),
+    U('1531482615713-2afd69097998', 640, 360),
+  ],
+  news: [
+    U('1531482615713-2afd69097998', 640, 360),
+    U('1562774053-701939374585', 640, 360),
+    U('1509062522246-3755977927d7', 640, 360),
+  ],
+}
+const SEAL = (year) => `<svg viewBox="0 0 120 120"><defs><path id="ciCircle" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/></defs><circle cx="60" cy="60" r="58" fill="#13311f"/><circle cx="60" cy="60" r="44" fill="none" stroke="#b7e017" stroke-width="1" opacity=".5"/><text font-size="10" font-weight="700" letter-spacing="2" fill="#dfeae1"><textPath href="#ciCircle" startOffset="0">· CENTRE INFORMATIQUE · DEPUIS ${year} </textPath></text><g fill="none" stroke="#b7e017" stroke-width="2.4"><path d="M44 60h32M64 48l12 12-12 12"/></g></svg>`
+const BADGE_YEARS = (n) => `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="56" fill="#b7e017"/><text x="60" y="54" text-anchor="middle" font-size="30" font-weight="800" fill="#1a2e0c">${n}</text><text x="60" y="78" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1" fill="#38571a">ANS</text></svg>`
+
+/* ───────────────────────── icônes ───────────────────────── */
+const IArrow = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+const IArrowThin = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+const IExtern = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M7 17 17 7M8 7h9v9" /></svg>
+const IPhone = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.4-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z" /></svg>
+const IMail = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m2 7 10 6 10-6" /></svg>
+const IPin = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+const IMenu = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+
+function Counter({ value = 0, suffix = '' }) {
+  const [n, setN] = useState(0)
+  const ref = useRef(null)
+  const done = useRef(false)
   useEffect(() => {
-    if (isNaN(parseInt(target))) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !started.current) {
-        started.current = true;
-        const end = parseInt(target);
-        const duration = 1400;
-        const step = end / (duration / 16);
-        let current = 0;
-        const timer = setInterval(() => {
-          current += step;
-          if (current >= end) { setCount(end); clearInterval(timer); }
-          else setCount(Math.floor(current));
-        }, 16);
+    const el = ref.current
+    if (!el) return
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const target = Number(value) || 0
+    if (reduce) { setN(target); return }
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !done.current) {
+        done.current = true
+        const dur = 1400
+        let start = null
+        const tick = (t) => {
+          if (!start) start = t
+          const p = Math.min((t - start) / dur, 1)
+          setN(Math.floor((1 - Math.pow(1 - p, 3)) * target))
+          if (p < 1) requestAnimationFrame(tick)
+        }
+        requestAnimationFrame(tick)
+        io.disconnect()
       }
-    }, { threshold: 0.5 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target]);
-  return <span ref={ref}>{count}{suffix}</span>;
+    }, { threshold: 0.5 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [value])
+  return <span ref={ref}>{n.toLocaleString('fr-FR')}{suffix}</span>
 }
 
-export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
-  const [stats, setStats] = useState([]);
-  const [departements, setDepartements] = useState([]);
-  const [debouches, setDebouches] = useState([]);
-  const [admission, setAdmission] = useState([]);
-  const [direction, setDirection] = useState([]);
-  const [historique, setHistorique] = useState([]);
+const cleanName = (s) => (s || '').replace(/\s*\([^)]*\)\s*$/, '').trim()
+const formatDate = (iso) => {
+  if (!iso) return ''
+  try {
+    return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso))
+  } catch { return iso }
+}
 
+export default function Home() {
+  const [data, setData] = useState(null)
+  const stageRef = useRef(null)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);  
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
- useEffect(() => {
+    const ctrl = new AbortController()
+    fetchLandingContent(ctrl.signal).then(setData).catch(() => setData(null))
+    return () => ctrl.abort()
+  }, [])
 
-  // ===== STATS =====
-  fetch("http://localhost:8000/api/home/stats")
-    .then(res => {
-      if (!res.ok) {
-        throw new Error("Erreur API stats");
-      }
-      return res.json();
-    })
-    .then(data => {
-      console.log("Stats :", data);
+  // Parallaxe de défilement + 3D souris sur le hero.
+  useEffect(() => {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) return
+    const parEls = Array.from(document.querySelectorAll('.ci-landing [data-par]'))
+    const stage = stageRef.current
+    const layers = stage ? Array.from(stage.querySelectorAll('[data-depth]')) : []
+    let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0
+    const onScroll = () => {
+      const y = window.pageYOffset || document.documentElement.scrollTop
+      parEls.forEach((el) => {
+        const s = parseFloat(el.getAttribute('data-par')) || 0
+        el.style.transform = `translate3d(0,${y * s}px,0)`
+      })
+    }
+    const onMove = (e) => {
+      const r = stage.getBoundingClientRect()
+      tx = (e.clientX - (r.left + r.width / 2)) / r.width
+      ty = (e.clientY - (r.top + r.height / 2)) / r.height
+    }
+    const loop = () => {
+      cx += (tx - cx) * 0.08; cy += (ty - cy) * 0.08
+      layers.forEach((el) => {
+        const d = parseFloat(el.getAttribute('data-depth')) || 0
+        el.style.transform = `translate3d(${cx * d}px,${cy * d * 0.7}px,0)`
+      })
+      raf = requestAnimationFrame(loop)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    if (stage) {
+      stage.addEventListener('mousemove', onMove)
+      stage.addEventListener('mouseleave', () => { tx = 0; ty = 0 })
+      raf = requestAnimationFrame(loop)
+    }
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (stage) stage.removeEventListener('mousemove', onMove)
+      cancelAnimationFrame(raf)
+    }
+  }, [data])
 
-      if (data.data && data.data.length > 0) {
-        setStats(data.data);
-      } else {
-        console.warn("Stats vides");
-      }
-    })
-    .catch(err => {
-      console.error("Erreur stats :", err);
-    });
+  const inst = data?.institution ?? {}
+  const foundingYear = inst.founding_year ?? 1989
+  const stats = data?.stats ?? []
+  const departments = data?.departments ?? []
+  const news = data?.news ?? []
+  const years = stats.find((s) => s.key === 'experience')?.value ?? (new Date().getFullYear() - foundingYear)
 
+  const marqueeItems = departments.length
+    ? departments.flatMap((d) => [cleanName(d.name), ...d.programs.map((p) => cleanName(p.name))])
+    : ['Génie logiciel', 'Réseaux & systèmes', 'Développement', 'NTIC', 'Systèmes d’information']
 
-  // ===== DEPARTEMENTS =====
-  fetch("http://localhost:8000/api/departements")
-    .then(res => {
-      if (!res.ok) {
-        throw new Error("Erreur API départements");
-      }
-      return res.json();
-    })
-    .then(data => {
-      console.log("Départements :", data);
-
-      if (data.data && data.data.length > 0) {
-        setDepartements(data.data);
-      } else {
-        console.warn("Départements vides");
-      }
-    })
-    .catch(err => {
-      console.error("Erreur départements :", err);
-    });
-
-
-  // ===== DEBOUCHES =====
-  fetch("http://localhost:8000/api/debouches")
-    .then(res => res.json())
-    .then(data => setDebouches(data.data))
-    .catch(err => console.error(err));
-
-
-  // ===== ADMISSION =====
-  fetch("http://localhost:8000/api/admission")
-    .then(res => res.json())
-    .then(data => setAdmission(data.data))
-    .catch(err => console.error(err));
-
-
-  // ===== DIRECTION =====
-  fetch("http://localhost:8000/api/direction")
-    .then(res => res.json())
-    .then(data => setDirection(data.data))
-    .catch(err => console.error(err));
-
-
-  // ===== HISTORIQUE =====
-  fetch("http://localhost:8000/api/historique-directeurs")
-    .then(res => res.json())
-    .then(data => setHistorique(data.data))
-    .catch(err => console.error(err));
-
-}, []);
+  let progIndex = 0
+  const marqueeRow = (
+    <span>
+      {marqueeItems.map((t, i) => (
+        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 24 }}>
+          {t} <i className="star">✦</i>
+        </span>
+      ))}
+    </span>
+  )
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', sans-serif", background: "#F8FAFF", color: "#1E293B", overflowX: "hidden" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Lora:ital,wght@0,600;0,700;1,600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        .ci-page { font-family: 'Sora', sans-serif; }
-        .lora { font-family: 'Lora', serif !important; }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes pulse-ring { 0%,100% { box-shadow: 0 0 0 0 rgba(29,78,216,0.25); } 50% { box-shadow: 0 0 0 10px rgba(29,78,216,0); } }
-        @keyframes slide-in { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:translateX(0); } }
-        .hero-text { animation: fadeUp 0.8s ease both; }
-        .hero-text:nth-child(2) { animation-delay: 0.15s; }
-        .hero-text:nth-child(3) { animation-delay: 0.3s; }
-        .hero-text:nth-child(4) { animation-delay: 0.45s; }
-        .dept-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .dept-card:hover { transform: translateY(-5px); box-shadow: 0 20px 50px rgba(29,78,216,0.12) !important; }
-        .nav-link { position: relative; }
-        .nav-link::after { content:''; position:absolute; bottom:-3px; left:0; right:0; height:2px; background:#1D4ED8; transform:scaleX(0); transition:transform 0.25s ease; }
-        .nav-link:hover::after { transform:scaleX(1); }
-        .nav-link:hover { color: #1D4ED8 !important; }
-        .hist-row:hover { background: #EFF6FF !important; }
-        .btn-connect { transition: all 0.25s ease; }
-        .btn-connect:hover { background: #1E40AF !important; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(29,78,216,0.35) !important; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #1D4ED8; border-radius: 4px; }
-      `}</style>
+    <div className="ci-landing">
+      <style>{CSS}</style>
 
-      {/* ══ NAVBAR ══ */}
-      <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 999,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 3rem", height: 68,
-        background: scrolled ? "rgba(255,255,255,0.97)" : "#fff",
-        borderBottom: "1px solid #E2E8F0",
-        boxShadow: scrolled ? "0 2px 20px rgba(0,0,0,0.08)" : "none",
-        transition: "all 0.3s ease",
-      }}>
-        {/* Logo + nom */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <img
-            src={LOGO_B64}
-            alt="Logo Centre Informatique UGANC"
-            style={{ height: 46, width: "auto", objectFit: "contain", borderRadius: 4 }}
-          />
-          <div style={{ borderLeft: "2px solid #E2E8F0", paddingLeft: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1E293B", fontFamily: "'Sora',sans-serif", letterSpacing: "0.01em" }}>Centre Informatique</div>
-            <div style={{ fontSize: 10, color: "#94A3B8", letterSpacing: "0.06em", textTransform: "uppercase" }}>UGANC · Conakry</div>
-          </div>
-        </div>
-
-        {/* Liens */}
-        <div style={{ display: "flex", alignItems: "center", gap: 30 }}>
-          {[["Accueil","#accueil"],["Formations","#departements"],["Admission","#admission"],["Direction","#direction"],["Contact","#contact"]].map(([l,h]) => (
-            <a key={l} href={h} className="nav-link" style={{ fontSize: 13, fontWeight: 600, color: "#475569", textDecoration: "none", fontFamily: "'Sora',sans-serif", letterSpacing: "0.02em" }}>{l}</a>
-          ))}
-        </div>
-
-        {/* Bouton connexion bien structuré */}
-        <a
-          href="/auth/login"
-          className="btn-connect"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            background: "#1D4ED8",
-            color: "#fff",
-            padding: "10px 22px",
-            borderRadius: 8,
-            fontSize: 13,
-            fontWeight: 700,
-            textDecoration: "none",
-            fontFamily: "'Sora',sans-serif",
-            letterSpacing: "0.03em",
-            boxShadow: "0 4px 14px rgba(29,78,216,0.3)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
-          </svg>
-          Se connecter
-        </a>
-      </nav>
-
-      {/* ══ HERO ══ */}
-      <section id="accueil" style={{ paddingTop: 68, minHeight: "92vh", display: "flex", alignItems: "center", position: "relative", overflow: "hidden", background: "linear-gradient(135deg, #EFF6FF 0%, #F0F9FF 40%, #F8FAFF 100%)" }}>
-        {/* Déco géométrique */}
-        <div style={{ position: "absolute", top: 0, right: 0, width: "45%", height: "100%", background: "linear-gradient(135deg, #1D4ED8 0%, #0369A1 100%)", clipPath: "polygon(18% 0, 100% 0, 100% 100%, 0% 100%)", opacity: 0.07, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: 60, right: 80, width: 220, height: 220, borderRadius: "50%", border: "2px solid rgba(29,78,216,0.1)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: 100, right: 120, width: 140, height: 140, borderRadius: "50%", background: "rgba(29,78,216,0.05)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: 60, left: "30%", width: 80, height: 80, borderRadius: 12, border: "2px solid rgba(29,78,216,0.1)", transform: "rotate(20deg)", pointerEvents: "none" }} />
-
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 3rem", display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 60, alignItems: "center", width: "100%" }}>
-          <div>
-            <div className="hero-text" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#DBEAFE", border: "1px solid #BFDBFE", borderRadius: 100, padding: "6px 16px", marginBottom: 28, fontSize: 11, color: "#1D4ED8", fontFamily: "'Sora',sans-serif", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#1D4ED8", display: "inline-block" }} />
-              Université Gamal Abdel Nasser de Conakry
-            </div>
-
-            <h1 className="lora hero-text" style={{ fontSize: "clamp(38px,5vw,62px)", fontWeight: 700, lineHeight: 1.1, marginBottom: 20, color: "#0F172A" }}>
-              Centre<br />
-              <span style={{ color: "#1D4ED8" }}>Informatique</span>
-            </h1>
-
-            <p className="hero-text" style={{ fontSize: 16, color: "#64748B", lineHeight: 1.85, maxWidth: 500, marginBottom: 40, fontFamily: "'Sora',sans-serif", fontWeight: 300 }}>
-              Fruit d’un partenariat France-Guinée depuis <strong style={{ color: "#1D4ED8", fontWeight: 700 }}>1989</strong> — Formations en Licence, Master et Doctorat dans les domaines des NTIC et du Développement Logiciel.
-            </p>
-
-            <div className="hero-text" style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <a href="#departements" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#1D4ED8", color: "#fff", padding: "13px 28px", borderRadius: 8, fontSize: 14, fontWeight: 700, textDecoration: "none", fontFamily: "'Sora',sans-serif", boxShadow: "0 6px 20px rgba(29,78,216,0.35)", transition: "all 0.25s ease" }}
-                onMouseEnter={e => e.currentTarget.style.background="#1E40AF"}
-                onMouseLeave={e => e.currentTarget.style.background="#1D4ED8"}
-              >
-                Découvrir nos formations
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </a>
-              <a href="/auth/login" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", color: "#1D4ED8", padding: "13px 28px", borderRadius: 8, fontSize: 14, fontWeight: 700, textDecoration: "none", fontFamily: "'Sora',sans-serif", border: "2px solid #BFDBFE", transition: "all 0.25s ease" }}
-                onMouseEnter={e => { e.currentTarget.style.background="#EFF6FF"; e.currentTarget.style.borderColor="#1D4ED8"; }}
-                onMouseLeave={e => { e.currentTarget.style.background="#fff"; e.currentTarget.style.borderColor="#BFDBFE"; }}
-              >
-                Plateforme de notes
-              </a>
-            </div>
-          </div>
-
-          {/* Carte logo */}
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <div style={{ background: "#fff", borderRadius: 24, padding: "2.5rem", boxShadow: "0 20px 60px rgba(29,78,216,0.12)", border: "1px solid #E2E8F0", maxWidth: 320, width: "100%", textAlign: "center" }}>
-              <img src={LOGO_B64} alt="Logo CI UGANC" style={{ width: "100%", maxWidth: 200, height: "auto", objectFit: "contain", marginBottom: 20, borderRadius: 8 }} />
-              <div style={{ height: 1, background: "#E2E8F0", marginBottom: 16 }} />
-              <div style={{ fontSize: 12, color: "#94A3B8", fontFamily: "'Sora',sans-serif", lineHeight: 1.6 }}>
-                Arrêté N°632/MEN/DNSUP/89<br />
-                <span style={{ color: "#1D4ED8", fontWeight: 600 }}>Dixinn, Conakry · Guinée</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══ STATS ══ */}
-      <div style={{ background: "#1D4ED8", padding: "0 3rem" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", maxWidth: 1000, margin: "0 auto" }}>
-          {stats.map((s, i) => (
-            <div key={s.label} style={{ padding: "2rem 1rem", textAlign: "center", borderRight: i < 3 ? "1px solid rgba(255,255,255,0.15)" : "none" }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 8, fontFamily: "'Sora',sans-serif", letterSpacing: "0.08em", textTransform: "uppercase" }}>{s.icon} {s.label}</div>
-              <div style={{ fontSize: 36, fontWeight: 800, color: "#fff", fontFamily: "'Lora',serif", lineHeight: 1 }}>
-                <Counter target={s.num} suffix="" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ══ À PROPOS ══ */}
-      <section style={{ padding: "6rem 3rem", background: "#fff" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
-          <div>
-            <div style={{ fontSize: 11, color: "#1D4ED8", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 14, fontFamily: "'Sora',sans-serif", fontWeight: 700 }}>À PROPOS</div>
-            <h2 className="lora" style={{ fontSize: 38, fontWeight: 700, color: "#0F172A", lineHeight: 1.2, marginBottom: 20 }}>
-              Bienvenue au<br /><em style={{ color: "#1D4ED8" }}>Centre Informatique</em>
-            </h2>
-            <p style={{ fontSize: 15, color: "#64748B", lineHeight: 1.9, marginBottom: 16, fontFamily: "'Sora',sans-serif", fontWeight: 300 }}>
-              Créé en 1989 grâce à un partenariat France-Guinée, le Centre Informatique est un établissement autonome de l’Université Gamal Abdel Nasser de Conakry, sous la supervision directe du Recteur.
-            </p>
-            <p style={{ fontSize: 15, color: "#64748B", lineHeight: 1.9, marginBottom: 28, fontFamily: "'Sora',sans-serif", fontWeight: 300 }}>
-              Il forme des ingénieurs et développeurs compétents à travers deux départements spécialisés, avec un cursus conforme au système LMD reconnu à l’international.
-            </p>
-            <a href="https://ci.edu.gn/a-propos" target="_blank" rel="noreferrer" style={{ fontSize: 13, fontWeight: 700, color: "#1D4ED8", textDecoration: "none", fontFamily: "'Sora',sans-serif", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              En savoir plus →
+      {/* top bar */}
+      <div className="topbar">
+        <div className="wrap">
+          <ul>
+            <li><IPhone />+224 624 08 45 01</li>
+            <li className="hide-sm"><IMail />direction@ci.edu.gn</li>
+            <li className="hide-sm"><IPin />Dixinn, Conakry — Guinée</li>
+          </ul>
+          <div className="socials">
+            <a href="https://ci.edu.gn" target="_blank" rel="noreferrer" aria-label="Site du Centre">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-2.5a15 15 0 0 0-1.1-3A8 8 0 0 1 18.9 8ZM12 4.2c.6.9 1.2 2.2 1.5 3.8h-3c.3-1.6.9-2.9 1.5-3.8ZM4.3 14a8 8 0 0 1 0-4h2.9a17 17 0 0 0 0 4Zm.8 2h2.5c.3 1.1.6 2.1 1.1 3A8 8 0 0 1 5.1 16Zm2.5-8H5.1a8 8 0 0 1 3.6-3 15 15 0 0 0-1.1 3ZM12 19.8c-.6-.9-1.2-2.2-1.5-3.8h3c-.3 1.6-.9 2.9-1.5 3.8Zm1.9-5.8h-3.8a15 15 0 0 1 0-4h3.8a15 15 0 0 1 0 4Zm.6 5a15 15 0 0 0 1.1-3h2.5a8 8 0 0 1-3.6 3Zm2.3-5a17 17 0 0 0 0-4h2.9a8 8 0 0 1 0 4Z" /></svg>
             </a>
           </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-  {[
-    {
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-      ),
-      label: "Partenariat", val: "France – Guinée"
-    },
-    {
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
-        </svg>
-      ),
-      label: "Arrêté", val: "N°632/MEN/89"
-    },
-    {
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-        </svg>
-      ),
-      label: "Cursus", val: "Système LMD"
-    },
-    {
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
-      ),
-      label: "Localisation", val: "Dixinn, Conakry"
-    },
-  ].map((item) => (
-    <div key={item.label} style={{ background: "#F8FAFF", border: "1px solid #E2E8F0", borderRadius: 12, padding: "1.25rem", borderTop: "3px solid #1D4ED8" }}>
-      <div style={{ width: 38, height: 38, background: "#DBEAFE", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
-        {item.icon}
+        </div>
       </div>
-      <div style={{ fontSize: 10, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, fontFamily: "'Sora',sans-serif", fontWeight: 600 }}>{item.label}</div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", fontFamily: "'Sora',sans-serif" }}>{item.val}</div>
-    </div>
-  ))}
-</div>
+
+      {/* header */}
+      <header className="nav">
+        <div className="wrap">
+          <a className="brand" href="#accueil"><span className="mark"><span /></span>Centre Informatique</a>
+          <nav className="links">
+            <a href="#accueil" className="active">Accueil</a>
+            <a href="#programmes">Programmes</a>
+            <a href="#actualites">Actualités</a>
+            <a href="#admission">Admission</a>
+            <a href="#contact">Contact</a>
+          </nav>
+          <div className="cta">
+            <Link to="/auth/login" className="btn btn-ghost cta-hide">Espace notes</Link>
+            <a href="#admission" className="btn btn-primary">Candidater <IArrow /></a>
+            <button className="menu-btn" aria-label="Menu"><IMenu /></button>
+          </div>
+        </div>
+      </header>
+
+      {/* hero */}
+      <section className="hero" id="accueil">
+        <div className="hero-shape shape-b" data-par="-0.08" />
+        <div className="wrap">
+          <div className="hero-text">
+            <span className="eyebrow">{inst.name || 'Centre Informatique'} · UGANC</span>
+            <h1 className="hero-title">Former les talents du <em>numérique</em> guinéen</h1>
+            <p className="hero-lead">
+              Issu d’un partenariat France-Guinée depuis {foundingYear}, le Centre Informatique forme en
+              Licence, Master et Doctorat — et met à disposition une plateforme pour suivre sa scolarité et ses notes.
+            </p>
+            <div className="hero-actions">
+              <a href="#programmes" className="btn btn-primary">Découvrir les programmes <IArrow /></a>
+              <Link to="/auth/login" className="link-arrow">Accéder à l’espace notes <IArrowThin /></Link>
+            </div>
+            <div className="hero-foot">
+              <span>Arrêté N°632/MEN/DNSUP/89</span><span className="dot" />
+              <span>Depuis {foundingYear}</span><span className="dot" />
+              <span>Système LMD</span>
+            </div>
+          </div>
+
+          <div className="stage" ref={stageRef}>
+            <div className="stage-inner">
+              <div className="panel p1" data-depth="26"><img src={PH.hero[0].src} alt={PH.hero[0].alt} /></div>
+              <div className="panel p2" data-depth="-20"><img src={PH.hero[1].src} alt={PH.hero[1].alt} /></div>
+              <div className="panel p3" data-depth="40"><img src={PH.hero[2].src} alt={PH.hero[2].alt} /></div>
+            </div>
+            <div className="seal" data-depth="14" dangerouslySetInnerHTML={{ __html: SEAL(foundingYear) }} />
+            <div className="spark" data-depth="30"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z" /></svg></div>
+          </div>
         </div>
       </section>
 
-      {/* ══ DÉPARTEMENTS ══ */}
-      <section id="departements" style={{ padding: "6rem 3rem", background: "#F8FAFF" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <div style={{ fontSize: 11, color: "#1D4ED8", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 14, fontFamily: "'Sora',sans-serif", fontWeight: 700 }}>FORMATIONS</div>
-            <h2 className="lora" style={{ fontSize: 42, fontWeight: 700, color: "#0F172A" }}>Nos départements</h2>
-          </div>
+      {/* marquee */}
+      <div className="marquee" aria-hidden="true">
+        <div className="marquee-track">{marqueeRow}{marqueeRow}</div>
+      </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
-            {departements.map((d) => (
-              <div key={d.code} className="dept-card" style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: "2.5rem", boxShadow: "0 4px 20px rgba(0,0,0,0.05)", borderTop: `4px solid ${d.accentColor}` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
-                  <div style={{ background: d.lightBg, color: d.accentColor, fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 6, fontFamily: "'Sora',sans-serif", letterSpacing: "0.06em" }}>{d.code}</div>
-                  <div style={{ fontSize: 11, color: "#94A3B8", fontFamily: "'Sora',sans-serif" }}>{d.niveaux}</div>
-                </div>
-                <h3 className="lora" style={{ fontSize: 20, fontWeight: 700, color: "#0F172A", marginBottom: 14, lineHeight: 1.3 }}>{d.title}</h3>
-                <p style={{ fontSize: 14, color: "#64748B", lineHeight: 1.8, marginBottom: 18, fontFamily: "'Sora',sans-serif", fontWeight: 300 }}>{d.desc}</p>
-                <div style={{ fontSize: 12, marginBottom: 6 }}><span style={{ fontWeight: 700, color: "#374151", fontFamily: "'Sora',sans-serif" }}>Encadrement : </span><span style={{ color: "#64748B", fontFamily: "'Sora',sans-serif" }}>{d.encadrement}</span></div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 7, margin: "16px 0 20px" }}>
-                  {d.tags.map((t) => <span key={t} style={{ fontSize: 11, fontWeight: 600, color: d.accentColor, background: d.lightBg, padding: "4px 12px", borderRadius: 6, fontFamily: "'Sora',sans-serif" }}>{t}</span>)}
-                </div>
-                <a href={d.link} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: d.accentColor, textDecoration: "none", fontFamily: "'Sora',sans-serif" }}>
-                  En savoir plus
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </a>
+      {/* about */}
+      <section className="about">
+        <div className="wrap">
+          <div className="about-media">
+            <div className="panel am1"><img src={PH.about[0].src} alt={PH.about[0].alt} /></div>
+            <div className="panel am2"><img src={PH.about[1].src} alt={PH.about[1].alt} /></div>
+            <div className="about-badge" data-par="0.06" dangerouslySetInnerHTML={{ __html: BADGE_YEARS(years) }} />
+          </div>
+          <div className="about-text">
+            <span className="eyebrow">Le Centre</span>
+            <h2>Un pôle d’excellence pour l’informatique en Guinée</h2>
+            <p className="about-lead">
+              Créé en {foundingYear} grâce à un partenariat France-Guinée, le Centre Informatique est un
+              établissement de l’Université Gamal Abdel Nasser de Conakry. Il forme ingénieurs et développeurs
+              à travers ses départements, selon le système LMD reconnu à l’international.
+            </p>
+            <div className="facts">
+              <div className="fact"><div className="k">Partenariat</div><div className="v">France – Guinée</div></div>
+              <div className="fact"><div className="k">Arrêté</div><div className="v">N°632/MEN/DNSUP/89</div></div>
+              <div className="fact"><div className="k">Cursus</div><div className="v">Système LMD</div></div>
+              <div className="fact"><div className="k">Localisation</div><div className="v">Dixinn, Conakry</div></div>
+            </div>
+            <a href="#programmes" className="btn btn-lime">Voir les programmes <IArrow /></a>
+          </div>
+        </div>
+      </section>
+
+      {/* stats */}
+      {stats.length > 0 && (
+        <section className="stats">
+          <div className="wrap">
+            {stats.map((s) => (
+              <div className="stat" key={s.key}>
+                <div className="num"><Counter value={s.value} suffix={s.suffix || ''} /></div>
+                <div className="lab">{s.label}</div>
               </div>
             ))}
           </div>
+        </section>
+      )}
 
-          {/* Débouchés */}
-          <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 14, padding: "1.75rem 2rem" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 14, fontFamily: "'Sora',sans-serif" }}>Débouchés professionnels</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {debouches.map((d) => <span key={d.id} style={{ fontSize: 13, color: "#374151", background: "#F1F5F9", border: "1px solid #E2E8F0", padding: "6px 16px", borderRadius: 8, fontFamily: "'Sora',sans-serif", fontWeight: 500 }}>{d.name}</span>)}
+      {/* programmes */}
+      <section className="programs" id="programmes">
+        <div className="wrap">
+          <div className="sec-head">
+            <div>
+              <span className="eyebrow">Nos programmes</span>
+              <h2>Des départements, des parcours diplômants</h2>
             </div>
+            <a href="https://ci.edu.gn" target="_blank" rel="noreferrer" className="btn btn-outline-light">Le site du Centre <IArrow /></a>
           </div>
+
+          {departments.map((d, di) => (
+            <div className="dept" key={d.code}>
+              <div className="dept-head">
+                <span className="n">{String(di + 1).padStart(2, '0')}</span>
+                <div>
+                  <h3>{cleanName(d.name)}</h3>
+                  {d.description ? <p>{d.description}</p> : null}
+                </div>
+              </div>
+              <div className="prog-grid">
+                {d.programs.map((p) => {
+                  const feature = progIndex === 0
+                  const cover = PH.prog[progIndex % PH.prog.length]
+                  progIndex += 1
+                  return (
+                    <article className={`prog${feature ? ' feature' : ''}`} key={p.code}>
+                      <div className="cover"><img src={cover} alt="" loading="lazy" /></div>
+                      <span className="deg">{p.degree_label || 'Diplôme'}</span>
+                      <h4>{cleanName(p.name)}</h4>
+                      {p.description ? <p>{p.description}</p> : <p />}
+                      {p.levels?.length ? (
+                        <div className="levels">
+                          {p.levels.map((lv) => <span className="lvl" key={lv.number}>{lv.name}</span>)}
+                        </div>
+                      ) : null}
+                      {p.website_url ? (
+                        <a href={p.website_url} target="_blank" rel="noreferrer" className="plink">
+                          Voir le site du programme <span className="arrow-circle"><IExtern /></span>
+                        </a>
+                      ) : null}
+                    </article>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ══ ADMISSION ══ */}
-<section id="admission" style={{ padding: "6rem 3rem", background: "#fff" }}>
-  <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-    <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-      <div style={{ fontSize: 11, color: "#1D4ED8", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 14, fontFamily: "'Sora',sans-serif", fontWeight: 700 }}>INSCRIPTION</div>
-      <h2 className="lora" style={{ fontSize: 42, fontWeight: 700, color: "#0F172A" }}>Admission &amp; conditions</h2>
-    </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }}>
-      {admission.map((s, i) => (
-        <div key={s.n} style={{ background: "#F8FAFF", border: "1px solid #E2E8F0", borderRadius: 14, padding: "2rem 1.5rem", position: "relative", textAlign: "center" }}>
-          <div style={{ width: 48, height: 48, background: "#DBEAFE", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-            {s.icon}
-          </div>
-          <div style={{ fontSize: 10, fontWeight: 800, color: "#1D4ED8", letterSpacing: "0.15em", marginBottom: 10, fontFamily: "'Sora',sans-serif" }}>ÉTAPE {s.n}</div>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 10, fontFamily: "'Sora',sans-serif" }}>{s.title}</h3>
-          <p style={{ fontSize: 12, color: "#64748B", lineHeight: 1.7, fontFamily: "'Sora',sans-serif", fontWeight: 300 }}>{s.desc}</p>
-          {i < admission.length - 1 && (
-            <div style={{ position: "absolute", right: -10, top: "42%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", background: "#1D4ED8", color: "#fff", borderRadius: "50%", fontSize: 10, zIndex: 2, fontWeight: 700 }}>›</div>
-          )}
-        </div>
-      ))}
-    </div>
-  </div>
-</section>
-
-      {/* ══ DIRECTION ══ */}
-      <section id="direction" style={{ padding: "6rem 3rem", background: "#F8FAFF" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <div style={{ fontSize: 11, color: "#1D4ED8", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 14, fontFamily: "'Sora',sans-serif", fontWeight: 700 }}>ÉQUIPE DIRIGEANTE</div>
-            <h2 className="lora" style={{ fontSize: 42, fontWeight: 700, color: "#0F172A" }}>La Direction</h2>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 40 }}>
-            {direction.map((p, i) => {
-              const initials = p.name.split(" ").filter(w => w.length > 2).slice(0,2).map(w => w[0]).join("");
-              const gradients = [
-                "linear-gradient(135deg,#1D4ED8,#3B82F6)",
-                "linear-gradient(135deg,#0369A1,#0EA5E9)",
-                "linear-gradient(135deg,#1E40AF,#6366F1)",
-                "linear-gradient(135deg,#0284C7,#38BDF8)",
-              ];
-              return (
-                <div key={p.name} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 14, padding: "1.75rem", textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-                  <div style={{ width: 58, height: 58, borderRadius: "50%", background: gradients[i], display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Lora',serif" }}>{initials}</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 6, fontFamily: "'Sora',sans-serif", lineHeight: 1.3 }}>{p.name}</div>
-                  <div style={{ fontSize: 11, color: "#64748B", fontFamily: "'Sora',sans-serif", lineHeight: 1.4, marginBottom: p.since ? 10 : 0 }}>{p.role}</div>
-                  {p.since && <div style={{ fontSize: 10, color: "#1D4ED8", background: "#DBEAFE", display: "inline-block", padding: "3px 10px", borderRadius: 100, fontFamily: "'Sora',sans-serif", fontWeight: 700 }}>{p.since}</div>}
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 14, padding: "1.75rem 2rem" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 16, fontFamily: "'Sora',sans-serif" }}>Historique des Directeurs Généraux</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {historique.map((h) => (
-                <div key={h.n} className="hist-row" style={{ display: "flex", alignItems: "center", gap: 20, padding: "10px 14px", borderRadius: 8, transition: "background 0.2s", cursor: "default" }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#1D4ED8", width: 120, flexShrink: 0, fontFamily: "'Sora',sans-serif" }}>{h.p}</span>
-                  <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#CBD5E1", flexShrink: 0 }} />
-                  <span style={{ fontSize: 14, color: "#475569", fontFamily: "'Sora',sans-serif" }}>{h.n}</span>
-                </div>
+      {/* actualités */}
+      {news.length > 0 && (
+        <section id="actualites">
+          <div className="wrap">
+            <div className="sec-head">
+              <span className="eyebrow">Actualités</span>
+              <h2>Les moments forts de la vie du Centre</h2>
+              <p>Événements, campus, diplômes : ce qui fait vibrer les salles et les laboratoires.</p>
+            </div>
+            <div className="news-grid">
+              {news.map((a, i) => (
+                <article className="card" key={a.slug || i}>
+                  <div className="cover"><img src={PH.news[i % PH.news.length]} alt="" loading="lazy" /></div>
+                  <div className="body">
+                    <div className="meta"><span className="tag">{a.tag_label}</span><span>{formatDate(a.published_at)}</span></div>
+                    <h3>{a.title}</h3>
+                    <p>{a.excerpt}</p>
+                    {a.url ? (
+                      <a href={a.url} target="_blank" rel="noreferrer" className="link-arrow">Lire l’article <IArrowThin /></a>
+                    ) : null}
+                  </div>
+                </article>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* ══ CONTACT ══ */}
-      <section id="contact" style={{ padding: "6rem 3rem", background: "#fff" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <div style={{ fontSize: 11, color: "#1D4ED8", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 14, fontFamily: "'Sora',sans-serif", fontWeight: 700 }}>CONTACT</div>
-            <h2 className="lora" style={{ fontSize: 42, fontWeight: 700, color: "#0F172A" }}>Nous contacter</h2>
+      {/* admission */}
+      <section className="admission" id="admission">
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">Admission</span>
+            <h2>Rejoindre le Centre en quatre étapes</h2>
+            <p>Un parcours de candidature clair, de la demande en ligne à l’inscription définitive.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
-  {[
-    {
-      icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
-      ),
-      title: "Adresse", lines: ["Dixinn, Conakry 33139", "Guinée"], color: "#1D4ED8"
-    },
-    {
-      icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 4.9 2 2 0 0 1 3.6 2.69h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 17.4z"/>
-        </svg>
-      ),
-      title: "Téléphone", lines: ["+224 624 08 45 01", "+224 657 99 43 57"], color: "#0369A1"
-    },
-    {
-      icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-          <polyline points="22,6 12,13 2,6"/>
-        </svg>
-      ),
-      title: "Email", lines: ["direction@ci.edu.gn"], color: "#1E40AF"
-    },
-  ].map((c) => (
-    <div key={c.title} style={{ background: "#F8FAFF", border: "1px solid #E2E8F0", borderRadius: 14, padding: "2rem", borderTop: `4px solid ${c.color}`, textAlign: "center" }}>
-      <div style={{
-        width: 52, height: 52,
-        background: `${c.color}15`,
-        borderRadius: 12,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        margin: "0 auto 16px",
-        color: c.color,
-      }}>
-        {c.icon}
-      </div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: c.color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12, fontFamily: "'Sora',sans-serif" }}>{c.title}</div>
-      {c.lines.map((l) => <div key={l} style={{ fontSize: 14, color: "#475569", marginBottom: 4, fontFamily: "'Sora',sans-serif" }}>{l}</div>)}
-    </div>
-  ))}
-</div>
+          <div className="steps">
+            <div className="step"><div className="no">1</div><h4>Candidature</h4><p>Déposez votre demande et choisissez le programme visé.</p></div>
+            <div className="step"><div className="no">2</div><h4>Étude du dossier</h4><p>Vos relevés et pièces sont examinés par la commission.</p></div>
+            <div className="step"><div className="no">3</div><h4>Entretien</h4><p>Un échange pour confirmer votre projet et votre niveau.</p></div>
+            <div className="step"><div className="no">4</div><h4>Inscription</h4><p>Validez votre place et accédez à l’espace étudiant.</p></div>
+          </div>
         </div>
       </section>
 
-      {/* ══ FOOTER ══ */}
-      <footer style={{ background: "#0F172A", padding: "2.5rem 3rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <img src={LOGO_B64} alt="Logo CI" style={{ height: 36, borderRadius: 4, opacity: 0.9 }} />
-          <span style={{ fontSize: 12, color: "#64748B", fontFamily: "'Sora',sans-serif" }}>
-            © {new Date().getFullYear()} Centre Informatique — UGANC Conakry
-          </span>
+      {/* cta + contact */}
+      <section className="cta-band" id="contact">
+        <div className="wrap">
+          <div>
+            <h2>Prêt à construire votre avenir dans le numérique ?</h2>
+            <p>Contactez le service scolarité pour toute question, ou accédez directement à votre espace de notes.</p>
+            <div className="cta-actions">
+              <a href="mailto:direction@ci.edu.gn" className="btn btn-lime">Nous écrire <IArrow /></a>
+              <Link to="/auth/login" className="btn btn-outline-light">Espace notes</Link>
+            </div>
+          </div>
+          <div className="contact-card">
+            <h4>Nous contacter</h4>
+            <ul>
+              <li><IPhone />+224 624 08 45 01 · +224 657 99 43 57</li>
+              <li><IMail />direction@ci.edu.gn</li>
+              <li><IPin />Dixinn, Conakry 33139 — Guinée</li>
+            </ul>
+          </div>
         </div>
-        <a href="/auth/login" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#1D4ED8", color: "#fff", padding: "9px 20px", borderRadius: 8, fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "'Sora',sans-serif", boxShadow: "0 4px 14px rgba(29,78,216,0.4)" }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          Plateforme de notes
-        </a>
-      </footer>
+      </section>
 
+      {/* footer */}
+      <footer className="foot">
+        <div className="wrap">
+          <div className="fcol">
+            <a className="brand" href="#accueil"><span className="mark"><span /></span>Centre Informatique</a>
+            <p>Centre de formation et de recherche en informatique de l’Université Gamal Abdel Nasser de Conakry.</p>
+          </div>
+          <div className="fcol">
+            <h5>Programmes</h5>
+            <ul>
+              {(departments.length ? departments : [{ code: 'x', name: 'Nos formations' }]).map((d) => (
+                <li key={d.code}><a href="#programmes">{cleanName(d.name)}</a></li>
+              ))}
+            </ul>
+          </div>
+          <div className="fcol">
+            <h5>Le Centre</h5>
+            <ul>
+              <li><a href="#actualites">Actualités</a></li>
+              <li><a href="#admission">Admission</a></li>
+              <li><a href="#contact">Contact</a></li>
+              <li><a href="https://ci.edu.gn" target="_blank" rel="noreferrer">Site officiel</a></li>
+            </ul>
+          </div>
+          <div className="fcol">
+            <h5>Espaces</h5>
+            <ul>
+              <li><Link to="/auth/login">Espace notes</Link></li>
+              <li><Link to="/auth/login">Étudiants</Link></li>
+              <li><Link to="/auth/login">Enseignants</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="footbar">
+          <div className="wrap">
+            <span>© {new Date().getFullYear()} Centre Informatique — UGANC. Tous droits réservés.</span>
+            <span>Conakry · Guinée</span>
+          </div>
+        </div>
+      </footer>
     </div>
-  );
+  )
 }

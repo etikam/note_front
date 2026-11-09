@@ -124,6 +124,9 @@ export const endpoints = {
     courses: (id) => `${API_PREFIX}/teachers/${id}/courses/`,
     courseAssign: (teacherId, courseId) => `${API_PREFIX}/teachers/${teacherId}/courses/${courseId}/`,
   },
+  public: {
+    landing: `${API_PREFIX}/public/landing/`,
+  },
 }
 
 export function isAuthPath(url) {
