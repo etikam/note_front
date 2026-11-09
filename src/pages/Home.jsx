@@ -72,8 +72,9 @@ const CSS = `
 .ci-landing .hero{position:relative;overflow:hidden;background:
   radial-gradient(130% 90% at 88% -8%, var(--bg-mist) 0%, transparent 46%),
   linear-gradient(180deg,#fff 0%, var(--bg-soft) 100%)}
-.ci-landing .hero .wrap{position:relative;display:grid;grid-template-columns:1.04fr 1fr;gap:clamp(28px,4vw,60px);align-items:center;
+.ci-landing .hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.04fr 1fr;gap:clamp(28px,4vw,60px);align-items:center;
   padding-top:clamp(48px,6vw,78px);padding-bottom:clamp(52px,7vw,92px)}
+.ci-landing .hero-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 .ci-landing .hero-shape{position:absolute;border-radius:40px;z-index:0;pointer-events:none}
 .ci-landing .shape-b{width:320px;height:320px;right:-80px;bottom:-120px;border-radius:999px;
   background:radial-gradient(circle at 40% 40%, rgba(183,224,23,.22), transparent 68%)}
@@ -205,9 +206,11 @@ const CSS = `
 .ci-landing .footbar{border-top:1px solid rgba(255,255,255,.08)}
 .ci-landing .footbar .wrap{padding-block:18px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:#7d9686;font-size:13px}
 
-/* apparition au défilement (activée seulement quand JS ajoute .anim) */
+/* apparition au défilement — mode allégé (.anim : IntersectionObserver ajoute .in) */
 .ci-landing.anim .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease, transform .8s cubic-bezier(.2,.75,.2,1)}
 .ci-landing.anim .reveal.in{opacity:1;transform:none}
+/* mode complet (.fx : GSAP pilote l'apparition en inline) — état de base masqué, sans flash */
+.ci-landing.fx .reveal{opacity:0;will-change:opacity,transform}
 
 @media (max-width:980px){
   .ci-landing nav.links,.ci-landing .topbar li.hide-sm{display:none}
@@ -309,6 +312,7 @@ const formatDate = (iso) => {
 export default function Home() {
   const [data, setData] = useState(null)
   const stageRef = useRef(null)
+  const canvasRef = useRef(null)
 
   useEffect(() => {
     const ctrl = new AbortController()
@@ -316,75 +320,32 @@ export default function Home() {
     return () => ctrl.abort()
   }, [])
 
-  // Interactions : tilt 3D du hero (souris) + parallaxe de défilement + apparition au scroll.
+  // Effets de défilement (Lenis + GSAP ScrollTrigger + Three.js), chargés en lazy.
+  // Une seule init, une fois les sections rendues (données chargées), avec repli temporisé.
   useEffect(() => {
-    const root = document.querySelector('.ci-landing')
-    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce || !root) return
-    root.classList.add('anim')
-
-    const stage = stageRef.current
-    const inner = stage ? stage.querySelector('.stage-inner') : null
-    const layers = stage ? Array.from(stage.querySelectorAll('[data-depth]')) : []
-    const parEls = Array.from(root.querySelectorAll('[data-par]'))
-
-    let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0
-    let sy = window.pageYOffset || document.documentElement.scrollTop || 0
-
-    const onMove = (e) => {
-      if (!stage) return
-      const r = stage.getBoundingClientRect()
-      tx = (e.clientX - (r.left + r.width / 2)) / r.width
-      ty = (e.clientY - (r.top + r.height / 2)) / r.height
+    let cleanup = () => {}
+    let alive = true
+    let started = false
+    const start = () => {
+      if (started || !alive) return
+      const root = document.querySelector('.ci-landing')
+      if (!root) return
+      started = true
+      import('@/features/landing/scrollFx')
+        .then((m) => {
+          if (!alive) return
+          cleanup = m.initLandingFx({
+            root,
+            hero: root.querySelector('.hero'),
+            stage: stageRef.current,
+            canvas: canvasRef.current,
+          }) || (() => {})
+        })
+        .catch(() => {})
     }
-    const onLeave = () => { tx = 0; ty = 0 }
-    const onScroll = () => { sy = window.pageYOffset || document.documentElement.scrollTop || 0 }
-
-    const loop = () => {
-      cx += (tx - cx) * 0.07
-      cy += (ty - cy) * 0.07
-      if (inner) inner.style.transform = `rotateY(${cx * 10}deg) rotateX(${-cy * 8}deg)`
-      for (const el of layers) {
-        const d = parseFloat(el.getAttribute('data-depth')) || 0
-        const ps = parseFloat(el.getAttribute('data-pscroll')) || 0
-        el.style.transform = `translate3d(${cx * d * 1.9}px, ${cy * d * 1.35 + sy * ps}px, ${Math.abs(d)}px)`
-      }
-      for (const el of parEls) {
-        const s = parseFloat(el.getAttribute('data-par')) || 0
-        el.style.transform = `translate3d(0, ${sy * s}px, 0)`
-      }
-      raf = requestAnimationFrame(loop)
-    }
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const en of entries) {
-          if (en.isIntersecting) {
-            en.target.classList.add('in')
-            io.unobserve(en.target)
-          }
-        }
-      },
-      { threshold: 0.14, rootMargin: '0px 0px -8% 0px' },
-    )
-    root.querySelectorAll('.reveal').forEach((el) => io.observe(el))
-
-    window.addEventListener('scroll', onScroll, { passive: true })
-    if (stage) {
-      stage.addEventListener('mousemove', onMove)
-      stage.addEventListener('mouseleave', onLeave)
-    }
-    raf = requestAnimationFrame(loop)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      if (stage) {
-        stage.removeEventListener('mousemove', onMove)
-        stage.removeEventListener('mouseleave', onLeave)
-      }
-      cancelAnimationFrame(raf)
-      io.disconnect()
-      root.classList.remove('anim')
-    }
+    if (data) start()
+    const fallback = setTimeout(start, 1500)
+    return () => { alive = false; clearTimeout(fallback); cleanup() }
   }, [data])
 
   const inst = data?.institution ?? {}
@@ -450,6 +411,7 @@ export default function Home() {
 
       {/* hero */}
       <section className="hero" id="accueil">
+        <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
         <div className="hero-shape shape-b" data-par="-0.18" />
         <div className="wrap">
           <div className="hero-text">
