@@ -44,20 +44,14 @@ const CSS = `
 .ci-landing .arrow-circle svg{width:15px;height:15px}
 
 /* photos — rendu N&B cohérent */
-.ci-landing .panel img,.ci-landing .cover img{display:block;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.04)}
+.ci-landing .panel img,.ci-landing .cover img{display:block;width:100%;height:100%;object-fit:cover}
 
-.ci-landing .topbar{background:var(--green-deep);color:#cfe0d3;font-size:13px}
-.ci-landing .topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:42px}
-.ci-landing .topbar ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;flex-wrap:wrap}
-.ci-landing .topbar li{display:inline-flex;align-items:center;gap:8px}
-.ci-landing .topbar svg{width:14px;height:14px;color:var(--lime)}
-.ci-landing .socials{display:flex;gap:8px}
-.ci-landing .socials a{display:grid;place-items:center;width:26px;height:26px;border-radius:999px;background:rgba(255,255,255,.08);color:#dfeae1}
-.ci-landing .socials a:hover{background:var(--lime);color:var(--lime-ink)}
-.ci-landing .socials svg{width:13px;height:13px}
-
-.ci-landing header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:saturate(1.3) blur(12px);border-bottom:1px solid var(--line-soft)}
-.ci-landing header.nav .wrap{display:flex;align-items:center;gap:24px;height:72px}
+/* header flottant (suspendu), masqué au défilement vers le bas */
+.ci-landing header.nav{position:fixed;top:12px;left:0;right:0;z-index:60;padding-inline:clamp(12px,3vw,24px);transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .3s ease}
+.ci-landing header.nav.nav-hidden{transform:translateY(-150%);opacity:0;pointer-events:none}
+.ci-landing header.nav .wrap{display:flex;align-items:center;gap:24px;height:62px;padding-inline:18px;
+  background:rgba(255,255,255,.72);backdrop-filter:saturate(1.4) blur(14px);border:1px solid var(--line);border-radius:16px;
+  box-shadow:0 12px 34px -16px rgba(15,26,19,.38)}
 .ci-landing .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:17px;letter-spacing:-.02em}
 .ci-landing .brand .mark{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--green-deep)}
 .ci-landing .brand .mark span{width:17px;height:9px;border-radius:999px;background:
@@ -73,8 +67,9 @@ const CSS = `
   radial-gradient(130% 90% at 88% -8%, var(--bg-mist) 0%, transparent 46%),
   linear-gradient(180deg,#fff 0%, var(--bg-soft) 100%)}
 .ci-landing .hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.04fr 1fr;gap:clamp(28px,4vw,60px);align-items:center;
-  padding-top:clamp(14px,2.2vw,30px);padding-bottom:clamp(44px,6vw,72px)}
+  padding-top:clamp(82px,10vh,104px);padding-bottom:clamp(44px,6vw,72px)}
 .ci-landing .hero-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.9}
+.ci-landing section[id]{scroll-margin-top:90px}
 .ci-landing .hero-shape{position:absolute;border-radius:40px;z-index:0;pointer-events:none}
 .ci-landing .shape-b{width:320px;height:320px;right:-80px;bottom:-120px;border-radius:999px;
   background:radial-gradient(circle at 40% 40%, rgba(183,224,23,.22), transparent 68%)}
@@ -213,7 +208,7 @@ const CSS = `
 .ci-landing.fx .reveal{opacity:0;will-change:opacity,transform}
 
 @media (max-width:980px){
-  .ci-landing nav.links,.ci-landing .topbar li.hide-sm{display:none}
+  .ci-landing nav.links{display:none}
   .ci-landing .menu-btn{display:grid;place-items:center;margin-left:auto}
   .ci-landing header.nav .cta .cta-hide{display:none}
   .ci-landing .hero .wrap,.ci-landing .about .wrap,.ci-landing .cta-band .wrap{grid-template-columns:1fr}
@@ -239,23 +234,23 @@ const CSS = `
 const U = (id, w, h) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=80`
 const PH = {
   hero: [
-    { src: U('1522202176988-66273c2fd55f', 520, 680), alt: 'Étudiants en informatique' },
-    { src: U('1591117207239-788bf8de6c3b', 520, 460), alt: 'Amphithéâtre' },
-    { src: U('1588072432836-e10032774350', 560, 440), alt: 'Salle informatique' },
+    { src: U('1522202176988-66273c2fd55f', 540, 700), alt: 'Étudiants autour d’un ordinateur portable' },
+    { src: U('1531482615713-2afd69097998', 540, 460), alt: 'Développement sur ordinateur' },
+    { src: U('1543269865-cbf427effbad', 560, 440), alt: 'Groupe d’étudiants' },
   ],
   about: [
-    { src: U('1523240795612-9a054b0db644', 760, 440), alt: 'Travail en équipe' },
-    { src: U('1543269865-cbf427effbad', 640, 360), alt: 'Groupe d’étudiants' },
+    { src: U('1522071820081-009f0129c71c', 760, 440), alt: 'Travail en équipe autour d’ordinateurs' },
+    { src: U('1523240795612-9a054b0db644', 640, 360), alt: 'Étude en bibliothèque' },
   ],
   prog: [
+    U('1461749280684-dccba630e2f6', 640, 360),
+    U('1498050108023-c5249f4df085', 640, 360),
     U('1517694712202-14dd9538aa97', 640, 360),
-    U('1558494949-ef010cbdcc31', 640, 360),
-    U('1531482615713-2afd69097998', 640, 360),
   ],
   news: [
-    U('1531482615713-2afd69097998', 640, 360),
+    U('1517245386807-bb43f82c33c4', 640, 360),
     U('1562774053-701939374585', 640, 360),
-    U('1509062522246-3755977927d7', 640, 360),
+    U('1523240795612-9a054b0db644', 640, 360),
   ],
 }
 const SEAL = (year) => `<svg viewBox="0 0 120 120"><defs><path id="ciCircle" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/></defs><circle cx="60" cy="60" r="58" fill="#13311f"/><circle cx="60" cy="60" r="44" fill="none" stroke="#b7e017" stroke-width="1" opacity=".5"/><text font-size="10" font-weight="700" letter-spacing="2" fill="#dfeae1"><textPath href="#ciCircle" startOffset="0">· CENTRE INFORMATIQUE · DEPUIS ${year} </textPath></text><g fill="none" stroke="#b7e017" stroke-width="2.4"><path d="M44 60h32M64 48l12 12-12 12"/></g></svg>`
@@ -348,6 +343,27 @@ export default function Home() {
     return () => { alive = false; clearTimeout(fallback); cleanup() }
   }, [data])
 
+  // Header flottant : se masque au défilement vers le bas, réapparaît vers le haut / en haut de page.
+  useEffect(() => {
+    const header = document.querySelector('.ci-landing header.nav')
+    if (!header) return undefined
+    let last = window.pageYOffset || 0
+    let ticking = false
+    const update = () => {
+      const y = window.pageYOffset || document.documentElement.scrollTop || 0
+      if (y < 90) header.classList.remove('nav-hidden')
+      else if (y > last + 6) header.classList.add('nav-hidden')
+      else if (y < last - 6) header.classList.remove('nav-hidden')
+      last = y
+      ticking = false
+    }
+    const onScroll = () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(update) }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   const inst = data?.institution ?? {}
   const foundingYear = inst.founding_year ?? 1989
   const stats = data?.stats ?? []
@@ -374,23 +390,7 @@ export default function Home() {
     <div className="ci-landing">
       <style>{CSS}</style>
 
-      {/* top bar */}
-      <div className="topbar">
-        <div className="wrap">
-          <ul>
-            <li><IPhone />+224 624 08 45 01</li>
-            <li className="hide-sm"><IMail />direction@ci.edu.gn</li>
-            <li className="hide-sm"><IPin />Dixinn, Conakry — Guinée</li>
-          </ul>
-          <div className="socials">
-            <a href="https://ci.edu.gn" target="_blank" rel="noreferrer" aria-label="Site du Centre">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-2.5a15 15 0 0 0-1.1-3A8 8 0 0 1 18.9 8ZM12 4.2c.6.9 1.2 2.2 1.5 3.8h-3c.3-1.6.9-2.9 1.5-3.8ZM4.3 14a8 8 0 0 1 0-4h2.9a17 17 0 0 0 0 4Zm.8 2h2.5c.3 1.1.6 2.1 1.1 3A8 8 0 0 1 5.1 16Zm2.5-8H5.1a8 8 0 0 1 3.6-3 15 15 0 0 0-1.1 3ZM12 19.8c-.6-.9-1.2-2.2-1.5-3.8h3c-.3 1.6-.9 2.9-1.5 3.8Zm1.9-5.8h-3.8a15 15 0 0 1 0-4h3.8a15 15 0 0 1 0 4Zm.6 5a15 15 0 0 0 1.1-3h2.5a8 8 0 0 1-3.6 3Zm2.3-5a17 17 0 0 0 0-4h2.9a8 8 0 0 1 0 4Z" /></svg>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* header */}
+      {/* header flottant */}
       <header className="nav">
         <div className="wrap">
           <a className="brand" href="#accueil"><span className="mark"><span /></span>Centre Informatique</a>
