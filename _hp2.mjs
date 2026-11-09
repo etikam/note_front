@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch();
+const ctx = await b.newContext({ viewport:{width:1440,height:900}, reducedMotion:'no-preference' });
+const p = await ctx.newPage();
+await p.goto('https://notes.ci.edu.gn/', { waitUntil:'networkidle', timeout:45000 });
+await p.waitForSelector('.ci-landing .hero', { timeout:20000 });
+await p.waitForTimeout(2500);
+await p.evaluate(()=>window.scrollTo(0,650)); await p.waitForTimeout(1000);
+await p.screenshot({ path:'C:/Users/etien/AppData/Local/Temp/claude/afac0f794e30b12f/2dcf65e2-1dd2-449c-98e7-fa8f7b67c070/scratchpad/prod_chip2.png', clip:{x:0,y:0,width:1440,height:600} });
+console.log('ok'); await b.close();

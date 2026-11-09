@@ -12,7 +12,48 @@ import * as THREE from 'three'
 
 gsap.registerPlugin(ScrollTrigger)
 
-/* ───────────────────────── scène Three.js (hero) — puce / processeur ───────────────────────── */
+/* ───────────────────────── scène Three.js (hero) — circuit numérique ───────────────────────── */
+function buildCircuitLayer(cols, rows, step, traceColor, nodeColor, lineOpacity, nodeOpacity) {
+  const layer = new THREE.Group()
+  const px = (i) => (i - cols / 2) * step
+  const py = (j) => (j - rows / 2) * step
+  const verts = []
+  const nodes = []
+  const traceCount = Math.round(cols * 1.2)
+  for (let t = 0; t < traceCount; t++) {
+    let x = Math.floor(Math.random() * cols)
+    let y = Math.floor(Math.random() * rows)
+    let dir = Math.random() < 0.5 ? [1, 0] : [0, 1]
+    const steps = 3 + Math.floor(Math.random() * 7)
+    nodes.push(px(x), py(y), 0)
+    for (let s = 0; s < steps; s++) {
+      const nx = x + dir[0]
+      const ny = y + dir[1]
+      if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) {
+        dir = [dir[1] * -1 || 1, dir[0]]
+        continue
+      }
+      verts.push(px(x), py(y), 0, px(nx), py(ny), 0)
+      x = nx
+      y = ny
+      if (Math.random() < 0.42) {
+        dir = dir[0] !== 0 ? [0, Math.random() < 0.5 ? 1 : -1] : [Math.random() < 0.5 ? 1 : -1, 0]
+      }
+    }
+    nodes.push(px(x), py(y), 0)
+  }
+  const lineGeo = new THREE.BufferGeometry()
+  lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(verts), 3))
+  layer.add(new THREE.LineSegments(lineGeo, new THREE.LineBasicMaterial({ color: traceColor, transparent: true, opacity: lineOpacity })))
+  const nodeGeo = new THREE.BufferGeometry()
+  nodeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(nodes), 3))
+  const nodeMat = new THREE.PointsMaterial({ color: nodeColor, size: 0.11, transparent: true, opacity: nodeOpacity, sizeAttenuation: true })
+  const pts = new THREE.Points(nodeGeo, nodeMat)
+  layer.add(pts)
+  layer.userData.nodeMat = nodeMat
+  return layer
+}
+
 function createThreeScene(canvas, hero) {
   let renderer
   try {
@@ -23,70 +64,17 @@ function createThreeScene(canvas, hero) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
 
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100)
-  camera.position.set(0, 0, 7)
+  const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100)
+  camera.position.set(0, 0, 10)
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.8))
-  const key = new THREE.DirectionalLight(0xffffff, 1.15)
-  key.position.set(4, 6, 6)
-  scene.add(key)
-  const rim = new THREE.DirectionalLight(0xb7e017, 0.5)
-  rim.position.set(-5, -2, 3)
-  scene.add(rim)
-
-  // Puce électronique : corps + die + pistes lime + nœud central + pattes.
-  const chip = new THREE.Group()
-  scene.add(chip)
-
-  const body = new THREE.Mesh(
-    new THREE.BoxGeometry(2.1, 0.26, 2.1),
-    new THREE.MeshStandardMaterial({ color: 0x13311f, metalness: 0.3, roughness: 0.55 }),
-  )
-  chip.add(body)
-
-  const die = new THREE.Mesh(
-    new THREE.BoxGeometry(1.3, 0.12, 1.3),
-    new THREE.MeshStandardMaterial({ color: 0x1c4a2e, metalness: 0.4, roughness: 0.4, emissive: 0x0c2a16, emissiveIntensity: 0.4 }),
-  )
-  die.position.y = 0.17
-  chip.add(die)
-
-  const traceMat = new THREE.MeshStandardMaterial({ color: 0xb7e017, emissive: 0xb7e017, emissiveIntensity: 0.6, metalness: 0.2, roughness: 0.4 })
-  for (let i = -2; i <= 2; i++) {
-    const h = new THREE.Mesh(new THREE.BoxGeometry(1.08, 0.02, 0.03), traceMat)
-    h.position.set(0, 0.235, i * 0.24)
-    chip.add(h)
-    const v = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.02, 1.08), traceMat)
-    v.position.set(i * 0.24, 0.235, 0)
-    chip.add(v)
-  }
-  const node = new THREE.Mesh(
-    new THREE.BoxGeometry(0.36, 0.08, 0.36),
-    new THREE.MeshStandardMaterial({ color: 0xc6f024, emissive: 0xb7e017, emissiveIntensity: 0.95 }),
-  )
-  node.position.y = 0.25
-  chip.add(node)
-
-  const pinMat = new THREE.MeshStandardMaterial({ color: 0xd6ddd6, metalness: 0.85, roughness: 0.35 })
-  const pinGeo = new THREE.BoxGeometry(0.13, 0.06, 0.26)
-  const edge = 2.1 / 2 + 0.14
-  for (let i = 0; i < 7; i++) {
-    const t = -0.78 + i * 0.26
-    const mk = (x, z, ry) => {
-      const m = new THREE.Mesh(pinGeo, pinMat)
-      m.position.set(x, -0.02, z)
-      m.rotation.y = ry
-      chip.add(m)
-    }
-    mk(t, edge, 0)
-    mk(t, -edge, 0)
-    mk(edge, t, Math.PI / 2)
-    mk(-edge, t, Math.PI / 2)
-  }
-
-  chip.position.set(0, 0.2, 0)
-  chip.scale.setScalar(0.95)
-  chip.rotation.x = -0.9
+  // Circuit : deux couches (profondeur/parallaxe), lignes fines translucides + nœuds lime.
+  const circuit = new THREE.Group()
+  scene.add(circuit)
+  const back = buildCircuitLayer(24, 15, 0.72, 0x2c6b45, 0x7fae63, 0.28, 0.5)
+  back.position.z = -3
+  const front = buildCircuitLayer(22, 13, 0.78, 0x3f8a5c, 0xb7e017, 0.5, 0.9)
+  circuit.add(back, front)
+  circuit.rotation.x = -0.12
 
   let prog = 0
   let raf = 0
@@ -104,9 +92,11 @@ function createThreeScene(canvas, hero) {
 
   function animate() {
     const t = clock.getElapsedTime()
-    chip.rotation.y = t * 0.22 + prog * 1.0
-    chip.rotation.x = -0.9 + prog * 0.12 // reste vue de dessus
-    camera.position.z = 7.2 - prog * 3.7 // zoom : la puce grossit au défilement
+    camera.position.z = 10 - prog * 4.8 // zoom : on plonge dans le circuit
+    circuit.position.x = -prog * 1.6 // léger panoramique au défilement
+    circuit.rotation.x = -0.12 + prog * 0.1
+    back.position.y = Math.sin(t * 0.2) * 0.1
+    front.userData.nodeMat.opacity = 0.65 + 0.3 * Math.sin(t * 1.6)
     renderer.render(scene, camera)
     raf = requestAnimationFrame(animate)
   }

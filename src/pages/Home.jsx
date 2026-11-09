@@ -74,7 +74,7 @@ const CSS = `
   linear-gradient(180deg,#fff 0%, var(--bg-soft) 100%)}
 .ci-landing .hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.04fr 1fr;gap:clamp(28px,4vw,60px);align-items:center;
   padding-top:clamp(14px,2.2vw,30px);padding-bottom:clamp(44px,6vw,72px)}
-.ci-landing .hero-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.72}
+.ci-landing .hero-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.9}
 .ci-landing .hero-shape{position:absolute;border-radius:40px;z-index:0;pointer-events:none}
 .ci-landing .shape-b{width:320px;height:320px;right:-80px;bottom:-120px;border-radius:999px;
   background:radial-gradient(circle at 40% 40%, rgba(183,224,23,.22), transparent 68%)}
