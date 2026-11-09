@@ -12,7 +12,7 @@ import * as THREE from 'three'
 
 gsap.registerPlugin(ScrollTrigger)
 
-/* ───────────────────────── scène Three.js (hero) ───────────────────────── */
+/* ───────────────────────── scène Three.js (hero) — puce / processeur ───────────────────────── */
 function createThreeScene(canvas, hero) {
   let renderer
   try {
@@ -23,35 +23,70 @@ function createThreeScene(canvas, hero) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
 
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100)
-  camera.position.set(0, 0, 6)
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100)
+  camera.position.set(0, 0, 7)
 
-  const group = new THREE.Group()
-  scene.add(group)
+  scene.add(new THREE.AmbientLight(0xffffff, 0.8))
+  const key = new THREE.DirectionalLight(0xffffff, 1.15)
+  key.position.set(4, 6, 6)
+  scene.add(key)
+  const rim = new THREE.DirectionalLight(0xb7e017, 0.5)
+  rim.position.set(-5, -2, 3)
+  scene.add(rim)
 
-  const ico = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.6, 1),
-    new THREE.MeshBasicMaterial({ color: 0x1c4a2e, wireframe: true, transparent: true, opacity: 0.42 }),
+  // Puce électronique : corps + die + pistes lime + nœud central + pattes.
+  const chip = new THREE.Group()
+  scene.add(chip)
+
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(2.1, 0.26, 2.1),
+    new THREE.MeshStandardMaterial({ color: 0x13311f, metalness: 0.3, roughness: 0.55 }),
   )
-  group.add(ico)
+  chip.add(body)
 
-  const N = 520
-  const pos = new Float32Array(N * 3)
-  for (let i = 0; i < N; i++) {
-    const r = 2.3 + Math.random() * 2.8
-    const th = Math.random() * Math.PI * 2
-    const ph = Math.acos(2 * Math.random() - 1)
-    pos[i * 3] = r * Math.sin(ph) * Math.cos(th)
-    pos[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th)
-    pos[i * 3 + 2] = r * Math.cos(ph)
+  const die = new THREE.Mesh(
+    new THREE.BoxGeometry(1.3, 0.12, 1.3),
+    new THREE.MeshStandardMaterial({ color: 0x1c4a2e, metalness: 0.4, roughness: 0.4, emissive: 0x0c2a16, emissiveIntensity: 0.4 }),
+  )
+  die.position.y = 0.17
+  chip.add(die)
+
+  const traceMat = new THREE.MeshStandardMaterial({ color: 0xb7e017, emissive: 0xb7e017, emissiveIntensity: 0.6, metalness: 0.2, roughness: 0.4 })
+  for (let i = -2; i <= 2; i++) {
+    const h = new THREE.Mesh(new THREE.BoxGeometry(1.08, 0.02, 0.03), traceMat)
+    h.position.set(0, 0.235, i * 0.24)
+    chip.add(h)
+    const v = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.02, 1.08), traceMat)
+    v.position.set(i * 0.24, 0.235, 0)
+    chip.add(v)
   }
-  const geo = new THREE.BufferGeometry()
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
-  const pts = new THREE.Points(
-    geo,
-    new THREE.PointsMaterial({ color: 0xb7e017, size: 0.032, transparent: true, opacity: 0.85, sizeAttenuation: true }),
+  const node = new THREE.Mesh(
+    new THREE.BoxGeometry(0.36, 0.08, 0.36),
+    new THREE.MeshStandardMaterial({ color: 0xc6f024, emissive: 0xb7e017, emissiveIntensity: 0.95 }),
   )
-  group.add(pts)
+  node.position.y = 0.25
+  chip.add(node)
+
+  const pinMat = new THREE.MeshStandardMaterial({ color: 0xd6ddd6, metalness: 0.85, roughness: 0.35 })
+  const pinGeo = new THREE.BoxGeometry(0.13, 0.06, 0.26)
+  const edge = 2.1 / 2 + 0.14
+  for (let i = 0; i < 7; i++) {
+    const t = -0.78 + i * 0.26
+    const mk = (x, z, ry) => {
+      const m = new THREE.Mesh(pinGeo, pinMat)
+      m.position.set(x, -0.02, z)
+      m.rotation.y = ry
+      chip.add(m)
+    }
+    mk(t, edge, 0)
+    mk(t, -edge, 0)
+    mk(edge, t, Math.PI / 2)
+    mk(-edge, t, Math.PI / 2)
+  }
+
+  chip.position.set(0, 0.2, 0)
+  chip.scale.setScalar(0.95)
+  chip.rotation.x = -0.9
 
   let prog = 0
   let raf = 0
@@ -69,10 +104,9 @@ function createThreeScene(canvas, hero) {
 
   function animate() {
     const t = clock.getElapsedTime()
-    group.rotation.y = t * 0.12 + prog * Math.PI * 1.3
-    group.rotation.x = prog * 0.65
-    camera.position.z = 6 - prog * 2.4
-    ico.scale.setScalar(1 + prog * 0.55)
+    chip.rotation.y = t * 0.22 + prog * 1.0
+    chip.rotation.x = -0.9 + prog * 0.12 // reste vue de dessus
+    camera.position.z = 7.2 - prog * 3.7 // zoom : la puce grossit au défilement
     renderer.render(scene, camera)
     raf = requestAnimationFrame(animate)
   }
@@ -85,10 +119,10 @@ function createThreeScene(canvas, hero) {
     dispose() {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', size)
-      ico.geometry.dispose()
-      ico.material.dispose()
-      geo.dispose()
-      pts.material.dispose()
+      scene.traverse((o) => {
+        if (o.geometry) o.geometry.dispose()
+        if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m.dispose())
+      })
       renderer.dispose()
     },
   }
