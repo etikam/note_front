@@ -205,6 +205,10 @@ const CSS = `
 .ci-landing .footbar{border-top:1px solid rgba(255,255,255,.08)}
 .ci-landing .footbar .wrap{padding-block:18px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:#7d9686;font-size:13px}
 
+/* apparition au défilement (activée seulement quand JS ajoute .anim) */
+.ci-landing.anim .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease, transform .8s cubic-bezier(.2,.75,.2,1)}
+.ci-landing.anim .reveal.in{opacity:1;transform:none}
+
 @media (max-width:980px){
   .ci-landing nav.links,.ci-landing .topbar li.hide-sm{display:none}
   .ci-landing .menu-btn{display:grid;place-items:center;margin-left:auto}
@@ -312,45 +316,74 @@ export default function Home() {
     return () => ctrl.abort()
   }, [])
 
-  // Parallaxe de défilement + 3D souris sur le hero.
+  // Interactions : tilt 3D du hero (souris) + parallaxe de défilement + apparition au scroll.
   useEffect(() => {
+    const root = document.querySelector('.ci-landing')
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce) return
-    const parEls = Array.from(document.querySelectorAll('.ci-landing [data-par]'))
+    if (reduce || !root) return
+    root.classList.add('anim')
+
     const stage = stageRef.current
+    const inner = stage ? stage.querySelector('.stage-inner') : null
     const layers = stage ? Array.from(stage.querySelectorAll('[data-depth]')) : []
+    const parEls = Array.from(root.querySelectorAll('[data-par]'))
+
     let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0
-    const onScroll = () => {
-      const y = window.pageYOffset || document.documentElement.scrollTop
-      parEls.forEach((el) => {
-        const s = parseFloat(el.getAttribute('data-par')) || 0
-        el.style.transform = `translate3d(0,${y * s}px,0)`
-      })
-    }
+    let sy = window.pageYOffset || document.documentElement.scrollTop || 0
+
     const onMove = (e) => {
+      if (!stage) return
       const r = stage.getBoundingClientRect()
       tx = (e.clientX - (r.left + r.width / 2)) / r.width
       ty = (e.clientY - (r.top + r.height / 2)) / r.height
     }
+    const onLeave = () => { tx = 0; ty = 0 }
+    const onScroll = () => { sy = window.pageYOffset || document.documentElement.scrollTop || 0 }
+
     const loop = () => {
-      cx += (tx - cx) * 0.08; cy += (ty - cy) * 0.08
-      layers.forEach((el) => {
+      cx += (tx - cx) * 0.07
+      cy += (ty - cy) * 0.07
+      if (inner) inner.style.transform = `rotateY(${cx * 10}deg) rotateX(${-cy * 8}deg)`
+      for (const el of layers) {
         const d = parseFloat(el.getAttribute('data-depth')) || 0
-        el.style.transform = `translate3d(${cx * d}px,${cy * d * 0.7}px,0)`
-      })
+        const ps = parseFloat(el.getAttribute('data-pscroll')) || 0
+        el.style.transform = `translate3d(${cx * d * 1.9}px, ${cy * d * 1.35 + sy * ps}px, ${Math.abs(d)}px)`
+      }
+      for (const el of parEls) {
+        const s = parseFloat(el.getAttribute('data-par')) || 0
+        el.style.transform = `translate3d(0, ${sy * s}px, 0)`
+      }
       raf = requestAnimationFrame(loop)
     }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const en of entries) {
+          if (en.isIntersecting) {
+            en.target.classList.add('in')
+            io.unobserve(en.target)
+          }
+        }
+      },
+      { threshold: 0.14, rootMargin: '0px 0px -8% 0px' },
+    )
+    root.querySelectorAll('.reveal').forEach((el) => io.observe(el))
+
     window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll()
     if (stage) {
       stage.addEventListener('mousemove', onMove)
-      stage.addEventListener('mouseleave', () => { tx = 0; ty = 0 })
-      raf = requestAnimationFrame(loop)
+      stage.addEventListener('mouseleave', onLeave)
     }
+    raf = requestAnimationFrame(loop)
     return () => {
       window.removeEventListener('scroll', onScroll)
-      if (stage) stage.removeEventListener('mousemove', onMove)
+      if (stage) {
+        stage.removeEventListener('mousemove', onMove)
+        stage.removeEventListener('mouseleave', onLeave)
+      }
       cancelAnimationFrame(raf)
+      io.disconnect()
+      root.classList.remove('anim')
     }
   }, [data])
 
@@ -417,7 +450,7 @@ export default function Home() {
 
       {/* hero */}
       <section className="hero" id="accueil">
-        <div className="hero-shape shape-b" data-par="-0.08" />
+        <div className="hero-shape shape-b" data-par="-0.18" />
         <div className="wrap">
           <div className="hero-text">
             <span className="eyebrow">{inst.name || 'Centre Informatique'} · UGANC</span>
@@ -439,9 +472,9 @@ export default function Home() {
 
           <div className="stage" ref={stageRef}>
             <div className="stage-inner">
-              <div className="panel p1" data-depth="26"><img src={PH.hero[0].src} alt={PH.hero[0].alt} /></div>
-              <div className="panel p2" data-depth="-20"><img src={PH.hero[1].src} alt={PH.hero[1].alt} /></div>
-              <div className="panel p3" data-depth="40"><img src={PH.hero[2].src} alt={PH.hero[2].alt} /></div>
+              <div className="panel p1" data-depth="26" data-pscroll="0.05"><img src={PH.hero[0].src} alt={PH.hero[0].alt} /></div>
+              <div className="panel p2" data-depth="-20" data-pscroll="-0.04"><img src={PH.hero[1].src} alt={PH.hero[1].alt} /></div>
+              <div className="panel p3" data-depth="40" data-pscroll="0.08"><img src={PH.hero[2].src} alt={PH.hero[2].alt} /></div>
             </div>
             <div className="seal" data-depth="14" dangerouslySetInnerHTML={{ __html: SEAL(foundingYear) }} />
             <div className="spark" data-depth="30"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z" /></svg></div>
@@ -457,12 +490,12 @@ export default function Home() {
       {/* about */}
       <section className="about">
         <div className="wrap">
-          <div className="about-media">
+          <div className="about-media reveal">
             <div className="panel am1"><img src={PH.about[0].src} alt={PH.about[0].alt} /></div>
             <div className="panel am2"><img src={PH.about[1].src} alt={PH.about[1].alt} /></div>
-            <div className="about-badge" data-par="0.06" dangerouslySetInnerHTML={{ __html: BADGE_YEARS(years) }} />
+            <div className="about-badge" data-par="0.14" dangerouslySetInnerHTML={{ __html: BADGE_YEARS(years) }} />
           </div>
-          <div className="about-text">
+          <div className="about-text reveal">
             <span className="eyebrow">Le Centre</span>
             <h2>Un pôle d’excellence pour l’informatique en Guinée</h2>
             <p className="about-lead">
@@ -486,7 +519,7 @@ export default function Home() {
         <section className="stats">
           <div className="wrap">
             {stats.map((s) => (
-              <div className="stat" key={s.key}>
+              <div className="stat reveal" key={s.key}>
                 <div className="num"><Counter value={s.value} suffix={s.suffix || ''} /></div>
                 <div className="lab">{s.label}</div>
               </div>
@@ -498,7 +531,7 @@ export default function Home() {
       {/* programmes */}
       <section className="programs" id="programmes">
         <div className="wrap">
-          <div className="sec-head">
+          <div className="sec-head reveal">
             <div>
               <span className="eyebrow">Nos programmes</span>
               <h2>Des départements, des parcours diplômants</h2>
@@ -507,7 +540,7 @@ export default function Home() {
           </div>
 
           {departments.map((d, di) => (
-            <div className="dept" key={d.code}>
+            <div className="dept reveal" key={d.code}>
               <div className="dept-head">
                 <span className="n">{String(di + 1).padStart(2, '0')}</span>
                 <div>
@@ -521,7 +554,7 @@ export default function Home() {
                   const cover = PH.prog[progIndex % PH.prog.length]
                   progIndex += 1
                   return (
-                    <article className={`prog${feature ? ' feature' : ''}`} key={p.code}>
+                    <article className={`prog reveal${feature ? ' feature' : ''}`} key={p.code}>
                       <div className="cover"><img src={cover} alt="" loading="lazy" /></div>
                       <span className="deg">{p.degree_label || 'Diplôme'}</span>
                       <h4>{cleanName(p.name)}</h4>
@@ -549,14 +582,14 @@ export default function Home() {
       {news.length > 0 && (
         <section id="actualites">
           <div className="wrap">
-            <div className="sec-head">
+            <div className="sec-head reveal">
               <span className="eyebrow">Actualités</span>
               <h2>Les moments forts de la vie du Centre</h2>
               <p>Événements, campus, diplômes : ce qui fait vibrer les salles et les laboratoires.</p>
             </div>
             <div className="news-grid">
               {news.map((a, i) => (
-                <article className="card" key={a.slug || i}>
+                <article className="card reveal" key={a.slug || i}>
                   <div className="cover"><img src={PH.news[i % PH.news.length]} alt="" loading="lazy" /></div>
                   <div className="body">
                     <div className="meta"><span className="tag">{a.tag_label}</span><span>{formatDate(a.published_at)}</span></div>
@@ -576,16 +609,16 @@ export default function Home() {
       {/* admission */}
       <section className="admission" id="admission">
         <div className="wrap">
-          <div className="sec-head">
+          <div className="sec-head reveal">
             <span className="eyebrow">Admission</span>
             <h2>Rejoindre le Centre en quatre étapes</h2>
             <p>Un parcours de candidature clair, de la demande en ligne à l’inscription définitive.</p>
           </div>
           <div className="steps">
-            <div className="step"><div className="no">1</div><h4>Candidature</h4><p>Déposez votre demande et choisissez le programme visé.</p></div>
-            <div className="step"><div className="no">2</div><h4>Étude du dossier</h4><p>Vos relevés et pièces sont examinés par la commission.</p></div>
-            <div className="step"><div className="no">3</div><h4>Entretien</h4><p>Un échange pour confirmer votre projet et votre niveau.</p></div>
-            <div className="step"><div className="no">4</div><h4>Inscription</h4><p>Validez votre place et accédez à l’espace étudiant.</p></div>
+            <div className="step reveal"><div className="no">1</div><h4>Candidature</h4><p>Déposez votre demande et choisissez le programme visé.</p></div>
+            <div className="step reveal"><div className="no">2</div><h4>Étude du dossier</h4><p>Vos relevés et pièces sont examinés par la commission.</p></div>
+            <div className="step reveal"><div className="no">3</div><h4>Entretien</h4><p>Un échange pour confirmer votre projet et votre niveau.</p></div>
+            <div className="step reveal"><div className="no">4</div><h4>Inscription</h4><p>Validez votre place et accédez à l’espace étudiant.</p></div>
           </div>
         </div>
       </section>
@@ -601,7 +634,7 @@ export default function Home() {
               <Link to="/auth/login" className="btn btn-outline-light">Espace notes</Link>
             </div>
           </div>
-          <div className="contact-card">
+          <div className="contact-card reveal">
             <h4>Nous contacter</h4>
             <ul>
               <li><IPhone />+224 624 08 45 01 · +224 657 99 43 57</li>
