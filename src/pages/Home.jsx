@@ -136,7 +136,15 @@ const CSS = `
   radial-gradient(circle at 25% 50%, #fff 0 3.4px, transparent 3.6px),
   radial-gradient(circle at 75% 50%, var(--lime) 0 3.4px, transparent 3.6px), rgba(255,255,255,.12)}
 .ci-landing .programs h2{color:#fff;font-size:clamp(1.9rem,3.6vw,2.7rem);margin-top:12px;max-width:18ch}
-.ci-landing .dept{position:relative;z-index:1;margin-top:40px}
+.ci-landing .dept{position:relative;z-index:1;margin-top:clamp(36px,5vw,56px)}
+.ci-landing .dept-grid{display:grid;grid-template-columns:.82fr 1.25fr;gap:clamp(24px,3vw,46px);align-items:start}
+.ci-landing .dept-aside{position:sticky;top:96px}
+.ci-landing .dept-aside .n{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,.08);color:var(--lime);font-weight:800;font-size:15px;margin-bottom:16px}
+.ci-landing .dept-aside h3{color:#fff;font-size:clamp(1.3rem,2.1vw,1.6rem);margin-bottom:10px;max-width:15ch}
+.ci-landing .dept-aside p{color:#a9c3af;font-size:14.5px;line-height:1.62}
+.ci-landing .dept-count{display:inline-flex;align-items:center;margin-top:16px;font-size:12px;font-weight:700;color:var(--lime);
+  background:rgba(183,224,23,.12);border:1px solid rgba(183,224,23,.32);border-radius:999px;padding:5px 13px}
+.ci-landing .dept-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,258px),1fr));gap:18px}
 .ci-landing .dept-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
 .ci-landing .dept-head .n{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.08);color:var(--lime);font-weight:800;font-size:14px}
 .ci-landing .dept-head h3{color:#fff;font-size:1.3rem}
@@ -207,14 +215,52 @@ const CSS = `
 /* mode complet (.fx : GSAP pilote l'apparition en inline) — état de base masqué, sans flash */
 .ci-landing.fx .reveal{opacity:0;will-change:opacity,transform}
 
+/* menu mobile plein écran */
+.ci-landing .mobile-menu{position:fixed;inset:0;z-index:70;background:var(--green-deep);
+  display:flex;flex-direction:column;justify-content:center;gap:24px;padding:clamp(24px,8vw,48px);animation:ci-fade .22s ease}
+.ci-landing .mobile-menu .mm-close{position:absolute;top:18px;right:18px;width:44px;height:44px;display:grid;place-items:center;
+  border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#eaf3ec;cursor:pointer}
+.ci-landing .mobile-menu nav{display:flex;flex-direction:column}
+.ci-landing .mobile-menu nav a{color:#eaf3ec;font-size:clamp(26px,8vw,34px);font-weight:800;letter-spacing:-.025em;
+  padding:14px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.ci-landing .mobile-menu nav a:active{color:var(--lime)}
+.ci-landing .mobile-menu .mm-cta{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.ci-landing .mobile-menu .mm-cta .btn{justify-content:center}
+@keyframes ci-fade{from{opacity:0}to{opacity:1}}
+
+/* micro-interactions au survol */
+.ci-landing .card .cover img{transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+.ci-landing .card:hover .cover img{transform:scale(1.06)}
+.ci-landing .card{transition:border-color .2s,box-shadow .2s,transform .25s ease}
+.ci-landing .card:hover{transform:translateY(-5px)}
+.ci-landing .prog{transition:background-color .18s,border-color .18s,transform .22s ease}
+.ci-landing .prog:hover{transform:translateY(-3px)}
+.ci-landing .step{transition:transform .22s ease,border-color .18s,box-shadow .2s}
+.ci-landing .step:hover{transform:translateY(-3px);border-color:var(--green);box-shadow:0 18px 38px -24px rgba(15,26,19,.3)}
+.ci-landing .fact{transition:border-color .18s,transform .2s ease}
+.ci-landing .fact:hover{border-color:var(--green);transform:translateY(-2px)}
+.ci-landing .btn-primary,.ci-landing .btn-lime{transition:background-color .18s,color .18s,transform .18s ease,box-shadow .18s}
+.ci-landing .btn-primary:hover,.ci-landing .btn-lime:hover{transform:translateY(-1px)}
+.ci-landing .btn-lime:hover{box-shadow:0 10px 24px -10px rgba(183,224,23,.6)}
+
 @media (max-width:980px){
   .ci-landing nav.links{display:none}
   .ci-landing .menu-btn{display:grid;place-items:center;margin-left:auto}
   .ci-landing header.nav .cta .cta-hide{display:none}
   .ci-landing .hero .wrap,.ci-landing .about .wrap,.ci-landing .cta-band .wrap{grid-template-columns:1fr}
   .ci-landing .stage{height:360px;order:-1}
-  .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr 1fr}
+  .ci-landing .dept-grid{grid-template-columns:1fr;gap:20px}
+  .ci-landing .dept-aside{position:static}
+  .ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr 1fr}
   .ci-landing footer.foot .wrap{grid-template-columns:1fr 1fr}
+}
+/* hero mobile : les 3 photos en grille nette (bannière + 2) au lieu du collage 3D */
+@media (max-width:820px){
+  .ci-landing .stage{position:static;height:auto;order:-1;perspective:none}
+  .ci-landing .stage .stage-inner{position:static;inset:auto;transform:none!important;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .ci-landing .stage .stage-inner .panel{position:static;inset:auto;width:auto;height:158px;transform:none!important;border-width:4px}
+  .ci-landing .stage .stage-inner .panel.p1{grid-column:1 / -1;height:clamp(190px,52vw,230px)}
+  .ci-landing .stage .spark{display:none}
 }
 @media (max-width:620px){
   .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr}
@@ -263,6 +309,9 @@ const IPhone = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const IMail = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m2 7 10 6 10-6" /></svg>
 const IPin = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
 const IMenu = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+const IClose = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+
+const NAV = [['#accueil', 'Accueil'], ['#programmes', 'Programmes'], ['#actualites', 'Actualités'], ['#admission', 'Admission'], ['#contact', 'Contact']]
 
 function Counter({ value = 0, suffix = '' }) {
   const [n, setN] = useState(0)
@@ -305,6 +354,7 @@ const formatDate = (iso) => {
 
 export default function Home() {
   const [data, setData] = useState(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const stageRef = useRef(null)
   const canvasRef = useRef(null)
 
@@ -394,19 +444,35 @@ export default function Home() {
         <div className="wrap">
           <a className="brand" href="#accueil"><span className="mark"><span /></span>Centre Informatique</a>
           <nav className="links">
-            <a href="#accueil" className="active">Accueil</a>
-            <a href="#programmes">Programmes</a>
-            <a href="#actualites">Actualités</a>
-            <a href="#admission">Admission</a>
-            <a href="#contact">Contact</a>
+            {NAV.map(([h, l], i) => (
+              <a key={h} href={h} className={i === 0 ? 'active' : undefined}>{l}</a>
+            ))}
           </nav>
           <div className="cta">
             <Link to="/auth/login" className="btn btn-ghost cta-hide">Espace notes</Link>
-            <a href="#admission" className="btn btn-primary">Candidater <IArrow /></a>
-            <button className="menu-btn" aria-label="Menu"><IMenu /></button>
+            <a href="#admission" className="btn btn-primary cta-hide">Candidater <IArrow /></a>
+            <button className="menu-btn" aria-label="Menu" aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)}>
+              {menuOpen ? <IClose /> : <IMenu />}
+            </button>
           </div>
         </div>
       </header>
+
+      {/* menu mobile */}
+      {menuOpen && (
+        <div className="mobile-menu" role="dialog" aria-modal="true">
+          <button className="mm-close" aria-label="Fermer" onClick={() => setMenuOpen(false)}><IClose /></button>
+          <nav>
+            {NAV.map(([h, l]) => (
+              <a key={h} href={h} onClick={() => setMenuOpen(false)}>{l}</a>
+            ))}
+          </nav>
+          <div className="mm-cta">
+            <Link to="/auth/login" className="btn btn-lime" onClick={() => setMenuOpen(false)}>Espace notes <IArrow /></Link>
+            <a href="#admission" className="btn btn-outline-light" onClick={() => setMenuOpen(false)}>Candidater</a>
+          </div>
+        </div>
+      )}
 
       {/* hero */}
       <section className="hero" id="accueil">
@@ -501,37 +567,38 @@ export default function Home() {
 
           {departments.map((d, di) => (
             <div className="dept reveal" key={d.code}>
-              <div className="dept-head">
-                <span className="n">{String(di + 1).padStart(2, '0')}</span>
-                <div>
+              <div className="dept-grid">
+                <div className="dept-aside">
+                  <span className="n">{String(di + 1).padStart(2, '0')}</span>
                   <h3>{cleanName(d.name)}</h3>
                   {d.description ? <p>{d.description}</p> : null}
+                  <span className="dept-count">{d.programs.length} parcours diplômant{d.programs.length > 1 ? 's' : ''}</span>
                 </div>
-              </div>
-              <div className="prog-grid">
-                {d.programs.map((p) => {
-                  const feature = progIndex === 0
-                  const cover = PH.prog[progIndex % PH.prog.length]
-                  progIndex += 1
-                  return (
-                    <article className={`prog reveal${feature ? ' feature' : ''}`} key={p.code}>
-                      <div className="cover"><img src={cover} alt="" loading="lazy" /></div>
-                      <span className="deg">{p.degree_label || 'Diplôme'}</span>
-                      <h4>{cleanName(p.name)}</h4>
-                      {p.description ? <p>{p.description}</p> : <p />}
-                      {p.levels?.length ? (
-                        <div className="levels">
-                          {p.levels.map((lv) => <span className="lvl" key={lv.number}>{lv.name}</span>)}
-                        </div>
-                      ) : null}
-                      {p.website_url ? (
-                        <a href={p.website_url} target="_blank" rel="noreferrer" className="plink">
-                          Voir le site du programme <span className="arrow-circle"><IExtern /></span>
-                        </a>
-                      ) : null}
-                    </article>
-                  )
-                })}
+                <div className="dept-cards">
+                  {d.programs.map((p) => {
+                    const feature = progIndex === 0
+                    const cover = PH.prog[progIndex % PH.prog.length]
+                    progIndex += 1
+                    return (
+                      <article className={`prog reveal${feature ? ' feature' : ''}`} key={p.code}>
+                        <div className="cover"><img src={cover} alt="" loading="lazy" /></div>
+                        <span className="deg">{p.degree_label || 'Diplôme'}</span>
+                        <h4>{cleanName(p.name)}</h4>
+                        {p.description ? <p>{p.description}</p> : <p />}
+                        {p.levels?.length ? (
+                          <div className="levels">
+                            {p.levels.map((lv) => <span className="lvl" key={lv.number}>{lv.name}</span>)}
+                          </div>
+                        ) : null}
+                        {p.website_url ? (
+                          <a href={p.website_url} target="_blank" rel="noreferrer" className="plink">
+                            Voir le site du programme <span className="arrow-circle"><IExtern /></span>
+                          </a>
+                        ) : null}
+                      </article>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           ))}

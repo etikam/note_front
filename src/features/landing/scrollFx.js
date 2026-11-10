@@ -154,6 +154,20 @@ export function initLandingFx({ root, hero, stage, canvas }) {
     lenis.destroy()
   })
 
+  // Ancres internes (#programmes…) : défilement doux via Lenis.
+  const onAnchorClick = (e) => {
+    const a = e.target.closest('a[href^="#"]')
+    if (!a) return
+    const id = a.getAttribute('href')
+    if (!id || id === '#') return
+    const target = root.querySelector(id)
+    if (!target) return
+    e.preventDefault()
+    lenis.scrollTo(target, { offset: -84 })
+  }
+  root.addEventListener('click', onAnchorClick)
+  cleanups.push(() => root.removeEventListener('click', onAnchorClick))
+
   // Scène 3D du hero.
   const scene3d = canvas && hero ? createThreeScene(canvas, hero) : null
   if (scene3d) cleanups.push(scene3d.dispose)
@@ -179,13 +193,40 @@ export function initLandingFx({ root, hero, stage, canvas }) {
   }
 
   const ctx = gsap.context(() => {
-    // 1) Reveal on scroll — titres, textes, images.
-    gsap.utils.toArray('.reveal').forEach((el) => {
+    // 1a) Reveal des blocs éditoriaux (en-têtes, textes, médias) — un par un.
+    const blocks = gsap.utils.toArray('.reveal').filter((el) => !el.matches('.card, .prog, .step, .stat'))
+    blocks.forEach((el) => {
       gsap.fromTo(
         el,
         { autoAlpha: 0, y: 34 },
-        { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 86%' } },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.9,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 86%' },
+          onComplete: () => gsap.set(el, { clearProps: 'transform' }),
+        },
       )
+    })
+
+    // 1b) Reveal des groupes (cartes, étapes, stats) — en cascade (stagger).
+    ScrollTrigger.batch('.card, .prog, .step, .stat', {
+      start: 'top 88%',
+      onEnter: (batch) =>
+        gsap.fromTo(
+          batch,
+          { autoAlpha: 0, y: 30 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.75,
+            ease: 'power3.out',
+            stagger: 0.09,
+            overwrite: true,
+            onComplete: () => batch.forEach((e) => gsap.set(e, { clearProps: 'transform' })),
+          },
+        ),
     })
 
     // 2) Hero : PIN + SCRUB. Le hero reste figé pendant que la scène 3D avance/recule
