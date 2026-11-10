@@ -234,26 +234,25 @@ const CSS = `
 const U = (id, w, h) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=80`
 const PH = {
   hero: [
-    { src: U('1522202176988-66273c2fd55f', 540, 700), alt: 'Étudiants autour d’un ordinateur portable' },
-    { src: U('1531482615713-2afd69097998', 540, 460), alt: 'Développement sur ordinateur' },
-    { src: U('1543269865-cbf427effbad', 560, 440), alt: 'Groupe d’étudiants' },
+    { src: U('1531482615713-2afd69097998', 540, 700), alt: 'Jeunes développeurs au travail' },
+    { src: U('1573164713988-8665fc963095', 540, 460), alt: 'Informaticienne avec un ordinateur portable' },
+    { src: U('1531545514256-b1400bc00f31', 560, 440), alt: 'Groupe d’étudiants sur un ordinateur' },
   ],
   about: [
-    { src: U('1522071820081-009f0129c71c', 760, 440), alt: 'Travail en équipe autour d’ordinateurs' },
-    { src: U('1523240795612-9a054b0db644', 640, 360), alt: 'Étude en bibliothèque' },
+    { src: U('1522071820081-009f0129c71c', 760, 440), alt: 'Équipe de développeurs' },
+    { src: U('1519389950473-47ba0277781c', 640, 360), alt: 'Travail collaboratif sur ordinateurs' },
   ],
   prog: [
-    U('1461749280684-dccba630e2f6', 640, 360),
-    U('1498050108023-c5249f4df085', 640, 360),
-    U('1517694712202-14dd9538aa97', 640, 360),
+    U('1573495627361-d9b87960b12d', 640, 360),
+    U('1484417894907-623942c8ee29', 640, 360),
+    U('1581092795360-fd1ca04f0952', 640, 360),
   ],
   news: [
-    U('1517245386807-bb43f82c33c4', 640, 360),
-    U('1562774053-701939374585', 640, 360),
-    U('1523240795612-9a054b0db644', 640, 360),
+    U('1573164713712-03790a178651', 640, 360),
+    U('1581092795360-fd1ca04f0952', 640, 360),
+    U('1522071820081-009f0129c71c', 640, 360),
   ],
 }
-const SEAL = (year) => `<svg viewBox="0 0 120 120"><defs><path id="ciCircle" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/></defs><circle cx="60" cy="60" r="58" fill="#13311f"/><circle cx="60" cy="60" r="44" fill="none" stroke="#b7e017" stroke-width="1" opacity=".5"/><text font-size="10" font-weight="700" letter-spacing="2" fill="#dfeae1"><textPath href="#ciCircle" startOffset="0">· CENTRE INFORMATIQUE · DEPUIS ${year} </textPath></text><g fill="none" stroke="#b7e017" stroke-width="2.4"><path d="M44 60h32M64 48l12 12-12 12"/></g></svg>`
 const BADGE_YEARS = (n) => `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="56" fill="#b7e017"/><text x="60" y="54" text-anchor="middle" font-size="30" font-weight="800" fill="#1a2e0c">${n}</text><text x="60" y="78" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1" fill="#38571a">ANS</text></svg>`
 
 /* ───────────────────────── icônes ───────────────────────── */
@@ -438,7 +437,6 @@ export default function Home() {
               <div className="panel p2" data-depth="-20" data-pscroll="-0.04"><img src={PH.hero[1].src} alt={PH.hero[1].alt} /></div>
               <div className="panel p3" data-depth="40" data-pscroll="0.08"><img src={PH.hero[2].src} alt={PH.hero[2].alt} /></div>
             </div>
-            <div className="seal" data-depth="14" dangerouslySetInnerHTML={{ __html: SEAL(foundingYear) }} />
             <div className="spark" data-depth="30"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z" /></svg></div>
           </div>
         </div>
