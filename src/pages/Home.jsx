@@ -1,7 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import { fetchLandingContent } from '@/features/landing/api/landingApi'
+
+/* ───────────────────────── domaines ─────────────────────────
+ * La landing vit sur l'apex (ci.edu.gn / www), l'app de notes sur notes.ci.edu.gn.
+ * - Sur l'apex : les liens « Espace notes » pointent en absolu vers notes.ci.edu.gn.
+ * - Sur notes.ci.edu.gn : la racine « / » redirige vers la connexion (app pure).
+ * - En dev / autre hôte : comportement historique (landing + liens relatifs).
+ */
+const NOTES_HOST = 'notes.ci.edu.gn'
+const APEX_HOSTS = new Set(['ci.edu.gn', 'www.ci.edu.gn'])
+const HOSTNAME = typeof window !== 'undefined' ? window.location.hostname : ''
+const IS_APEX = APEX_HOSTS.has(HOSTNAME)
+const IS_NOTES_HOST = HOSTNAME === NOTES_HOST
+const NOTES_ORIGIN = IS_APEX ? `https://${NOTES_HOST}` : ''
+const notesHref = (path) => NOTES_ORIGIN + path
 
 /* ───────────────────────── styles (portée .ci-landing) ───────────────────────── */
 const CSS = `
@@ -453,6 +467,7 @@ export default function Home() {
   const canvasRef = useRef(null)
 
   useEffect(() => {
+    if (IS_NOTES_HOST) return undefined // sur notes.ci.edu.gn on redirige, pas besoin du contenu
     const ctrl = new AbortController()
     fetchLandingContent(ctrl.signal).then(setData).catch(() => setData(null))
     return () => ctrl.abort()
@@ -547,6 +562,9 @@ export default function Home() {
     </span>
   )
 
+  // notes.ci.edu.gn : domaine réservé à l'app → la racine mène à la connexion.
+  if (IS_NOTES_HOST) return <Navigate to="/auth/login" replace />
+
   return (
     <div className="ci-landing">
       <style>{CSS}</style>
@@ -561,7 +579,7 @@ export default function Home() {
             ))}
           </nav>
           <div className="cta">
-            <Link to="/auth/login" className="btn btn-ghost cta-hide">Espace notes</Link>
+            <a href={notesHref('/auth/login')} className="btn btn-ghost cta-hide">Espace notes</a>
             <a href="#admission" className="btn btn-primary cta-hide">Nous rejoindre <IArrow /></a>
             <button className="menu-btn" aria-label="Menu" aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)}>
               {menuOpen ? <IClose /> : <IMenu />}
@@ -580,7 +598,7 @@ export default function Home() {
             ))}
           </nav>
           <div className="mm-cta">
-            <Link to="/auth/login" className="btn btn-lime" onClick={() => setMenuOpen(false)}>Espace notes <IArrow /></Link>
+            <a href={notesHref('/auth/login')} className="btn btn-lime" onClick={() => setMenuOpen(false)}>Espace notes <IArrow /></a>
             <a href="#admission" className="btn btn-outline-light" onClick={() => setMenuOpen(false)}>Nous rejoindre</a>
           </div>
         </div>
@@ -600,7 +618,7 @@ export default function Home() {
             </p>
             <div className="hero-actions">
               <a href="#programmes" className="btn btn-primary">Découvrir les programmes <IArrow /></a>
-              <Link to="/auth/login" className="link-arrow">Accéder à l’espace notes <IArrowThin /></Link>
+              <a href={notesHref('/auth/login')} className="link-arrow">Accéder à l’espace notes <IArrowThin /></a>
             </div>
             <div className="hero-foot">
               <span>Arrêté N°632/MEN/DNSUP/89</span><span className="dot" />
@@ -781,7 +799,7 @@ export default function Home() {
             <p>Contactez le service scolarité pour toute question, ou accédez directement à votre espace de notes.</p>
             <div className="cta-actions">
               <a href="mailto:direction@ci.edu.gn" className="btn btn-lime">Nous écrire <IArrow /></a>
-              <Link to="/auth/login" className="btn btn-outline-light">Espace notes</Link>
+              <a href={notesHref('/auth/login')} className="btn btn-outline-light">Espace notes</a>
             </div>
           </div>
           <div className="contact-card reveal">
@@ -816,15 +834,14 @@ export default function Home() {
               <li><a href="#actualites">Actualités</a></li>
               <li><a href="#admission">Admission</a></li>
               <li><a href="#contact">Contact</a></li>
-              <li><a href="https://ci.edu.gn" target="_blank" rel="noreferrer">Site officiel</a></li>
             </ul>
           </div>
           <div className="fcol">
             <h5>Espaces</h5>
             <ul>
-              <li><Link to="/auth/login">Espace notes</Link></li>
-              <li><Link to="/auth/login">Étudiants</Link></li>
-              <li><Link to="/auth/login">Enseignants</Link></li>
+              <li><a href={notesHref('/auth/login')}>Espace notes</a></li>
+              <li><a href={notesHref('/auth/login')}>Étudiants</a></li>
+              <li><a href={notesHref('/auth/login')}>Enseignants</a></li>
             </ul>
           </div>
         </div>
