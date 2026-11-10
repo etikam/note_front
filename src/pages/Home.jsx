@@ -218,6 +218,36 @@ const CSS = `
 .ci-landing .card h3{font-size:1.14rem;letter-spacing:-.02em}
 .ci-landing .card .body p{color:var(--muted);font-size:14px;flex:1}
 
+/* actualités — carrousel une à une (photo d'un côté, détails de l'autre) */
+.ci-landing .news-carousel{position:relative}
+.ci-landing .news-slide{display:grid;grid-template-columns:1.05fr 1fr;min-height:clamp(340px,42vw,430px);
+  border-radius:24px;overflow:hidden;background:var(--green-deep);
+  box-shadow:0 2px 8px rgba(15,26,19,.06),0 28px 56px -30px rgba(13,49,31,.4)}
+.ci-landing .news-slide .ns-photo{position:relative;overflow:hidden;background:#dfe3df}
+.ci-landing .news-slide .ns-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.ci-landing .news-slide .ns-detail{padding:clamp(26px,3.3vw,46px);display:flex;flex-direction:column;justify-content:center;gap:15px;color:#eaf3ec}
+.ci-landing .news-slide.rev .ns-photo{order:2}
+.ci-landing .news-slide.rev .ns-detail{order:1}
+.ci-landing .news-slide .ns-meta{display:flex;align-items:center;gap:12px;font-size:12.5px;color:#9fc0aa;font-weight:600}
+.ci-landing .news-slide .ns-detail h3{color:#fff;font-size:clamp(1.4rem,2.4vw,2rem);line-height:1.12;letter-spacing:-.02em;max-width:20ch}
+.ci-landing .news-slide .ns-detail p{color:#c7dccd;font-size:15px;line-height:1.6;max-width:44ch}
+.ci-landing .news-slide .ns-detail .link-arrow{color:#eaf3ec;align-self:flex-start;margin-top:4px}
+.ci-landing .news-controls{margin-top:22px;display:flex;align-items:center;justify-content:center;gap:20px}
+.ci-landing .news-arrow{display:grid;place-items:center;width:46px;height:46px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--fg);cursor:pointer;transition:background-color .2s,border-color .2s,color .2s}
+.ci-landing .news-arrow:hover{border-color:var(--green);color:var(--green);background:var(--green-soft)}
+.ci-landing .news-arrow svg{width:18px;height:18px}
+.ci-landing .news-arrow.prev svg{transform:rotate(180deg)}
+.ci-landing .news-dots{display:flex;align-items:center;gap:8px}
+.ci-landing .news-dots button{width:9px;height:9px;padding:0;border:0;border-radius:999px;background:var(--line);cursor:pointer;transition:width .25s ease,background-color .25s ease}
+.ci-landing .news-dots button.on{width:26px;background:var(--green)}
+@keyframes ci-ns-photo{from{opacity:0;transform:scale(1.07)}to{opacity:1;transform:none}}
+@keyframes ci-ns-detail{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.ci-landing .news-slide .ns-photo img{animation:ci-ns-photo .7s cubic-bezier(.2,.7,.2,1) both}
+.ci-landing .news-slide .ns-detail>*{animation:ci-ns-detail .55s cubic-bezier(.2,.75,.2,1) both}
+.ci-landing .news-slide .ns-detail>*:nth-child(2){animation-delay:.05s}
+.ci-landing .news-slide .ns-detail>*:nth-child(3){animation-delay:.1s}
+.ci-landing .news-slide .ns-detail>*:nth-child(4){animation-delay:.15s}
+
 .ci-landing .admission{background:var(--bg-soft)}
 .ci-landing .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 .ci-landing .step{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px}
@@ -302,6 +332,10 @@ const CSS = `
   .ci-landing .stage .spark{display:none}
   .ci-landing .dept-row-nav{display:none}
   .ci-landing .pcard{flex-basis:84vw;height:clamp(380px,64vh,460px)}
+  .ci-landing .news-slide{grid-template-columns:1fr;min-height:0}
+  .ci-landing .news-slide .ns-photo{height:clamp(190px,46vw,240px)}
+  .ci-landing .news-slide.rev .ns-photo{order:0}
+  .ci-landing .news-slide.rev .ns-detail{order:0}
 }
 @media (max-width:620px){
   .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps{grid-template-columns:1fr}
@@ -316,6 +350,7 @@ const CSS = `
 @media (prefers-reduced-motion:reduce){
   .ci-landing .marquee-track{animation:none}
   .ci-landing .sc-bg img{animation:none}
+  .ci-landing .news-slide .ns-photo img,.ci-landing .news-slide .ns-detail>*{animation:none}
 }
 `
 
@@ -409,6 +444,8 @@ const formatDate = (iso) => {
 export default function Home() {
   const [data, setData] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [newsIndex, setNewsIndex] = useState(0)
+  const [newsPaused, setNewsPaused] = useState(false)
   const stageRef = useRef(null)
   const canvasRef = useRef(null)
 
@@ -473,6 +510,19 @@ export default function Home() {
   const departments = data?.departments ?? []
   const news = data?.news ?? []
   const years = stats.find((s) => s.key === 'experience')?.value ?? (new Date().getFullYear() - foundingYear)
+
+  // Carrousel d'actualités : une à une, en boucle (pause au survol, arrêt sous reduced-motion).
+  const newsCount = news.length
+  const curNews = newsCount ? ((newsIndex % newsCount) + newsCount) % newsCount : 0
+  const activeNews = news[curNews]
+  const goNews = (d) => setNewsIndex((i) => (((i + d) % newsCount) + newsCount) % newsCount)
+  useEffect(() => {
+    if (newsCount <= 1 || newsPaused) return undefined
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) return undefined
+    const id = setInterval(() => setNewsIndex((i) => i + 1), 5200)
+    return () => clearInterval(id)
+  }, [newsCount, newsPaused])
 
   // Défilement horizontal des carrousels de programmes (flèches).
   const scrollRow = (dir) => (e) => {
@@ -662,8 +712,8 @@ export default function Home() {
         })}
       </section>
 
-      {/* actualités */}
-      {news.length > 0 && (
+      {/* actualités — carrousel une à une */}
+      {newsCount > 0 && activeNews && (
         <section id="actualites">
           <div className="wrap">
             <div className="sec-head reveal">
@@ -671,20 +721,33 @@ export default function Home() {
               <h2>Les moments forts de la vie du Centre</h2>
               <p>Événements, campus, diplômes : ce qui fait vibrer les salles et les laboratoires.</p>
             </div>
-            <div className="news-grid">
-              {news.map((a, i) => (
-                <article className="card reveal" key={a.slug || i}>
-                  <div className="cover"><img src={PH.news[i % PH.news.length]} alt="" loading="lazy" /></div>
-                  <div className="body">
-                    <div className="meta"><span className="tag">{a.tag_label}</span><span>{formatDate(a.published_at)}</span></div>
-                    <h3>{a.title}</h3>
-                    <p>{a.excerpt}</p>
-                    {a.url ? (
-                      <a href={a.url} target="_blank" rel="noreferrer" className="link-arrow">Lire l’article <IArrowThin /></a>
-                    ) : null}
+            <div
+              className="news-carousel reveal"
+              onMouseEnter={() => setNewsPaused(true)}
+              onMouseLeave={() => setNewsPaused(false)}
+            >
+              <article className={`news-slide${curNews % 2 ? ' rev' : ''}`} key={curNews}>
+                <div className="ns-photo"><img src={PH.news[curNews % PH.news.length]} alt="" /></div>
+                <div className="ns-detail">
+                  <div className="ns-meta"><span className="tag">{activeNews.tag_label}</span><span>{formatDate(activeNews.published_at)}</span></div>
+                  <h3>{activeNews.title}</h3>
+                  <p>{activeNews.excerpt}</p>
+                  {activeNews.url ? (
+                    <a href={activeNews.url} target="_blank" rel="noreferrer" className="link-arrow">Lire l’article <IArrowThin /></a>
+                  ) : null}
+                </div>
+              </article>
+              {newsCount > 1 && (
+                <div className="news-controls">
+                  <button type="button" className="news-arrow prev" aria-label="Actualité précédente" onClick={() => goNews(-1)}><IChevron /></button>
+                  <div className="news-dots">
+                    {news.map((a, i) => (
+                      <button type="button" key={a.slug || i} className={i === curNews ? 'on' : undefined} aria-label={`Actualité ${i + 1}`} onClick={() => setNewsIndex(i)} />
+                    ))}
                   </div>
-                </article>
-              ))}
+                  <button type="button" className="news-arrow next" aria-label="Actualité suivante" onClick={() => goNews(1)}><IChevron /></button>
+                </div>
+              )}
             </div>
           </div>
         </section>
