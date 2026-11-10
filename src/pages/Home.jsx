@@ -289,7 +289,7 @@ const CSS = `
   .ci-landing .menu-btn{display:grid;place-items:center;margin-left:auto}
   .ci-landing header.nav .cta .cta-hide{display:none}
   .ci-landing .hero .wrap,.ci-landing .about .wrap,.ci-landing .cta-band .wrap{grid-template-columns:1fr}
-  .ci-landing .stage{height:360px;order:-1}
+  .ci-landing .stage{height:360px}
   .ci-landing .dept-grid{grid-template-columns:1fr;gap:20px}
   .ci-landing .dept-aside{position:static}
   .ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr 1fr}
@@ -297,7 +297,7 @@ const CSS = `
 }
 /* hero mobile : les 3 photos en grille nette (bannière + 2) au lieu du collage 3D */
 @media (max-width:820px){
-  .ci-landing .stage{position:static;height:auto;order:-1;perspective:none}
+  .ci-landing .stage{position:static;height:auto;perspective:none}
   .ci-landing .stage .stage-inner{position:static;inset:auto;transform:none;display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .ci-landing .stage .stage-inner .panel{position:static;inset:auto;width:auto;height:158px;border-width:4px;will-change:transform}
   .ci-landing .stage .stage-inner .panel.p1{grid-column:1 / -1;height:clamp(190px,52vw,230px)}
