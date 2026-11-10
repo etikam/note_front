@@ -562,7 +562,7 @@ export default function Home() {
           </nav>
           <div className="cta">
             <Link to="/auth/login" className="btn btn-ghost cta-hide">Espace notes</Link>
-            <a href="#admission" className="btn btn-primary cta-hide">Candidater <IArrow /></a>
+            <a href="#admission" className="btn btn-primary cta-hide">Nous rejoindre <IArrow /></a>
             <button className="menu-btn" aria-label="Menu" aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)}>
               {menuOpen ? <IClose /> : <IMenu />}
             </button>
@@ -581,7 +581,7 @@ export default function Home() {
           </nav>
           <div className="mm-cta">
             <Link to="/auth/login" className="btn btn-lime" onClick={() => setMenuOpen(false)}>Espace notes <IArrow /></Link>
-            <a href="#admission" className="btn btn-outline-light" onClick={() => setMenuOpen(false)}>Candidater</a>
+            <a href="#admission" className="btn btn-outline-light" onClick={() => setMenuOpen(false)}>Nous rejoindre</a>
           </div>
         </div>
       )}
