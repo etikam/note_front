@@ -154,7 +154,7 @@ const CSS = `
 .ci-landing .dept-scroller::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px}
 .ci-landing .dept-scroller::-webkit-scrollbar-track{background:transparent}
 .ci-landing .dept-track{display:flex;gap:clamp(16px,2vw,24px);width:max-content}
-.ci-landing .pcard{position:relative;flex:0 0 clamp(290px,72vw,700px);height:clamp(400px,56vh,520px);border-radius:22px;overflow:hidden;scroll-snap-align:center}
+.ci-landing .pcard{position:relative;flex:0 0 clamp(290px,78vw,860px);height:clamp(400px,56vh,520px);border-radius:22px;overflow:hidden;scroll-snap-align:center}
 .ci-landing .pcard-bg{position:absolute;inset:0;z-index:0}
 .ci-landing .pcard-bg img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.7,.2,1)}
 .ci-landing .pcard:hover .pcard-bg img{transform:scale(1.06)}
