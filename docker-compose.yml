@@ -23,8 +23,9 @@ services:
       - traefik.http.routers.notes-web.tls=true
       - traefik.http.routers.notes-web.tls.certresolver=citls
       - traefik.http.routers.notes-web.service=notes-web
-      # Apex ci.edu.gn (+ www) : même conteneur sert la landing ; la SPA est host-aware.
-      - "traefik.http.routers.notes-apex.rule=Host(`ci.edu.gn`) || Host(`www.ci.edu.gn`)"
+      # Apex ci.edu.gn : même conteneur sert la landing ; la SPA est host-aware.
+      # (www sera ajouté quand www.ci.edu.gn pointera aussi vers le VPS.)
+      - "traefik.http.routers.notes-apex.rule=Host(`ci.edu.gn`)"
       - traefik.http.routers.notes-apex.entrypoints=websecure
       - traefik.http.routers.notes-apex.tls=true
       - traefik.http.routers.notes-apex.tls.certresolver=citls
