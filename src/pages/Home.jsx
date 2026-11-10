@@ -128,8 +128,37 @@ const CSS = `
 .ci-landing .stat .lab{margin-top:4px;color:var(--muted);font-size:14px;font-weight:600}
 
 .ci-landing .programs{background:var(--green-deep);color:#eaf3ec;position:relative;overflow:hidden}
-.ci-landing .programs::before{content:"";position:absolute;inset:0;background:
-  repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 2px, transparent 2px 22px);pointer-events:none}
+.ci-landing .programs::before{content:"";position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(60% 46% at 86% 2%, rgba(183,224,23,.11), transparent 62%),
+  radial-gradient(50% 40% at 6% 100%, rgba(37,66,58,.5), transparent 60%)}
+/* cartes empilées (sticky stack) */
+.ci-landing .prog-head{position:relative;z-index:1;max-width:620px;margin-bottom:clamp(26px,4vw,46px)}
+.ci-landing .prog-head .eyebrow{color:var(--lime)}
+.ci-landing .prog-head .eyebrow::before{background:
+  radial-gradient(circle at 25% 50%, #fff 0 3.4px, transparent 3.6px),
+  radial-gradient(circle at 75% 50%, var(--lime) 0 3.4px, transparent 3.6px), rgba(255,255,255,.12)}
+.ci-landing .prog-head h2{color:#fff;font-size:clamp(1.9rem,3.6vw,2.7rem);margin-top:12px;max-width:18ch}
+.ci-landing .prog-head p{color:#a9c3af;margin-top:12px;font-size:15px}
+.ci-landing .prog-stack{position:relative;z-index:1;display:flex;flex-direction:column;gap:clamp(20px,3vw,34px)}
+.ci-landing .pcard{position:sticky;top:calc(96px + var(--i) * 15px);display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);
+  min-height:clamp(276px,36vh,336px);background:#173a28;border:1px solid rgba(255,255,255,.1);border-radius:22px;overflow:hidden;
+  box-shadow:0 34px 66px -34px rgba(0,0,0,.65);transition:transform .25s ease}
+.ci-landing .pcard-media{position:relative;overflow:hidden;min-height:220px}
+.ci-landing .pcard-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.ci-landing .pcard:hover .pcard-media img{transform:scale(1.05)}
+.ci-landing .pcard-body{padding:clamp(22px,3vw,40px);display:flex;flex-direction:column;gap:12px;justify-content:center}
+.ci-landing .pcard-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ci-landing .pcard-dept{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;color:#a9c3af}
+.ci-landing .pcard-dept b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;background:rgba(183,224,23,.14);color:var(--lime);font-size:12px}
+.ci-landing .pcard .deg{font-size:12px;font-weight:700;color:var(--lime);letter-spacing:.02em}
+.ci-landing .pcard h3{color:#fff;font-size:clamp(1.3rem,2.4vw,1.95rem);letter-spacing:-.025em;line-height:1.08}
+.ci-landing .pcard p{color:#b9cfbf;font-size:14.5px;line-height:1.62;max-width:46ch}
+.ci-landing .pcard .levels{display:flex;flex-wrap:wrap;gap:6px}
+.ci-landing .pcard .lvl{font-size:11.5px;font-weight:700;color:#cfe0d3;background:rgba(255,255,255,.08);border-radius:999px;padding:3px 10px}
+.ci-landing .pcard .plink{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;color:#eaf3ec;margin-top:2px}
+.ci-landing .pcard .plink .arrow-circle{width:26px;height:26px}
+.ci-landing .pcard .plink .arrow-circle svg{width:13px;height:13px}
+.ci-landing .prog-foot{position:relative;z-index:1;margin-top:clamp(28px,4vw,48px)}
 .ci-landing .programs .sec-head{text-align:left;margin:0 0 34px;max-width:none;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .ci-landing .programs .sec-head .eyebrow{justify-content:flex-start;color:var(--lime)}
 .ci-landing .programs .sec-head .eyebrow::before{background:
@@ -257,10 +286,13 @@ const CSS = `
 /* hero mobile : les 3 photos en grille nette (bannière + 2) au lieu du collage 3D */
 @media (max-width:820px){
   .ci-landing .stage{position:static;height:auto;order:-1;perspective:none}
-  .ci-landing .stage .stage-inner{position:static;inset:auto;transform:none!important;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .ci-landing .stage .stage-inner .panel{position:static;inset:auto;width:auto;height:158px;transform:none!important;border-width:4px}
+  .ci-landing .stage .stage-inner{position:static;inset:auto;transform:none;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .ci-landing .stage .stage-inner .panel{position:static;inset:auto;width:auto;height:158px;border-width:4px;will-change:transform}
   .ci-landing .stage .stage-inner .panel.p1{grid-column:1 / -1;height:clamp(190px,52vw,230px)}
   .ci-landing .stage .spark{display:none}
+  .ci-landing .pcard{grid-template-columns:1fr;top:calc(82px + var(--i) * 10px);min-height:0}
+  .ci-landing .pcard-media{min-height:172px;max-height:200px}
+  .ci-landing .pcard-body{padding:20px}
 }
 @media (max-width:620px){
   .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr}
@@ -424,7 +456,6 @@ export default function Home() {
     ? departments.flatMap((d) => [cleanName(d.name), ...d.programs.map((p) => cleanName(p.name))])
     : ['Génie logiciel', 'Réseaux & systèmes', 'Développement', 'NTIC', 'Systèmes d’information']
 
-  let progIndex = 0
   const marqueeRow = (
     <span>
       {marqueeItems.map((t, i) => (
@@ -508,6 +539,20 @@ export default function Home() {
         </div>
       </section>
 
+      {/* stats — juste après le hero */}
+      {stats.length > 0 && (
+        <section className="stats">
+          <div className="wrap">
+            {stats.map((s) => (
+              <div className="stat reveal" key={s.key}>
+                <div className="num"><Counter value={s.value} suffix={s.suffix || ''} /></div>
+                <div className="lab">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* marquee */}
       <div className="marquee" aria-hidden="true">
         <div className="marquee-track">{marqueeRow}{marqueeRow}</div>
@@ -540,51 +585,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* stats */}
-      {stats.length > 0 && (
-        <section className="stats">
-          <div className="wrap">
-            {stats.map((s) => (
-              <div className="stat reveal" key={s.key}>
-                <div className="num"><Counter value={s.value} suffix={s.suffix || ''} /></div>
-                <div className="lab">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* programmes */}
+      {/* programmes — cartes empilées au défilement (scrollytelling) */}
       <section className="programs" id="programmes">
         <div className="wrap">
-          <div className="sec-head reveal">
-            <div>
-              <span className="eyebrow">Nos programmes</span>
-              <h2>Des départements, des parcours diplômants</h2>
-            </div>
-            <a href="https://ci.edu.gn" target="_blank" rel="noreferrer" className="btn btn-outline-light">Le site du Centre <IArrow /></a>
+          <div className="prog-head reveal">
+            <span className="eyebrow">Nos programmes</span>
+            <h2>Des départements, des parcours diplômants</h2>
+            <p>Faites défiler : chaque parcours se dévoile et vient s’empiler sur le précédent.</p>
           </div>
-
-          {departments.map((d, di) => (
-            <div className="dept reveal" key={d.code}>
-              <div className="dept-grid">
-                <div className="dept-aside">
-                  <span className="n">{String(di + 1).padStart(2, '0')}</span>
-                  <h3>{cleanName(d.name)}</h3>
-                  {d.description ? <p>{d.description}</p> : null}
-                  <span className="dept-count">{d.programs.length} parcours diplômant{d.programs.length > 1 ? 's' : ''}</span>
-                </div>
-                <div className="dept-cards">
-                  {d.programs.map((p) => {
-                    const feature = progIndex === 0
-                    const cover = PH.prog[progIndex % PH.prog.length]
-                    progIndex += 1
-                    return (
-                      <article className={`prog reveal${feature ? ' feature' : ''}`} key={p.code}>
-                        <div className="cover"><img src={cover} alt="" loading="lazy" /></div>
-                        <span className="deg">{p.degree_label || 'Diplôme'}</span>
-                        <h4>{cleanName(p.name)}</h4>
-                        {p.description ? <p>{p.description}</p> : <p />}
+          <div className="prog-stack">
+            {(() => {
+              let gi = -1
+              return departments.flatMap((d, di) =>
+                d.programs.map((p) => {
+                  gi += 1
+                  const i = gi
+                  const cover = PH.prog[i % PH.prog.length]
+                  return (
+                    <article className="pcard" style={{ '--i': i }} key={d.code + p.code}>
+                      <div className="pcard-media"><img src={cover} alt="" loading="lazy" /></div>
+                      <div className="pcard-body">
+                        <div className="pcard-top">
+                          <span className="pcard-dept"><b>{String(di + 1).padStart(2, '0')}</b>{cleanName(d.name)}</span>
+                          <span className="deg">{p.degree_label || 'Diplôme'}</span>
+                        </div>
+                        <h3>{cleanName(p.name)}</h3>
+                        {p.description ? <p>{p.description}</p> : null}
                         {p.levels?.length ? (
                           <div className="levels">
                             {p.levels.map((lv) => <span className="lvl" key={lv.number}>{lv.name}</span>)}
@@ -595,13 +621,16 @@ export default function Home() {
                             Voir le site du programme <span className="arrow-circle"><IExtern /></span>
                           </a>
                         ) : null}
-                      </article>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-          ))}
+                      </div>
+                    </article>
+                  )
+                }),
+              )
+            })()}
+          </div>
+          <div className="prog-foot reveal">
+            <a href="https://ci.edu.gn" target="_blank" rel="noreferrer" className="btn btn-outline-light">Le site du Centre <IArrow /></a>
+          </div>
         </div>
       </section>
 

@@ -124,8 +124,8 @@ export function initLandingFx({ root, hero, stage, canvas }) {
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const isMobile = window.matchMedia && window.matchMedia('(max-width: 820px)').matches
 
-  // ---- Mode allégé : reveal simple, rien d'autre ----
-  if (reduce || isMobile) {
+  // ---- Reduced motion : reveal simple, rien d'autre ----
+  if (reduce) {
     root.classList.add('anim')
     const io = new IntersectionObserver(
       (ents) => {
@@ -168,14 +168,14 @@ export function initLandingFx({ root, hero, stage, canvas }) {
   root.addEventListener('click', onAnchorClick)
   cleanups.push(() => root.removeEventListener('click', onAnchorClick))
 
-  // Scène 3D du hero.
-  const scene3d = canvas && hero ? createThreeScene(canvas, hero) : null
+  // Scène 3D du hero + tilt souris : desktop uniquement (perf + layout mobile en grille).
+  const scene3d = !isMobile && canvas && hero ? createThreeScene(canvas, hero) : null
   if (scene3d) cleanups.push(scene3d.dispose)
 
   // Tilt 3D du hero à la souris (hors scroll).
   const inner = stage ? stage.querySelector('.stage-inner') : null
   let onMove, onLeave
-  if (inner && stage) {
+  if (!isMobile && inner && stage) {
     const rotY = gsap.quickTo(inner, 'rotationY', { duration: 0.6, ease: 'power3' })
     const rotX = gsap.quickTo(inner, 'rotationX', { duration: 0.6, ease: 'power3' })
     onMove = (e) => {
@@ -229,9 +229,9 @@ export function initLandingFx({ root, hero, stage, canvas }) {
         ),
     })
 
-    // 2) Hero : PIN + SCRUB. Le hero reste figé pendant que la scène 3D avance/recule
+    // 2) Hero DESKTOP : PIN + SCRUB. Le hero reste figé pendant que la scène 3D avance/recule
     //    au rythme du défilement et que les couches (photos, formes) parallaxent.
-    if (hero) {
+    if (hero && !isMobile) {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: hero,
@@ -266,6 +266,31 @@ export function initLandingFx({ root, hero, stage, canvas }) {
       tl.to('.hero-text', { y: -34, ease: 'none' }, 0)
         .to('.shape-b', { yPercent: 55, ease: 'none' }, 0)
     }
+
+    // 2b) Hero MOBILE : pas de pin — les photos (grille) parallaxent à vitesses
+    //     différentes au défilement + léger zoom de la bannière. Animation visible, robuste.
+    if (hero && isMobile) {
+      const st = { trigger: hero, start: 'top top', end: 'bottom top', scrub: true }
+      gsap.to('.stage .p1', { yPercent: -10, scale: 1.04, ease: 'none', scrollTrigger: st })
+      gsap.to('.stage .p2', { yPercent: 8, ease: 'none', scrollTrigger: st })
+      gsap.to('.stage .p3', { yPercent: -6, ease: 'none', scrollTrigger: st })
+      gsap.to('.hero-text', { y: -16, ease: 'none', scrollTrigger: st })
+    }
+
+    // 2c) Programmes : les cartes couvertes reculent légèrement (profondeur de pile).
+    const pcards = gsap.utils.toArray('.pcard')
+    pcards.forEach((card, i) => {
+      if (i === pcards.length - 1) return
+      gsap.fromTo(
+        card,
+        { scale: 1 },
+        {
+          scale: 0.93,
+          ease: 'none',
+          scrollTrigger: { trigger: pcards[i + 1], start: 'top 94%', end: 'top 22%', scrub: true },
+        },
+      )
+    })
 
     // 3) Parallaxe additionnelle hors hero (couches à vitesses différentes).
     gsap.utils.toArray('[data-par]').forEach((el) => {
