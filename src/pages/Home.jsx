@@ -124,13 +124,13 @@ const CSS = `
 .ci-landing .stats{position:relative;z-index:20;background:transparent;
   margin-top:clamp(-56px,-4.5vw,-34px);padding-block:0 clamp(18px,3vw,30px)}
 .ci-landing .stats .wrap{padding-block:0}
-.ci-landing .stats-card{background:var(--green-deep);border-radius:18px;overflow:hidden;
-  display:grid;grid-template-columns:repeat(4,1fr);
-  box-shadow:0 28px 60px -30px rgba(13,49,31,.62),0 4px 14px -8px rgba(13,49,31,.4)}
-.ci-landing .stat{position:relative;padding:clamp(17px,2.2vw,24px) clamp(12px,2vw,26px);text-align:center}
-.ci-landing .stat + .stat::before{content:"";position:absolute;left:0;top:20%;height:60%;width:1px;background:rgba(255,255,255,.14)}
-.ci-landing .stat .num{font-size:clamp(1.85rem,2.8vw,2.45rem);font-weight:800;letter-spacing:-.03em;color:var(--lime);font-variant-numeric:tabular-nums;line-height:1}
-.ci-landing .stat .lab{margin-top:6px;color:#c3d8c9;font-size:13px;font-weight:600;letter-spacing:-.01em}
+.ci-landing .stats-card{background:var(--green-deep);border-radius:14px;overflow:hidden;
+  max-width:820px;margin-inline:auto;display:grid;grid-template-columns:repeat(4,1fr);
+  box-shadow:0 22px 48px -26px rgba(13,49,31,.6),0 3px 10px -6px rgba(13,49,31,.4)}
+.ci-landing .stat{position:relative;padding:clamp(12px,1.4vw,16px) clamp(8px,1.4vw,18px);text-align:center}
+.ci-landing .stat + .stat::before{content:"";position:absolute;left:0;top:22%;height:56%;width:1px;background:rgba(255,255,255,.14)}
+.ci-landing .stat .num{font-size:clamp(1.4rem,1.9vw,1.75rem);font-weight:800;letter-spacing:-.03em;color:var(--lime);font-variant-numeric:tabular-nums;line-height:1}
+.ci-landing .stat .lab{margin-top:4px;color:#c3d8c9;font-size:12px;font-weight:600;letter-spacing:-.01em}
 
 /* showcase cinématique plein écran */
 .ci-landing .showcase{position:relative;background:var(--green-deep);color:#eaf3ec}
