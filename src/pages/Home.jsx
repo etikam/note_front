@@ -136,30 +136,36 @@ const CSS = `
   radial-gradient(circle at 75% 50%, var(--lime) 0 3.4px, transparent 3.6px), rgba(255,255,255,.12)}
 .ci-landing .sc-head h2{color:#fff;font-size:clamp(1.9rem,3.6vw,2.7rem);margin-top:12px;max-width:18ch}
 .ci-landing .sc-head p{color:#a9c3af;margin-top:12px;font-size:15px}
-.ci-landing .sc-scenes{position:relative}
-.ci-landing .sc-scene{position:sticky;top:0;height:100svh;min-height:560px;overflow:hidden;display:flex;align-items:flex-end}
-.ci-landing .sc-bg{position:absolute;inset:0;z-index:0}
-.ci-landing .sc-bg img{width:100%;height:100%;object-fit:cover;transform-origin:center;animation:sc-ken 17s ease-in-out infinite alternate;will-change:transform}
-.ci-landing .sc-scene::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:
-  linear-gradient(90deg, rgba(9,20,13,.95), rgba(9,20,13,.68) 40%, rgba(9,20,13,.2) 72%, transparent 100%),
-  linear-gradient(0deg, rgba(9,20,13,.86), transparent 46%)}
-.ci-landing .sc-index{position:absolute;top:clamp(78px,9vh,116px);right:clamp(18px,4vw,52px);z-index:2;
-  font-weight:800;font-size:clamp(2.6rem,7vw,5.4rem);line-height:1;color:rgba(255,255,255,.13);letter-spacing:-.04em}
-.ci-landing .sc-index em{font-style:normal;font-size:.36em;color:rgba(255,255,255,.26);margin-left:2px}
-.ci-landing .sc-inner{position:relative;z-index:2;width:100%;display:flex;align-items:flex-end;justify-content:space-between;gap:28px;padding-bottom:clamp(44px,8vh,92px)}
-.ci-landing .sc-text{max-width:640px}
-.ci-landing .sc-dept{display:inline-flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:var(--lime);letter-spacing:.06em;text-transform:uppercase}
-.ci-landing .sc-dept b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:rgba(183,224,23,.16);color:var(--lime);font-size:12px;text-transform:none}
-.ci-landing .sc-title{color:#fff;font-size:clamp(2.1rem,6vw,4.4rem);line-height:1.02;letter-spacing:-.03em;margin-top:16px;text-wrap:balance}
-.ci-landing .sc-desc{color:#d6e3da;font-size:clamp(15px,1.3vw,17px);line-height:1.6;margin-top:16px;max-width:52ch}
-.ci-landing .showcase .levels{margin-top:18px;display:flex;flex-wrap:wrap;gap:7px}
-.ci-landing .showcase .lvl{font-size:12px;font-weight:700;color:#eaf3ec;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 12px}
-.ci-landing .sc-actions{margin-top:26px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.ci-landing .sc-deg{font-size:12.5px;font-weight:700;color:#a9c3af}
-.ci-landing .sc-dots{display:flex;flex-direction:column;gap:9px;flex-shrink:0}
-.ci-landing .sc-dots span{width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.24);transition:background-color .3s,height .3s}
-.ci-landing .sc-dots span.on{background:var(--lime);height:26px}
-@keyframes sc-ken{from{transform:scale(1.06)}to{transform:scale(1.18) translateY(-2%)}}
+.ci-landing .showcase{padding-bottom:clamp(44px,6vw,80px)}
+.ci-landing .dept-row{margin-top:clamp(30px,4vw,52px)}
+.ci-landing .dept-row-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:clamp(16px,2vw,24px)}
+.ci-landing .dept-row-title{display:flex;align-items:center;gap:14px}
+.ci-landing .dept-row-n{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:11px;background:rgba(183,224,23,.14);color:var(--lime);font-weight:800;font-size:14px;flex-shrink:0}
+.ci-landing .dept-row-title h3{color:#fff;font-size:clamp(1.3rem,2.3vw,1.7rem);letter-spacing:-.02em;line-height:1.1;max-width:26ch}
+.ci-landing .dept-row-title p{color:#a9c3af;font-size:13.5px;margin-top:3px}
+.ci-landing .dept-row-nav{display:flex;gap:9px;flex-shrink:0}
+.ci-landing .rnav{display:grid;place-items:center;width:44px;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:#eaf3ec;cursor:pointer;transition:background-color .2s,border-color .2s,color .2s}
+.ci-landing .rnav:hover{background:var(--lime);color:var(--lime-ink);border-color:var(--lime)}
+.ci-landing .rnav svg{width:18px;height:18px}
+.ci-landing .rnav.prev svg{transform:rotate(180deg)}
+.ci-landing .dept-scroller{overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:clamp(16px,4vw,40px);
+  padding-inline:clamp(16px,4vw,40px);padding-block:6px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.26) transparent;-webkit-overflow-scrolling:touch}
+.ci-landing .dept-scroller::-webkit-scrollbar{height:8px}
+.ci-landing .dept-scroller::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px}
+.ci-landing .dept-scroller::-webkit-scrollbar-track{background:transparent}
+.ci-landing .dept-track{display:flex;gap:clamp(16px,2vw,24px);width:max-content}
+.ci-landing .pcard{position:relative;flex:0 0 clamp(290px,72vw,700px);height:clamp(400px,56vh,520px);border-radius:22px;overflow:hidden;scroll-snap-align:center}
+.ci-landing .pcard-bg{position:absolute;inset:0;z-index:0}
+.ci-landing .pcard-bg img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+.ci-landing .pcard:hover .pcard-bg img{transform:scale(1.06)}
+.ci-landing .pcard::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(0deg, rgba(9,20,13,.93), rgba(9,20,13,.34) 50%, rgba(9,20,13,.08) 100%)}
+.ci-landing .pcard-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:10px;padding:clamp(22px,3vw,34px)}
+.ci-landing .pcard-content .deg{font-size:12px;font-weight:700;color:var(--lime);letter-spacing:.03em}
+.ci-landing .pcard-content h4{color:#fff;font-size:clamp(1.4rem,2.4vw,2rem);line-height:1.08;letter-spacing:-.02em;max-width:18ch}
+.ci-landing .pcard-content p{color:#d6e3da;font-size:14.5px;line-height:1.55;max-width:46ch}
+.ci-landing .showcase .levels{display:flex;flex-wrap:wrap;gap:7px}
+.ci-landing .showcase .lvl{font-size:12px;font-weight:700;color:#eaf3ec;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 11px}
+.ci-landing .pcard-content .btn{align-self:flex-start;margin-top:6px}
 .ci-landing .programs .sec-head{text-align:left;margin:0 0 34px;max-width:none;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .ci-landing .programs .sec-head .eyebrow{justify-content:flex-start;color:var(--lime)}
 .ci-landing .programs .sec-head .eyebrow::before{background:
@@ -291,10 +297,8 @@ const CSS = `
   .ci-landing .stage .stage-inner .panel{position:static;inset:auto;width:auto;height:158px;border-width:4px;will-change:transform}
   .ci-landing .stage .stage-inner .panel.p1{grid-column:1 / -1;height:clamp(190px,52vw,230px)}
   .ci-landing .stage .spark{display:none}
-  .ci-landing .sc-inner{flex-direction:column;align-items:flex-start;gap:18px}
-  .ci-landing .sc-dots{flex-direction:row}
-  .ci-landing .sc-dots span.on{height:8px;width:26px}
-  .ci-landing .sc-index{top:72px}
+  .ci-landing .dept-row-nav{display:none}
+  .ci-landing .pcard{flex-basis:84vw;height:clamp(380px,64vh,460px)}
 }
 @media (max-width:620px){
   .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr}
@@ -355,6 +359,7 @@ const IMail = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 const IPin = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
 const IMenu = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
 const IClose = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+const IChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M9 6l6 6-6 6" /></svg>
 
 const NAV = [['#accueil', 'Accueil'], ['#programmes', 'Programmes'], ['#actualites', 'Actualités'], ['#admission', 'Admission'], ['#contact', 'Contact']]
 
@@ -464,6 +469,12 @@ export default function Home() {
   const departments = data?.departments ?? []
   const news = data?.news ?? []
   const years = stats.find((s) => s.key === 'experience')?.value ?? (new Date().getFullYear() - foundingYear)
+
+  // Défilement horizontal des carrousels de programmes (flèches).
+  const scrollRow = (dir) => (e) => {
+    const sc = e.currentTarget.closest('.dept-row')?.querySelector('.dept-scroller')
+    if (sc) sc.scrollBy({ left: dir * sc.clientWidth * 0.85, behavior: 'smooth' })
+  }
 
   const marqueeItems = departments.length
     ? departments.flatMap((d) => [cleanName(d.name), ...d.programs.map((p) => cleanName(p.name))])
@@ -598,41 +609,51 @@ export default function Home() {
         </div>
       </section>
 
-      {/* programmes — showcase cinématique plein écran (scènes empilées sticky) */}
+      {/* programmes — carrousels horizontaux immersifs par département */}
       <section className="showcase" id="programmes">
         <div className="wrap sc-head reveal">
           <span className="eyebrow">Nos programmes</span>
           <h2>Des départements, des parcours diplômants</h2>
-          <p>Chaque parcours devient une scène — faites défiler pour les traverser.</p>
+          <p>Explorez chaque département — faites défiler ses parcours horizontalement.</p>
         </div>
-        <div className="sc-scenes">
-          {(() => {
-            const flat = departments.flatMap((d, di) => d.programs.map((p) => ({ p, dept: cleanName(d.name), di })))
-            return flat.map(({ p, dept, di }, i) => (
-              <article className="sc-scene" key={`${di}-${p.code}`}>
-                <div className="sc-bg"><img src={SCENE_IMG[i % SCENE_IMG.length]} alt="" /></div>
-                <span className="sc-index">{String(i + 1).padStart(2, '0')}<em>/{String(flat.length).padStart(2, '0')}</em></span>
-                <div className="wrap sc-inner">
-                  <div className="sc-text">
-                    <span className="sc-dept"><b>{String(di + 1).padStart(2, '0')}</b>{dept}</span>
-                    <h3 className="sc-title">{cleanName(p.name)}</h3>
-                    <p className="sc-desc">{p.description || 'Un parcours diplômant du Centre Informatique, de la licence au master.'}</p>
-                    {p.levels?.length ? (
-                      <div className="levels">{p.levels.map((lv) => <span className="lvl" key={lv.number}>{lv.name}</span>)}</div>
-                    ) : null}
-                    <div className="sc-actions">
-                      <a href={p.website_url || 'https://ci.edu.gn'} target="_blank" rel="noreferrer" className="btn btn-lime">Voir plus <IArrow /></a>
-                      <span className="sc-deg">{p.degree_label || 'Diplôme'}</span>
-                    </div>
-                  </div>
-                  <div className="sc-dots" aria-hidden="true">
-                    {flat.map((_, j) => <span key={j} className={j === i ? 'on' : undefined} />)}
+        {departments.map((d, di) => {
+          const base = departments.slice(0, di).reduce((s, x) => s + x.programs.length, 0)
+          return (
+            <div className="dept-row" key={d.code}>
+              <div className="wrap dept-row-head reveal">
+                <div className="dept-row-title">
+                  <span className="dept-row-n">{String(di + 1).padStart(2, '0')}</span>
+                  <div>
+                    <h3>{cleanName(d.name)}</h3>
+                    <p>{d.programs.length} parcours diplômant{d.programs.length > 1 ? 's' : ''}</p>
                   </div>
                 </div>
-              </article>
-            ))
-          })()}
-        </div>
+                <div className="dept-row-nav">
+                  <button type="button" className="rnav prev" aria-label="Précédent" onClick={scrollRow(-1)}><IChevron /></button>
+                  <button type="button" className="rnav next" aria-label="Suivant" onClick={scrollRow(1)}><IChevron /></button>
+                </div>
+              </div>
+              <div className="dept-scroller" data-lenis-prevent>
+                <div className="dept-track">
+                  {d.programs.map((p, pi) => (
+                    <article className="pcard" key={p.code}>
+                      <div className="pcard-bg"><img src={SCENE_IMG[(base + pi) % SCENE_IMG.length]} alt="" /></div>
+                      <div className="pcard-content">
+                        <span className="deg">{p.degree_label || 'Diplôme'}</span>
+                        <h4>{cleanName(p.name)}</h4>
+                        <p>{p.description || 'Un parcours diplômant du Centre Informatique, de la licence au master.'}</p>
+                        {p.levels?.length ? (
+                          <div className="levels">{p.levels.map((lv) => <span className="lvl" key={lv.number}>{lv.name}</span>)}</div>
+                        ) : null}
+                        <a href={p.website_url || 'https://ci.edu.gn'} target="_blank" rel="noreferrer" className="btn btn-lime">Voir plus <IArrow /></a>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </section>
 
       {/* actualités */}
