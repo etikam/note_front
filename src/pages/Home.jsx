@@ -139,26 +139,38 @@ const CSS = `
   radial-gradient(circle at 75% 50%, var(--lime) 0 3.4px, transparent 3.6px), rgba(255,255,255,.12)}
 .ci-landing .prog-head h2{color:#fff;font-size:clamp(1.9rem,3.6vw,2.7rem);margin-top:12px;max-width:18ch}
 .ci-landing .prog-head p{color:#a9c3af;margin-top:12px;font-size:15px}
-.ci-landing .prog-stack{position:relative;z-index:1;display:flex;flex-direction:column;gap:clamp(20px,3vw,34px)}
-.ci-landing .pcard{position:sticky;top:calc(96px + var(--i) * 15px);display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);
-  min-height:clamp(276px,36vh,336px);background:#173a28;border:1px solid rgba(255,255,255,.1);border-radius:22px;overflow:hidden;
-  box-shadow:0 34px 66px -34px rgba(0,0,0,.65);transition:transform .25s ease}
-.ci-landing .pcard-media{position:relative;overflow:hidden;min-height:220px}
-.ci-landing .pcard-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
-.ci-landing .pcard:hover .pcard-media img{transform:scale(1.05)}
-.ci-landing .pcard-body{padding:clamp(22px,3vw,40px);display:flex;flex-direction:column;gap:12px;justify-content:center}
-.ci-landing .pcard-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.ci-landing .pcard-dept{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;color:#a9c3af}
-.ci-landing .pcard-dept b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;background:rgba(183,224,23,.14);color:var(--lime);font-size:12px}
-.ci-landing .pcard .deg{font-size:12px;font-weight:700;color:var(--lime);letter-spacing:.02em}
-.ci-landing .pcard h3{color:#fff;font-size:clamp(1.3rem,2.4vw,1.95rem);letter-spacing:-.025em;line-height:1.08}
-.ci-landing .pcard p{color:#b9cfbf;font-size:14.5px;line-height:1.62;max-width:46ch}
-.ci-landing .pcard .levels{display:flex;flex-wrap:wrap;gap:6px}
-.ci-landing .pcard .lvl{font-size:11.5px;font-weight:700;color:#cfe0d3;background:rgba(255,255,255,.08);border-radius:999px;padding:3px 10px}
-.ci-landing .pcard .plink{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;color:#eaf3ec;margin-top:2px}
-.ci-landing .pcard .plink .arrow-circle{width:26px;height:26px}
-.ci-landing .pcard .plink .arrow-circle svg{width:13px;height:13px}
-.ci-landing .prog-foot{position:relative;z-index:1;margin-top:clamp(28px,4vw,48px)}
+.ci-landing .prog-switch{position:relative;z-index:1;display:grid;grid-template-columns:270px minmax(0,1fr);gap:clamp(22px,3vw,46px);align-items:start}
+.ci-landing .prog-tabs{display:flex;flex-direction:column;gap:12px}
+.ci-landing .ptab{position:relative;text-align:left;padding:18px 18px 20px;border-radius:15px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);color:#a9c3af;cursor:pointer;overflow:hidden;transition:background-color .25s,border-color .25s,color .25s}
+.ci-landing .ptab:hover{border-color:rgba(183,224,23,.3)}
+.ci-landing .ptab-i{font-size:12px;font-weight:800;color:var(--lime);opacity:.65;letter-spacing:.04em}
+.ci-landing .ptab-name{display:block;margin-top:6px;font-size:15.5px;font-weight:700;line-height:1.25;color:inherit}
+.ci-landing .ptab.active{background:rgba(183,224,23,.1);border-color:rgba(183,224,23,.42);color:#fff}
+.ci-landing .ptab.active .ptab-i{opacity:1}
+.ci-landing .ptab-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.08)}
+.ci-landing .ptab-bar i{display:block;height:100%;width:0;background:var(--lime)}
+.ci-landing .ptab.active .ptab-bar i{animation:ptab-fill var(--dur,5000ms) linear forwards}
+.ci-landing .prog-switch.paused .ptab.active .ptab-bar i{animation-play-state:paused}
+@keyframes ptab-fill{from{width:0}to{width:100%}}
+.ci-landing .prog-panel-head{margin-bottom:clamp(16px,2vw,22px)}
+.ci-landing .prog-panel-head h3{color:#fff;font-size:clamp(1.35rem,2.5vw,1.95rem);letter-spacing:-.02em;max-width:22ch}
+.ci-landing .prog-panel-head p{color:#a9c3af;margin-top:8px;font-size:14.5px;max-width:60ch}
+.ci-landing .prog-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,268px),1fr));gap:18px}
+.ci-landing .pitem{background:#173a28;border:1px solid rgba(255,255,255,.1);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;
+  animation:pitem-in .55s cubic-bezier(.2,.7,.2,1) both;transition:border-color .2s,transform .22s ease}
+.ci-landing .pitem:hover{border-color:rgba(183,224,23,.4);transform:translateY(-3px)}
+.ci-landing .pitem-media{height:150px;overflow:hidden}
+.ci-landing .pitem-media img{width:100%;height:100%;object-fit:cover;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+.ci-landing .pitem:hover .pitem-media img{transform:scale(1.06)}
+.ci-landing .pitem-body{padding:20px;display:flex;flex-direction:column;gap:10px;flex:1}
+.ci-landing .pitem .deg{font-size:12px;font-weight:700;color:var(--lime);letter-spacing:.02em}
+.ci-landing .pitem h4{color:#fff;font-size:1.14rem;letter-spacing:-.01em;line-height:1.15}
+.ci-landing .pitem p{color:#b9cfbf;font-size:14px;line-height:1.55;flex:1}
+.ci-landing .pitem .levels{display:flex;flex-wrap:wrap;gap:6px}
+.ci-landing .pitem .lvl{font-size:11px;font-weight:700;color:#cfe0d3;background:rgba(255,255,255,.08);border-radius:999px;padding:3px 9px}
+.ci-landing .pitem .btn{align-self:flex-start;margin-top:4px}
+@keyframes pitem-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 .ci-landing .programs .sec-head{text-align:left;margin:0 0 34px;max-width:none;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .ci-landing .programs .sec-head .eyebrow{justify-content:flex-start;color:var(--lime)}
 .ci-landing .programs .sec-head .eyebrow::before{background:
@@ -290,9 +302,9 @@ const CSS = `
   .ci-landing .stage .stage-inner .panel{position:static;inset:auto;width:auto;height:158px;border-width:4px;will-change:transform}
   .ci-landing .stage .stage-inner .panel.p1{grid-column:1 / -1;height:clamp(190px,52vw,230px)}
   .ci-landing .stage .spark{display:none}
-  .ci-landing .pcard{grid-template-columns:1fr;top:calc(82px + var(--i) * 10px);min-height:0}
-  .ci-landing .pcard-media{min-height:172px;max-height:200px}
-  .ci-landing .pcard-body{padding:20px}
+  .ci-landing .prog-switch{grid-template-columns:1fr;gap:18px}
+  .ci-landing .prog-tabs{flex-direction:row;flex-wrap:wrap}
+  .ci-landing .ptab{flex:1 1 150px}
 }
 @media (max-width:620px){
   .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr}
@@ -336,7 +348,6 @@ const BADGE_YEARS = (n) => `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r
 /* ───────────────────────── icônes ───────────────────────── */
 const IArrow = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 const IArrowThin = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-const IExtern = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M7 17 17 7M8 7h9v9" /></svg>
 const IPhone = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.4-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z" /></svg>
 const IMail = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m2 7 10 6 10-6" /></svg>
 const IPin = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
@@ -387,6 +398,8 @@ const formatDate = (iso) => {
 export default function Home() {
   const [data, setData] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [activeDept, setActiveDept] = useState(0)
+  const [progPaused, setProgPaused] = useState(false)
   const stageRef = useRef(null)
   const canvasRef = useRef(null)
 
@@ -395,6 +408,15 @@ export default function Home() {
     fetchLandingContent(ctrl.signal).then(setData).catch(() => setData(null))
     return () => ctrl.abort()
   }, [])
+
+  // Rotation automatique des départements (boucle infinie), en pause au survol.
+  const PROG_DUR = 5200
+  useEffect(() => {
+    const n = data?.departments?.length ?? 0
+    if (n <= 1 || progPaused) return undefined
+    const t = setInterval(() => setActiveDept((a) => (a + 1) % n), PROG_DUR)
+    return () => clearInterval(t)
+  }, [data, progPaused, activeDept])
 
   // Effets de défilement (Lenis + GSAP ScrollTrigger + Three.js), chargés en lazy.
   // Une seule init, une fois les sections rendues (données chargées), avec repli temporisé.
@@ -585,51 +607,62 @@ export default function Home() {
         </div>
       </section>
 
-      {/* programmes — cartes empilées au défilement (scrollytelling) */}
+      {/* programmes — sélecteur de départements auto-rotatif (boucle infinie) */}
       <section className="programs" id="programmes">
         <div className="wrap">
           <div className="prog-head reveal">
             <span className="eyebrow">Nos programmes</span>
             <h2>Des départements, des parcours diplômants</h2>
-            <p>Faites défiler : chaque parcours se dévoile et vient s’empiler sur le précédent.</p>
+            <p>Chaque département s’active à son tour — découvrez ses parcours et accédez à leur site.</p>
           </div>
-          <div className="prog-stack">
-            {(() => {
-              let gi = -1
-              return departments.flatMap((d, di) =>
-                d.programs.map((p) => {
-                  gi += 1
-                  const i = gi
-                  const cover = PH.prog[i % PH.prog.length]
-                  return (
-                    <article className="pcard" style={{ '--i': i }} key={d.code + p.code}>
-                      <div className="pcard-media"><img src={cover} alt="" loading="lazy" /></div>
-                      <div className="pcard-body">
-                        <div className="pcard-top">
-                          <span className="pcard-dept"><b>{String(di + 1).padStart(2, '0')}</b>{cleanName(d.name)}</span>
-                          <span className="deg">{p.degree_label || 'Diplôme'}</span>
-                        </div>
-                        <h3>{cleanName(p.name)}</h3>
-                        {p.description ? <p>{p.description}</p> : null}
+          <div
+            className={`prog-switch reveal${progPaused ? ' paused' : ''}`}
+            style={{ '--dur': `${PROG_DUR}ms` }}
+            onMouseEnter={() => setProgPaused(true)}
+            onMouseLeave={() => setProgPaused(false)}
+          >
+            <div className="prog-tabs" role="tablist" aria-label="Départements">
+              {departments.map((d, i) => (
+                <button
+                  key={d.code}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === activeDept}
+                  className={`ptab${i === activeDept ? ' active' : ''}`}
+                  onClick={() => setActiveDept(i)}
+                >
+                  <span className="ptab-i">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="ptab-name">{cleanName(d.name)}</span>
+                  <span className="ptab-bar"><i /></span>
+                </button>
+              ))}
+            </div>
+            {departments[activeDept] && (
+              <div className="prog-panel" key={activeDept}>
+                <div className="prog-panel-head">
+                  <h3>{cleanName(departments[activeDept].name)}</h3>
+                  {departments[activeDept].description ? <p>{departments[activeDept].description}</p> : null}
+                </div>
+                <div className="prog-items">
+                  {departments[activeDept].programs.map((p, pi) => (
+                    <article className="pitem" key={p.code} style={{ animationDelay: `${pi * 90}ms` }}>
+                      <div className="pitem-media"><img src={PH.prog[pi % PH.prog.length]} alt="" loading="lazy" /></div>
+                      <div className="pitem-body">
+                        <span className="deg">{p.degree_label || 'Diplôme'}</span>
+                        <h4>{cleanName(p.name)}</h4>
+                        <p>{p.description || 'Parcours diplômant du Centre Informatique.'}</p>
                         {p.levels?.length ? (
-                          <div className="levels">
-                            {p.levels.map((lv) => <span className="lvl" key={lv.number}>{lv.name}</span>)}
-                          </div>
+                          <div className="levels">{p.levels.map((lv) => <span className="lvl" key={lv.number}>{lv.name}</span>)}</div>
                         ) : null}
-                        {p.website_url ? (
-                          <a href={p.website_url} target="_blank" rel="noreferrer" className="plink">
-                            Voir le site du programme <span className="arrow-circle"><IExtern /></span>
-                          </a>
-                        ) : null}
+                        <a href={p.website_url || 'https://ci.edu.gn'} target="_blank" rel="noreferrer" className="btn btn-lime">
+                          Voir plus <IArrow />
+                        </a>
                       </div>
                     </article>
-                  )
-                }),
-              )
-            })()}
-          </div>
-          <div className="prog-foot reveal">
-            <a href="https://ci.edu.gn" target="_blank" rel="noreferrer" className="btn btn-outline-light">Le site du Centre <IArrow /></a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

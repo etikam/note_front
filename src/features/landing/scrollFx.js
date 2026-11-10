@@ -54,25 +54,27 @@ function buildCircuitLayer(cols, rows, step, traceColor, nodeColor, lineOpacity,
   return layer
 }
 
-function createThreeScene(canvas, hero) {
+function createThreeScene(canvas, hero, { light = false } = {}) {
   let renderer
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true })
+    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: !light, powerPreference: light ? 'low-power' : 'default' })
   } catch {
     return null
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+  // Mobile (light) : pixelRatio plafonné plus bas pour la perf/batterie.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, light ? 1.5 : 2))
 
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100)
   camera.position.set(0, 0, 10)
 
   // Circuit : deux couches (profondeur/parallaxe), lignes fines translucides + nœuds lime.
+  // En mode « light » (mobile) : moins de colonnes/lignes → moins de traces à dessiner.
   const circuit = new THREE.Group()
   scene.add(circuit)
-  const back = buildCircuitLayer(24, 15, 0.72, 0x2c6b45, 0x7fae63, 0.28, 0.5)
+  const back = buildCircuitLayer(light ? 16 : 24, light ? 11 : 15, 0.72, 0x2c6b45, 0x7fae63, 0.28, 0.5)
   back.position.z = -3
-  const front = buildCircuitLayer(22, 13, 0.78, 0x3f8a5c, 0xb7e017, 0.5, 0.9)
+  const front = buildCircuitLayer(light ? 15 : 22, light ? 10 : 13, 0.78, 0x3f8a5c, 0xb7e017, 0.5, 0.9)
   circuit.add(back, front)
   circuit.rotation.x = -0.12
 
@@ -141,20 +143,26 @@ export function initLandingFx({ root, hero, stage, canvas }) {
   root.classList.add('fx')
   const cleanups = []
 
-  // Lenis smooth scroll, synchronisé avec ScrollTrigger via le ticker GSAP.
-  const lenis = new Lenis({ duration: 1.1, smoothWheel: true, wheelMultiplier: 1 })
-  const onLenis = () => ScrollTrigger.update()
-  lenis.on('scroll', onLenis)
-  const tick = (time) => lenis.raf(time * 1000)
-  gsap.ticker.add(tick)
-  gsap.ticker.lagSmoothing(0)
-  cleanups.push(() => {
-    gsap.ticker.remove(tick)
-    lenis.off('scroll', onLenis)
-    lenis.destroy()
-  })
+  // Lenis smooth scroll (desktop uniquement) : synchronisé avec ScrollTrigger via le ticker GSAP.
+  // Sur tactile, Lenis ne gère pas nativement le toucher (pas de syncTouch) et le pont
+  // lenis.scroll → ScrollTrigger.update ne se déclenche pas de façon fiable : on garde le
+  // scroll natif du téléphone, que ScrollTrigger écoute déjà tout seul. Bien plus robuste.
+  let lenis = null
+  if (!isMobile) {
+    lenis = new Lenis({ duration: 1.1, smoothWheel: true, wheelMultiplier: 1 })
+    const onLenis = () => ScrollTrigger.update()
+    lenis.on('scroll', onLenis)
+    const tick = (time) => lenis.raf(time * 1000)
+    gsap.ticker.add(tick)
+    gsap.ticker.lagSmoothing(0)
+    cleanups.push(() => {
+      gsap.ticker.remove(tick)
+      lenis.off('scroll', onLenis)
+      lenis.destroy()
+    })
+  }
 
-  // Ancres internes (#programmes…) : défilement doux via Lenis.
+  // Ancres internes (#programmes…) : défilement doux via Lenis, sinon scroll natif (mobile).
   const onAnchorClick = (e) => {
     const a = e.target.closest('a[href^="#"]')
     if (!a) return
@@ -163,13 +171,19 @@ export function initLandingFx({ root, hero, stage, canvas }) {
     const target = root.querySelector(id)
     if (!target) return
     e.preventDefault()
-    lenis.scrollTo(target, { offset: -84 })
+    if (lenis) {
+      lenis.scrollTo(target, { offset: -84 })
+    } else {
+      const y = target.getBoundingClientRect().top + window.scrollY - 84
+      window.scrollTo({ top: y, behavior: 'smooth' })
+    }
   }
   root.addEventListener('click', onAnchorClick)
   cleanups.push(() => root.removeEventListener('click', onAnchorClick))
 
-  // Scène 3D du hero + tilt souris : desktop uniquement (perf + layout mobile en grille).
-  const scene3d = !isMobile && canvas && hero ? createThreeScene(canvas, hero) : null
+  // Scène 3D du hero (circuit numérique) : desktop ET mobile.
+  // Sur mobile on passe en mode « light » (moins de traces, pixelRatio plafonné) et sans tilt souris.
+  const scene3d = canvas && hero ? createThreeScene(canvas, hero, { light: isMobile }) : null
   if (scene3d) cleanups.push(scene3d.dispose)
 
   // Tilt 3D du hero à la souris (hors scroll).
@@ -275,22 +289,17 @@ export function initLandingFx({ root, hero, stage, canvas }) {
       gsap.to('.stage .p2', { yPercent: 8, ease: 'none', scrollTrigger: st })
       gsap.to('.stage .p3', { yPercent: -6, ease: 'none', scrollTrigger: st })
       gsap.to('.hero-text', { y: -16, ease: 'none', scrollTrigger: st })
+      // Le circuit plonge doucement au défilement (sans pin). Amplitude réduite (× 0.6) → effet léger.
+      if (scene3d) {
+        ScrollTrigger.create({
+          trigger: hero,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+          onUpdate: (self) => scene3d.setProgress(self.progress * 0.6),
+        })
+      }
     }
-
-    // 2c) Programmes : les cartes couvertes reculent légèrement (profondeur de pile).
-    const pcards = gsap.utils.toArray('.pcard')
-    pcards.forEach((card, i) => {
-      if (i === pcards.length - 1) return
-      gsap.fromTo(
-        card,
-        { scale: 1 },
-        {
-          scale: 0.93,
-          ease: 'none',
-          scrollTrigger: { trigger: pcards[i + 1], start: 'top 94%', end: 'top 22%', scrub: true },
-        },
-      )
-    })
 
     // 3) Parallaxe additionnelle hors hero (couches à vitesses différentes).
     gsap.utils.toArray('[data-par]').forEach((el) => {
