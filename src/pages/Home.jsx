@@ -127,50 +127,39 @@ const CSS = `
 .ci-landing .stat .num{font-size:clamp(2rem,3.4vw,2.7rem);font-weight:800;letter-spacing:-.03em;color:var(--green-deep);font-variant-numeric:tabular-nums}
 .ci-landing .stat .lab{margin-top:4px;color:var(--muted);font-size:14px;font-weight:600}
 
-.ci-landing .programs{background:var(--green-deep);color:#eaf3ec;position:relative;overflow:hidden}
-.ci-landing .programs::before{content:"";position:absolute;inset:0;pointer-events:none;background:
-  radial-gradient(60% 46% at 86% 2%, rgba(183,224,23,.11), transparent 62%),
-  radial-gradient(50% 40% at 6% 100%, rgba(37,66,58,.5), transparent 60%)}
-/* cartes empilées (sticky stack) */
-.ci-landing .prog-head{position:relative;z-index:1;max-width:620px;margin-bottom:clamp(26px,4vw,46px)}
-.ci-landing .prog-head .eyebrow{color:var(--lime)}
-.ci-landing .prog-head .eyebrow::before{background:
+/* showcase cinématique plein écran */
+.ci-landing .showcase{position:relative;background:var(--green-deep);color:#eaf3ec}
+.ci-landing .sc-head{position:relative;z-index:2;max-width:620px;padding-top:clamp(56px,7vw,96px);padding-bottom:clamp(16px,3vw,28px)}
+.ci-landing .sc-head .eyebrow{color:var(--lime)}
+.ci-landing .sc-head .eyebrow::before{background:
   radial-gradient(circle at 25% 50%, #fff 0 3.4px, transparent 3.6px),
   radial-gradient(circle at 75% 50%, var(--lime) 0 3.4px, transparent 3.6px), rgba(255,255,255,.12)}
-.ci-landing .prog-head h2{color:#fff;font-size:clamp(1.9rem,3.6vw,2.7rem);margin-top:12px;max-width:18ch}
-.ci-landing .prog-head p{color:#a9c3af;margin-top:12px;font-size:15px}
-.ci-landing .prog-switch{position:relative;z-index:1;display:grid;grid-template-columns:270px minmax(0,1fr);gap:clamp(22px,3vw,46px);align-items:start}
-.ci-landing .prog-tabs{display:flex;flex-direction:column;gap:12px}
-.ci-landing .ptab{position:relative;text-align:left;padding:18px 18px 20px;border-radius:15px;border:1px solid rgba(255,255,255,.1);
-  background:rgba(255,255,255,.03);color:#a9c3af;cursor:pointer;overflow:hidden;transition:background-color .25s,border-color .25s,color .25s}
-.ci-landing .ptab:hover{border-color:rgba(183,224,23,.3)}
-.ci-landing .ptab-i{font-size:12px;font-weight:800;color:var(--lime);opacity:.65;letter-spacing:.04em}
-.ci-landing .ptab-name{display:block;margin-top:6px;font-size:15.5px;font-weight:700;line-height:1.25;color:inherit}
-.ci-landing .ptab.active{background:rgba(183,224,23,.1);border-color:rgba(183,224,23,.42);color:#fff}
-.ci-landing .ptab.active .ptab-i{opacity:1}
-.ci-landing .ptab-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.08)}
-.ci-landing .ptab-bar i{display:block;height:100%;width:0;background:var(--lime)}
-.ci-landing .ptab.active .ptab-bar i{animation:ptab-fill var(--dur,5000ms) linear forwards}
-.ci-landing .prog-switch.paused .ptab.active .ptab-bar i{animation-play-state:paused}
-@keyframes ptab-fill{from{width:0}to{width:100%}}
-.ci-landing .prog-panel-head{margin-bottom:clamp(16px,2vw,22px)}
-.ci-landing .prog-panel-head h3{color:#fff;font-size:clamp(1.35rem,2.5vw,1.95rem);letter-spacing:-.02em;max-width:22ch}
-.ci-landing .prog-panel-head p{color:#a9c3af;margin-top:8px;font-size:14.5px;max-width:60ch}
-.ci-landing .prog-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,268px),1fr));gap:18px}
-.ci-landing .pitem{background:#173a28;border:1px solid rgba(255,255,255,.1);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;
-  animation:pitem-in .55s cubic-bezier(.2,.7,.2,1) both;transition:border-color .2s,transform .22s ease}
-.ci-landing .pitem:hover{border-color:rgba(183,224,23,.4);transform:translateY(-3px)}
-.ci-landing .pitem-media{height:150px;overflow:hidden}
-.ci-landing .pitem-media img{width:100%;height:100%;object-fit:cover;transition:transform .55s cubic-bezier(.2,.7,.2,1)}
-.ci-landing .pitem:hover .pitem-media img{transform:scale(1.06)}
-.ci-landing .pitem-body{padding:20px;display:flex;flex-direction:column;gap:10px;flex:1}
-.ci-landing .pitem .deg{font-size:12px;font-weight:700;color:var(--lime);letter-spacing:.02em}
-.ci-landing .pitem h4{color:#fff;font-size:1.14rem;letter-spacing:-.01em;line-height:1.15}
-.ci-landing .pitem p{color:#b9cfbf;font-size:14px;line-height:1.55;flex:1}
-.ci-landing .pitem .levels{display:flex;flex-wrap:wrap;gap:6px}
-.ci-landing .pitem .lvl{font-size:11px;font-weight:700;color:#cfe0d3;background:rgba(255,255,255,.08);border-radius:999px;padding:3px 9px}
-.ci-landing .pitem .btn{align-self:flex-start;margin-top:4px}
-@keyframes pitem-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.ci-landing .sc-head h2{color:#fff;font-size:clamp(1.9rem,3.6vw,2.7rem);margin-top:12px;max-width:18ch}
+.ci-landing .sc-head p{color:#a9c3af;margin-top:12px;font-size:15px}
+.ci-landing .sc-scenes{position:relative}
+.ci-landing .sc-scene{position:sticky;top:0;height:100svh;min-height:560px;overflow:hidden;display:flex;align-items:flex-end}
+.ci-landing .sc-bg{position:absolute;inset:0;z-index:0}
+.ci-landing .sc-bg img{width:100%;height:100%;object-fit:cover;transform-origin:center;animation:sc-ken 17s ease-in-out infinite alternate;will-change:transform}
+.ci-landing .sc-scene::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:
+  linear-gradient(90deg, rgba(9,20,13,.95), rgba(9,20,13,.68) 40%, rgba(9,20,13,.2) 72%, transparent 100%),
+  linear-gradient(0deg, rgba(9,20,13,.86), transparent 46%)}
+.ci-landing .sc-index{position:absolute;top:clamp(78px,9vh,116px);right:clamp(18px,4vw,52px);z-index:2;
+  font-weight:800;font-size:clamp(2.6rem,7vw,5.4rem);line-height:1;color:rgba(255,255,255,.13);letter-spacing:-.04em}
+.ci-landing .sc-index em{font-style:normal;font-size:.36em;color:rgba(255,255,255,.26);margin-left:2px}
+.ci-landing .sc-inner{position:relative;z-index:2;width:100%;display:flex;align-items:flex-end;justify-content:space-between;gap:28px;padding-bottom:clamp(44px,8vh,92px)}
+.ci-landing .sc-text{max-width:640px}
+.ci-landing .sc-dept{display:inline-flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:var(--lime);letter-spacing:.06em;text-transform:uppercase}
+.ci-landing .sc-dept b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:rgba(183,224,23,.16);color:var(--lime);font-size:12px;text-transform:none}
+.ci-landing .sc-title{color:#fff;font-size:clamp(2.1rem,6vw,4.4rem);line-height:1.02;letter-spacing:-.03em;margin-top:16px;text-wrap:balance}
+.ci-landing .sc-desc{color:#d6e3da;font-size:clamp(15px,1.3vw,17px);line-height:1.6;margin-top:16px;max-width:52ch}
+.ci-landing .showcase .levels{margin-top:18px;display:flex;flex-wrap:wrap;gap:7px}
+.ci-landing .showcase .lvl{font-size:12px;font-weight:700;color:#eaf3ec;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 12px}
+.ci-landing .sc-actions{margin-top:26px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.ci-landing .sc-deg{font-size:12.5px;font-weight:700;color:#a9c3af}
+.ci-landing .sc-dots{display:flex;flex-direction:column;gap:9px;flex-shrink:0}
+.ci-landing .sc-dots span{width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.24);transition:background-color .3s,height .3s}
+.ci-landing .sc-dots span.on{background:var(--lime);height:26px}
+@keyframes sc-ken{from{transform:scale(1.06)}to{transform:scale(1.18) translateY(-2%)}}
 .ci-landing .programs .sec-head{text-align:left;margin:0 0 34px;max-width:none;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .ci-landing .programs .sec-head .eyebrow{justify-content:flex-start;color:var(--lime)}
 .ci-landing .programs .sec-head .eyebrow::before{background:
@@ -302,9 +291,10 @@ const CSS = `
   .ci-landing .stage .stage-inner .panel{position:static;inset:auto;width:auto;height:158px;border-width:4px;will-change:transform}
   .ci-landing .stage .stage-inner .panel.p1{grid-column:1 / -1;height:clamp(190px,52vw,230px)}
   .ci-landing .stage .spark{display:none}
-  .ci-landing .prog-switch{grid-template-columns:1fr;gap:18px}
-  .ci-landing .prog-tabs{flex-direction:row;flex-wrap:wrap}
-  .ci-landing .ptab{flex:1 1 150px}
+  .ci-landing .sc-inner{flex-direction:column;align-items:flex-start;gap:18px}
+  .ci-landing .sc-dots{flex-direction:row}
+  .ci-landing .sc-dots span.on{height:8px;width:26px}
+  .ci-landing .sc-index{top:72px}
 }
 @media (max-width:620px){
   .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr}
@@ -317,6 +307,7 @@ const CSS = `
 }
 @media (prefers-reduced-motion:reduce){
   .ci-landing .marquee-track{animation:none}
+  .ci-landing .sc-bg img{animation:none}
 }
 `
 
@@ -343,6 +334,17 @@ const PH = {
     U('1522071820081-009f0129c71c', 640, 360),
   ],
 }
+// Grandes images plein cadre pour le showcase des programmes.
+const SCENE_IMG = [
+  U('1531482615713-2afd69097998', 1500, 1000),
+  U('1573164713988-8665fc963095', 1500, 1000),
+  U('1581092795360-fd1ca04f0952', 1500, 1000),
+  U('1573495627361-d9b87960b12d', 1500, 1000),
+  U('1519389950473-47ba0277781c', 1500, 1000),
+  U('1522071820081-009f0129c71c', 1500, 1000),
+  U('1484417894907-623942c8ee29', 1500, 1000),
+  U('1573164713712-03790a178651', 1500, 1000),
+]
 const BADGE_YEARS = (n) => `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="56" fill="#b7e017"/><text x="60" y="54" text-anchor="middle" font-size="30" font-weight="800" fill="#1a2e0c">${n}</text><text x="60" y="78" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1" fill="#38571a">ANS</text></svg>`
 
 /* ───────────────────────── icônes ───────────────────────── */
@@ -398,8 +400,6 @@ const formatDate = (iso) => {
 export default function Home() {
   const [data, setData] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [activeDept, setActiveDept] = useState(0)
-  const [progPaused, setProgPaused] = useState(false)
   const stageRef = useRef(null)
   const canvasRef = useRef(null)
 
@@ -408,15 +408,6 @@ export default function Home() {
     fetchLandingContent(ctrl.signal).then(setData).catch(() => setData(null))
     return () => ctrl.abort()
   }, [])
-
-  // Rotation automatique des départements (boucle infinie), en pause au survol.
-  const PROG_DUR = 5200
-  useEffect(() => {
-    const n = data?.departments?.length ?? 0
-    if (n <= 1 || progPaused) return undefined
-    const t = setInterval(() => setActiveDept((a) => (a + 1) % n), PROG_DUR)
-    return () => clearInterval(t)
-  }, [data, progPaused, activeDept])
 
   // Effets de défilement (Lenis + GSAP ScrollTrigger + Three.js), chargés en lazy.
   // Une seule init, une fois les sections rendues (données chargées), avec repli temporisé.
@@ -607,63 +598,40 @@ export default function Home() {
         </div>
       </section>
 
-      {/* programmes — sélecteur de départements auto-rotatif (boucle infinie) */}
-      <section className="programs" id="programmes">
-        <div className="wrap">
-          <div className="prog-head reveal">
-            <span className="eyebrow">Nos programmes</span>
-            <h2>Des départements, des parcours diplômants</h2>
-            <p>Chaque département s’active à son tour — découvrez ses parcours et accédez à leur site.</p>
-          </div>
-          <div
-            className={`prog-switch reveal${progPaused ? ' paused' : ''}`}
-            style={{ '--dur': `${PROG_DUR}ms` }}
-            onMouseEnter={() => setProgPaused(true)}
-            onMouseLeave={() => setProgPaused(false)}
-          >
-            <div className="prog-tabs" role="tablist" aria-label="Départements">
-              {departments.map((d, i) => (
-                <button
-                  key={d.code}
-                  type="button"
-                  role="tab"
-                  aria-selected={i === activeDept}
-                  className={`ptab${i === activeDept ? ' active' : ''}`}
-                  onClick={() => setActiveDept(i)}
-                >
-                  <span className="ptab-i">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="ptab-name">{cleanName(d.name)}</span>
-                  <span className="ptab-bar"><i /></span>
-                </button>
-              ))}
-            </div>
-            {departments[activeDept] && (
-              <div className="prog-panel" key={activeDept}>
-                <div className="prog-panel-head">
-                  <h3>{cleanName(departments[activeDept].name)}</h3>
-                  {departments[activeDept].description ? <p>{departments[activeDept].description}</p> : null}
+      {/* programmes — showcase cinématique plein écran (scènes empilées sticky) */}
+      <section className="showcase" id="programmes">
+        <div className="wrap sc-head reveal">
+          <span className="eyebrow">Nos programmes</span>
+          <h2>Des départements, des parcours diplômants</h2>
+          <p>Chaque parcours devient une scène — faites défiler pour les traverser.</p>
+        </div>
+        <div className="sc-scenes">
+          {(() => {
+            const flat = departments.flatMap((d, di) => d.programs.map((p) => ({ p, dept: cleanName(d.name), di })))
+            return flat.map(({ p, dept, di }, i) => (
+              <article className="sc-scene" key={`${di}-${p.code}`}>
+                <div className="sc-bg"><img src={SCENE_IMG[i % SCENE_IMG.length]} alt="" /></div>
+                <span className="sc-index">{String(i + 1).padStart(2, '0')}<em>/{String(flat.length).padStart(2, '0')}</em></span>
+                <div className="wrap sc-inner">
+                  <div className="sc-text">
+                    <span className="sc-dept"><b>{String(di + 1).padStart(2, '0')}</b>{dept}</span>
+                    <h3 className="sc-title">{cleanName(p.name)}</h3>
+                    <p className="sc-desc">{p.description || 'Un parcours diplômant du Centre Informatique, de la licence au master.'}</p>
+                    {p.levels?.length ? (
+                      <div className="levels">{p.levels.map((lv) => <span className="lvl" key={lv.number}>{lv.name}</span>)}</div>
+                    ) : null}
+                    <div className="sc-actions">
+                      <a href={p.website_url || 'https://ci.edu.gn'} target="_blank" rel="noreferrer" className="btn btn-lime">Voir plus <IArrow /></a>
+                      <span className="sc-deg">{p.degree_label || 'Diplôme'}</span>
+                    </div>
+                  </div>
+                  <div className="sc-dots" aria-hidden="true">
+                    {flat.map((_, j) => <span key={j} className={j === i ? 'on' : undefined} />)}
+                  </div>
                 </div>
-                <div className="prog-items">
-                  {departments[activeDept].programs.map((p, pi) => (
-                    <article className="pitem" key={p.code} style={{ animationDelay: `${pi * 90}ms` }}>
-                      <div className="pitem-media"><img src={PH.prog[pi % PH.prog.length]} alt="" loading="lazy" /></div>
-                      <div className="pitem-body">
-                        <span className="deg">{p.degree_label || 'Diplôme'}</span>
-                        <h4>{cleanName(p.name)}</h4>
-                        <p>{p.description || 'Parcours diplômant du Centre Informatique.'}</p>
-                        {p.levels?.length ? (
-                          <div className="levels">{p.levels.map((lv) => <span className="lvl" key={lv.number}>{lv.name}</span>)}</div>
-                        ) : null}
-                        <a href={p.website_url || 'https://ci.edu.gn'} target="_blank" rel="noreferrer" className="btn btn-lime">
-                          Voir plus <IArrow />
-                        </a>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+              </article>
+            ))
+          })()}
         </div>
       </section>
 
