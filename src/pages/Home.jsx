@@ -154,12 +154,10 @@ const CSS = `
 .ci-landing .rnav svg{width:18px;height:18px}
 .ci-landing .rnav.prev svg{transform:rotate(180deg)}
 .ci-landing .dept-scroller{overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:clamp(16px,4vw,40px);
-  padding-inline:clamp(16px,4vw,40px);padding-block:6px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.26) transparent;-webkit-overflow-scrolling:touch}
-.ci-landing .dept-scroller::-webkit-scrollbar{height:8px}
-.ci-landing .dept-scroller::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px}
-.ci-landing .dept-scroller::-webkit-scrollbar-track{background:transparent}
+  padding-inline:clamp(16px,4vw,40px);padding-block:4px;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
+.ci-landing .dept-scroller::-webkit-scrollbar{display:none}
 .ci-landing .dept-track{display:flex;gap:clamp(16px,2vw,24px);width:max-content}
-.ci-landing .pcard{position:relative;flex:0 0 clamp(290px,78vw,860px);height:clamp(400px,56vh,520px);border-radius:22px;overflow:hidden;scroll-snap-align:center}
+.ci-landing .pcard{position:relative;flex:0 0 clamp(290px,76vw,820px);height:clamp(360px,48vh,470px);border-radius:22px;overflow:hidden;scroll-snap-align:center}
 .ci-landing .pcard-bg{position:absolute;inset:0;z-index:0}
 .ci-landing .pcard-bg img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.7,.2,1)}
 .ci-landing .pcard:hover .pcard-bg img{transform:scale(1.06)}
@@ -641,7 +639,7 @@ export default function Home() {
                   <button type="button" className="rnav next" aria-label="Suivant" onClick={scrollRow(1)}><IChevron /></button>
                 </div>
               </div>
-              <div className="dept-scroller" data-lenis-prevent>
+              <div className="dept-scroller">
                 <div className="dept-track">
                   {d.programs.map((p, pi) => (
                     <article className="pcard" key={p.code}>
