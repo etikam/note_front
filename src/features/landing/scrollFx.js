@@ -243,23 +243,10 @@ export function initLandingFx({ root, hero, stage, canvas }) {
         ),
     })
 
-    // 2) Hero DESKTOP : PIN + SCRUB. Le hero reste figé pendant que la scène 3D avance/recule
-    //    au rythme du défilement et que les couches (photos, formes) parallaxent.
+    // 2) Hero DESKTOP : SCRUB sans pin — aucune zone morte entre les sections.
+    //    Les 3 photos se regroupent (jeu de cartes) et la scène 3D plonge au fil du
+    //    défilement, pendant que le hero sort naturellement ; tout se déplie au retour.
     if (hero && !isMobile) {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: hero,
-          start: 'top top',
-          end: '+=90%',
-          pin: true,
-          pinSpacing: true,
-          scrub: 1,
-          invalidateOnRefresh: true,
-          onUpdate: (self) => { if (scene3d) scene3d.setProgress(self.progress) },
-        },
-      })
-      // Regroupement « jeu de cartes » : les 3 photos convergent vers le centre
-      // et s'empilent (rotation + léger décalage). Au retour (scrub inverse), elles se déplient.
       const innerEl = stage ? stage.querySelector('.stage-inner') : null
       const panels = innerEl ? ['.p1', '.p2', '.p3'].map((s) => innerEl.querySelector(s)).filter(Boolean) : []
       const rot = [-7, 5, 11]
@@ -267,6 +254,16 @@ export function initLandingFx({ root, hero, stage, canvas }) {
       const centerDelta = (el) => ({
         dx: innerEl.offsetWidth / 2 - (el.offsetLeft + el.offsetWidth / 2),
         dy: innerEl.offsetHeight / 2 - (el.offsetTop + el.offsetHeight / 2),
+      })
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: hero,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => { if (scene3d) scene3d.setProgress(self.progress) },
+        },
       })
       panels.forEach((el, i) => {
         tl.to(el, {

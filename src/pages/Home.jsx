@@ -99,8 +99,8 @@ const CSS = `
 .ci-landing .marquee .star{color:var(--lime)}
 @keyframes ci-scroll{to{transform:translateX(-50%)}}
 
-.ci-landing section{padding-block:clamp(56px,7vw,96px)}
-.ci-landing .sec-head{text-align:center;max-width:640px;margin-inline:auto;margin-bottom:46px}
+.ci-landing section{padding-block:clamp(46px,5.5vw,74px)}
+.ci-landing .sec-head{text-align:center;max-width:640px;margin-inline:auto;margin-bottom:clamp(26px,3vw,36px)}
 .ci-landing .sec-head .eyebrow{justify-content:center}
 .ci-landing .sec-head h2{margin-top:14px;font-size:clamp(1.9rem,3.6vw,2.7rem)}
 .ci-landing .sec-head p{margin-top:14px;color:var(--muted)}
@@ -120,24 +120,29 @@ const CSS = `
 .ci-landing .fact .v{font-size:13.5px;color:var(--muted);font-weight:600}
 .ci-landing .about .btn{margin-top:28px}
 
-.ci-landing .stats{border-block:1px solid var(--line);background:var(--bg);padding-block:0}
-.ci-landing .stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding-block:clamp(34px,4vw,52px)}
-.ci-landing .stat{position:relative;padding-inline:clamp(12px,2vw,28px);text-align:center}
-.ci-landing .stat + .stat::before{content:"";position:absolute;left:0;top:14%;height:72%;width:1px;background:var(--line)}
-.ci-landing .stat .num{font-size:clamp(2rem,3.4vw,2.7rem);font-weight:800;letter-spacing:-.03em;color:var(--green-deep);font-variant-numeric:tabular-nums}
-.ci-landing .stat .lab{margin-top:4px;color:var(--muted);font-size:14px;font-weight:600}
+/* stats — carte flottante compacte (comme la navbar), couleurs vives */
+.ci-landing .stats{position:relative;z-index:20;background:transparent;
+  margin-top:clamp(-56px,-4.5vw,-34px);padding-block:0 clamp(18px,3vw,30px)}
+.ci-landing .stats .wrap{padding-block:0}
+.ci-landing .stats-card{background:var(--green-deep);border-radius:18px;overflow:hidden;
+  display:grid;grid-template-columns:repeat(4,1fr);
+  box-shadow:0 28px 60px -30px rgba(13,49,31,.62),0 4px 14px -8px rgba(13,49,31,.4)}
+.ci-landing .stat{position:relative;padding:clamp(17px,2.2vw,24px) clamp(12px,2vw,26px);text-align:center}
+.ci-landing .stat + .stat::before{content:"";position:absolute;left:0;top:20%;height:60%;width:1px;background:rgba(255,255,255,.14)}
+.ci-landing .stat .num{font-size:clamp(1.85rem,2.8vw,2.45rem);font-weight:800;letter-spacing:-.03em;color:var(--lime);font-variant-numeric:tabular-nums;line-height:1}
+.ci-landing .stat .lab{margin-top:6px;color:#c3d8c9;font-size:13px;font-weight:600;letter-spacing:-.01em}
 
 /* showcase cinématique plein écran */
 .ci-landing .showcase{position:relative;background:var(--green-deep);color:#eaf3ec}
-.ci-landing .sc-head{position:relative;z-index:2;max-width:620px;padding-top:clamp(56px,7vw,96px);padding-bottom:clamp(16px,3vw,28px)}
+.ci-landing .sc-head{position:relative;z-index:2;padding-top:clamp(40px,4.5vw,56px);padding-bottom:clamp(8px,1.5vw,16px)}
 .ci-landing .sc-head .eyebrow{color:var(--lime)}
 .ci-landing .sc-head .eyebrow::before{background:
   radial-gradient(circle at 25% 50%, #fff 0 3.4px, transparent 3.6px),
   radial-gradient(circle at 75% 50%, var(--lime) 0 3.4px, transparent 3.6px), rgba(255,255,255,.12)}
 .ci-landing .sc-head h2{color:#fff;font-size:clamp(1.9rem,3.6vw,2.7rem);margin-top:12px;max-width:18ch}
 .ci-landing .sc-head p{color:#a9c3af;margin-top:12px;font-size:15px}
-.ci-landing .showcase{padding-bottom:clamp(44px,6vw,80px)}
-.ci-landing .dept-row{margin-top:clamp(30px,4vw,52px)}
+.ci-landing .showcase{padding-bottom:clamp(36px,5vw,64px)}
+.ci-landing .dept-row{margin-top:clamp(22px,3vw,38px)}
 .ci-landing .dept-row-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:clamp(16px,2vw,24px)}
 .ci-landing .dept-row-title{display:flex;align-items:center;gap:14px}
 .ci-landing .dept-row-n{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:11px;background:rgba(183,224,23,.14);color:var(--lime);font-weight:800;font-size:14px;flex-shrink:0}
@@ -287,7 +292,7 @@ const CSS = `
   .ci-landing .stage{height:360px}
   .ci-landing .dept-grid{grid-template-columns:1fr;gap:20px}
   .ci-landing .dept-aside{position:static}
-  .ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr 1fr}
+  .ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats-card{grid-template-columns:1fr 1fr}
   .ci-landing footer.foot .wrap{grid-template-columns:1fr 1fr}
 }
 /* hero mobile : les 3 photos en grille nette (bannière + 2) au lieu du collage 3D */
@@ -301,9 +306,10 @@ const CSS = `
   .ci-landing .pcard{flex-basis:84vw;height:clamp(380px,64vh,460px)}
 }
 @media (max-width:620px){
-  .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats .wrap{grid-template-columns:1fr}
+  .ci-landing .prog-grid,.ci-landing .news-grid,.ci-landing .steps{grid-template-columns:1fr}
+  .ci-landing .stats-card{gap:1px;background:rgba(255,255,255,.12)}
+  .ci-landing .stat{background:var(--green-deep)}
   .ci-landing .stat + .stat::before{display:none}
-  .ci-landing .stats .wrap{gap:22px}
   .ci-landing .about-media .am2{width:100%}
   .ci-landing .facts{grid-template-columns:1fr}
   .ci-landing footer.foot .wrap{grid-template-columns:1fr}
@@ -567,12 +573,14 @@ export default function Home() {
       {stats.length > 0 && (
         <section className="stats">
           <div className="wrap">
-            {stats.map((s) => (
-              <div className="stat reveal" key={s.key}>
-                <div className="num"><Counter value={s.value} suffix={s.suffix || ''} /></div>
-                <div className="lab">{s.label}</div>
-              </div>
-            ))}
+            <div className="stats-card">
+              {stats.map((s) => (
+                <div className="stat reveal" key={s.key}>
+                  <div className="num"><Counter value={s.value} suffix={s.suffix || ''} /></div>
+                  <div className="lab">{s.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}
