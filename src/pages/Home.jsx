@@ -236,19 +236,19 @@ const PH = {
   hero: [
     { src: U('1531482615713-2afd69097998', 540, 700), alt: 'Jeunes développeurs au travail' },
     { src: U('1573164713988-8665fc963095', 540, 460), alt: 'Informaticienne avec un ordinateur portable' },
-    { src: U('1531545514256-b1400bc00f31', 560, 440), alt: 'Groupe d’étudiants sur un ordinateur' },
+    { src: U('1573495627361-d9b87960b12d', 560, 440), alt: 'Développeur en train de coder' },
   ],
   about: [
     { src: U('1522071820081-009f0129c71c', 760, 440), alt: 'Équipe de développeurs' },
-    { src: U('1519389950473-47ba0277781c', 640, 360), alt: 'Travail collaboratif sur ordinateurs' },
+    { src: U('1573164713712-03790a178651', 640, 360), alt: 'Informaticienne en salle serveurs' },
   ],
   prog: [
-    U('1573495627361-d9b87960b12d', 640, 360),
     U('1484417894907-623942c8ee29', 640, 360),
     U('1581092795360-fd1ca04f0952', 640, 360),
+    U('1519389950473-47ba0277781c', 640, 360),
   ],
   news: [
-    U('1573164713712-03790a178651', 640, 360),
+    U('1531482615713-2afd69097998', 640, 360),
     U('1581092795360-fd1ca04f0952', 640, 360),
     U('1522071820081-009f0129c71c', 640, 360),
   ],

@@ -203,10 +203,26 @@ export function initLandingFx({ root, hero, stage, canvas }) {
           onUpdate: (self) => { if (scene3d) scene3d.setProgress(self.progress) },
         },
       })
-      tl.to('.p1', { yPercent: -16, ease: 'none' }, 0)
-        .to('.p2', { yPercent: 12, ease: 'none' }, 0)
-        .to('.p3', { yPercent: -28, ease: 'none' }, 0)
-        .to('.hero-text', { y: -34, ease: 'none' }, 0)
+      // Regroupement « jeu de cartes » : les 3 photos convergent vers le centre
+      // et s'empilent (rotation + léger décalage). Au retour (scrub inverse), elles se déplient.
+      const innerEl = stage ? stage.querySelector('.stage-inner') : null
+      const panels = innerEl ? ['.p1', '.p2', '.p3'].map((s) => innerEl.querySelector(s)).filter(Boolean) : []
+      const rot = [-7, 5, 11]
+      const off = [[0, 0], [18, 12], [-16, 22]]
+      const centerDelta = (el) => ({
+        dx: innerEl.offsetWidth / 2 - (el.offsetLeft + el.offsetWidth / 2),
+        dy: innerEl.offsetHeight / 2 - (el.offsetTop + el.offsetHeight / 2),
+      })
+      panels.forEach((el, i) => {
+        tl.to(el, {
+          x: () => centerDelta(el).dx + off[i][0],
+          y: () => centerDelta(el).dy + off[i][1],
+          rotation: rot[i],
+          scale: 0.9,
+          ease: 'none',
+        }, 0)
+      })
+      tl.to('.hero-text', { y: -34, ease: 'none' }, 0)
         .to('.shape-b', { yPercent: 55, ease: 'none' }, 0)
     }
 
