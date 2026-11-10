@@ -251,6 +251,8 @@ const CSS = `
 .ci-landing .admission{background:var(--bg-soft)}
 .ci-landing .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 .ci-landing .step{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px}
+.ci-landing .steps .step:not(:last-child)::after{content:"";position:absolute;top:41px;right:-13px;width:9px;height:9px;
+  border-top:2px solid var(--faint);border-right:2px solid var(--faint);transform:rotate(45deg);opacity:.55;z-index:2}
 .ci-landing .step .no{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--green-soft);color:var(--green);font-weight:800;margin-bottom:16px}
 .ci-landing .step h4{font-size:1.08rem;margin-bottom:7px}
 .ci-landing .step p{color:var(--muted);font-size:14px}
@@ -321,6 +323,7 @@ const CSS = `
   .ci-landing .dept-grid{grid-template-columns:1fr;gap:20px}
   .ci-landing .dept-aside{position:static}
   .ci-landing .news-grid,.ci-landing .steps,.ci-landing .stats-card{grid-template-columns:1fr 1fr}
+  .ci-landing .steps .step::after{display:none}
   .ci-landing footer.foot .wrap{grid-template-columns:1fr 1fr}
 }
 /* hero mobile : les 3 photos en grille nette (bannière + 2) au lieu du collage 3D */
@@ -758,14 +761,14 @@ export default function Home() {
         <div className="wrap">
           <div className="sec-head reveal">
             <span className="eyebrow">Admission</span>
-            <h2>Rejoindre le Centre en quatre étapes</h2>
-            <p>Un parcours de candidature clair, de la demande en ligne à l’inscription définitive.</p>
+            <h2>Une admission par orientation de l’État</h2>
+            <p>Le Centre Informatique est un établissement public de l’UGANC. L’accès se fait par l’orientation nationale des nouveaux bacheliers par l’État — il n’y a pas de candidature individuelle.</p>
           </div>
           <div className="steps">
-            <div className="step reveal"><div className="no">1</div><h4>Candidature</h4><p>Déposez votre demande et choisissez le programme visé.</p></div>
-            <div className="step reveal"><div className="no">2</div><h4>Étude du dossier</h4><p>Vos relevés et pièces sont examinés par la commission.</p></div>
-            <div className="step reveal"><div className="no">3</div><h4>Entretien</h4><p>Un échange pour confirmer votre projet et votre niveau.</p></div>
-            <div className="step reveal"><div className="no">4</div><h4>Inscription</h4><p>Validez votre place et accédez à l’espace étudiant.</p></div>
+            <div className="step reveal"><div className="no">1</div><h4>Baccalauréat</h4><p>Obtenez votre baccalauréat. Les séries scientifiques ouvrent la voie aux parcours informatiques.</p></div>
+            <div className="step reveal"><div className="no">2</div><h4>Vœux d’orientation</h4><p>Lors de l’orientation nationale, portez le Centre Informatique (UGANC) parmi vos choix.</p></div>
+            <div className="step reveal"><div className="no">3</div><h4>Orientation de l’État</h4><p>Le ministère vous oriente vers le Centre selon vos résultats et vos vœux.</p></div>
+            <div className="step reveal"><div className="no">4</div><h4>Inscription &amp; rentrée</h4><p>Une fois orienté, vous finalisez votre inscription au Centre et rejoignez la promotion.</p></div>
           </div>
         </div>
       </section>
