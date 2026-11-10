@@ -338,16 +338,16 @@ const PH = {
     U('1522071820081-009f0129c71c', 640, 360),
   ],
 }
-// Grandes images plein cadre pour le showcase des programmes.
+// Images plein cadre pour les cartes de programmes.
 const SCENE_IMG = [
-  U('1531482615713-2afd69097998', 1500, 1000),
-  U('1573164713988-8665fc963095', 1500, 1000),
-  U('1581092795360-fd1ca04f0952', 1500, 1000),
-  U('1573495627361-d9b87960b12d', 1500, 1000),
-  U('1519389950473-47ba0277781c', 1500, 1000),
-  U('1522071820081-009f0129c71c', 1500, 1000),
-  U('1484417894907-623942c8ee29', 1500, 1000),
-  U('1573164713712-03790a178651', 1500, 1000),
+  U('1531482615713-2afd69097998', 1100, 760),
+  U('1573164713988-8665fc963095', 1100, 760),
+  U('1581092795360-fd1ca04f0952', 1100, 760),
+  U('1573495627361-d9b87960b12d', 1100, 760),
+  U('1519389950473-47ba0277781c', 1100, 760),
+  U('1522071820081-009f0129c71c', 1100, 760),
+  U('1484417894907-623942c8ee29', 1100, 760),
+  U('1573164713712-03790a178651', 1100, 760),
 ]
 const BADGE_YEARS = (n) => `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="56" fill="#b7e017"/><text x="60" y="54" text-anchor="middle" font-size="30" font-weight="800" fill="#1a2e0c">${n}</text><text x="60" y="78" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1" fill="#38571a">ANS</text></svg>`
 
@@ -637,7 +637,7 @@ export default function Home() {
                 <div className="dept-track">
                   {d.programs.map((p, pi) => (
                     <article className="pcard" key={p.code}>
-                      <div className="pcard-bg"><img src={SCENE_IMG[(base + pi) % SCENE_IMG.length]} alt="" /></div>
+                      <div className="pcard-bg"><img src={SCENE_IMG[(base + pi) % SCENE_IMG.length]} alt="" loading="lazy" decoding="async" /></div>
                       <div className="pcard-content">
                         <span className="deg">{p.degree_label || 'Diplôme'}</span>
                         <h4>{cleanName(p.name)}</h4>
