@@ -134,6 +134,27 @@ const CSS = `
 .ci-landing .fact .v{font-size:13.5px;color:var(--muted);font-weight:600}
 .ci-landing .about .btn{margin-top:28px}
 
+/* direction — organigramme hiérarchique */
+.ci-landing .governance{padding-block:clamp(60px,8vw,100px);background:var(--bg-soft)}
+.ci-landing .gov-head{max-width:620px;margin-bottom:clamp(34px,5vw,54px)}
+.ci-landing .gov-head h2{font-size:clamp(1.8rem,3.4vw,2.55rem);letter-spacing:-.02em;margin:12px 0 12px}
+.ci-landing .gov-tree{display:flex;flex-direction:column;align-items:center}
+.ci-landing .gov-tier{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;position:relative}
+.ci-landing .gov-tier+.gov-tier{margin-top:54px}
+.ci-landing .gov-tier+.gov-tier::before{content:"";position:absolute;top:-54px;left:50%;width:2px;height:54px;transform:translateX(-50%);background:linear-gradient(var(--line),var(--green))}
+.ci-landing .gov-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:13px;width:216px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px 22px;transition:box-shadow .2s,border-color .2s,transform .2s}
+.ci-landing .gov-card:hover{border-color:var(--green);box-shadow:0 18px 40px -28px rgba(19,49,31,.45);transform:translateY(-2px)}
+.ci-landing .gov-tier.lead .gov-card{flex-direction:row;text-align:left;align-items:center;gap:22px;width:min(440px,90vw);padding:28px 30px;border-color:var(--green);box-shadow:0 22px 48px -30px rgba(19,49,31,.5)}
+.ci-landing .gov-avatar{width:86px;height:86px;border-radius:999px;flex-shrink:0;overflow:hidden;display:grid;place-items:center;background:linear-gradient(145deg,var(--green) 0%,var(--green-deep) 100%);color:var(--lime);font-weight:800;font-size:1.55rem;letter-spacing:.02em;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.ci-landing .gov-tier.lead .gov-avatar{width:108px;height:108px;font-size:2rem}
+.ci-landing .gov-avatar img{width:100%;height:100%;object-fit:cover}
+.ci-landing .gov-info{display:flex;flex-direction:column;gap:4px}
+.ci-landing .gov-name{font-size:1.1rem;font-weight:800;letter-spacing:-.01em;color:var(--fg);line-height:1.2}
+.ci-landing .gov-tier.lead .gov-name{font-size:clamp(1.3rem,2.2vw,1.6rem)}
+.ci-landing .gov-role{font-size:13px;font-weight:700;color:var(--green)}
+.ci-landing .gov-tier.lead .gov-role{align-self:flex-start;font-size:14px;color:var(--lime-ink);background:var(--lime);padding:4px 12px;border-radius:999px;margin-top:2px}
+.ci-landing .gov-sub{font-size:12.5px;color:var(--muted);font-weight:600}
+
 /* stats — carte flottante compacte (comme la navbar), couleurs vives */
 .ci-landing .stats{position:relative;z-index:20;background:transparent;
   margin-top:clamp(-56px,-4.5vw,-34px);padding-block:0 clamp(18px,3vw,30px)}
@@ -361,6 +382,8 @@ const CSS = `
   .ci-landing .stat + .stat::before{display:none}
   .ci-landing .about-media .am2{width:100%}
   .ci-landing .facts{grid-template-columns:1fr}
+  .ci-landing .gov-tier.lead .gov-card{flex-direction:column;text-align:center;gap:14px}
+  .ci-landing .gov-tier.lead .gov-role{align-self:center}
   .ci-landing footer.foot .wrap{grid-template-columns:1fr}
   .ci-landing .topbar .wrap{justify-content:center}
 }
@@ -417,7 +440,29 @@ const IMenu = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" 
 const IClose = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
 const IChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M9 6l6 6-6 6" /></svg>
 
-const NAV = [['#accueil', 'Accueil'], ['#programmes', 'Programmes'], ['#actualites', 'Actualités'], ['#admission', 'Admission'], ['#contact', 'Contact']]
+const NAV = [['#accueil', 'Accueil'], ['#programmes', 'Programmes'], ['#direction', 'Direction'], ['#actualites', 'Actualités'], ['#admission', 'Admission'], ['#contact', 'Contact']]
+
+/* Sous-titre d'une carte de direction : entité dirigée (dépt/programme) ou grade. */
+const govSubtitle = (l) => {
+  if (l.role_code === 'department_head') return `Département ${l.target}`
+  if (l.role_code === 'program_director') return `Programme ${l.target}`
+  return l.grade_label || ''
+}
+
+const GovCard = ({ leader, lead }) => (
+  <article className={`gov-card${lead ? ' is-lead' : ''}`}>
+    <div className="gov-avatar">
+      {leader.photo_url
+        ? <img src={leader.photo_url} alt={leader.full_name} loading="lazy" decoding="async" />
+        : <span>{leader.initials}</span>}
+    </div>
+    <div className="gov-info">
+      <h3 className="gov-name">{leader.full_name}</h3>
+      <span className="gov-role">{leader.role_name}</span>
+      {govSubtitle(leader) && <span className="gov-sub">{govSubtitle(leader)}</span>}
+    </div>
+  </article>
+)
 
 function Counter({ value = 0, suffix = '' }) {
   const [n, setN] = useState(0)
@@ -526,7 +571,14 @@ export default function Home() {
   const foundingYear = inst.founding_year ?? 1989
   const stats = data?.stats ?? []
   const departments = data?.departments ?? []
+  const leadership = data?.leadership ?? []
   const news = data?.news ?? []
+  const govTiers = [
+    { key: 'general', lead: true, items: leadership.filter((l) => l.role_code === 'general_director') },
+    { key: 'study', items: leadership.filter((l) => l.role_code === 'study_director') },
+    { key: 'heads', items: leadership.filter((l) => l.role_code === 'department_head') },
+    { key: 'progdir', items: leadership.filter((l) => l.role_code === 'program_director') },
+  ].filter((t) => t.items.length)
   const years = stats.find((s) => s.key === 'experience')?.value ?? (new Date().getFullYear() - foundingYear)
 
   // Carrousel d'actualités : une à une, en boucle (pause au survol, arrêt sous reduced-motion).
@@ -685,6 +737,31 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* direction — organigramme (mandats actifs) */}
+      {leadership.length > 0 && (
+        <section className="governance reveal" id="direction">
+          <div className="wrap">
+            <div className="sec-head gov-head">
+              <span className="eyebrow">Gouvernance</span>
+              <h2>La direction du Centre</h2>
+              <p>
+                Les responsables qui pilotent le Centre Informatique, de la direction générale
+                aux programmes.
+              </p>
+            </div>
+            <div className="gov-tree">
+              {govTiers.map((t) => (
+                <div key={t.key} className={`gov-tier${t.lead ? ' lead' : ''}`}>
+                  {t.items.map((l, i) => (
+                    <GovCard key={`${l.role_code}-${l.target}-${i}`} leader={l} lead={t.lead} />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* programmes — carrousels horizontaux immersifs par département */}
       <section className="showcase" id="programmes">
