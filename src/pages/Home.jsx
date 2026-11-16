@@ -457,7 +457,7 @@ const GovCard = ({ leader, lead }) => (
         : <span>{leader.initials}</span>}
     </div>
     <div className="gov-info">
-      <h3 className="gov-name">{leader.full_name}</h3>
+      <h3 className="gov-name">{leader.civility ? `${leader.civility} ` : ''}{leader.full_name}</h3>
       <span className="gov-role">{leader.role_name}</span>
       {govSubtitle(leader) && <span className="gov-sub">{govSubtitle(leader)}</span>}
     </div>
@@ -575,6 +575,7 @@ export default function Home() {
   const news = data?.news ?? []
   const govTiers = [
     { key: 'general', lead: true, items: leadership.filter((l) => l.role_code === 'general_director') },
+    { key: 'deputy', items: leadership.filter((l) => l.role_code === 'deputy_general_director') },
     { key: 'study', items: leadership.filter((l) => l.role_code === 'study_director') },
     { key: 'heads', items: leadership.filter((l) => l.role_code === 'department_head') },
     { key: 'progdir', items: leadership.filter((l) => l.role_code === 'program_director') },
