@@ -146,9 +146,9 @@ const PILLARS = [
 ]
 
 const STAKES = [
-  { icon: <IPulse />, t: 'Riposte aux épidémies', d: "Lors de l'épidémie d'Ebola de 2014 en Afrique de l'Ouest, c'est le séquençage du génome du virus qui a permis de retracer sa transmission. Former ces compétences ici, c'est répondre plus vite demain." },
-  { icon: <IShield />, t: 'Santé des populations', d: "Paludisme résistant, drépanocytose très présente en Afrique de l'Ouest : la génomique aide à comprendre, dépister et traiter des maladies qui touchent directement la Guinée." },
-  { icon: <ILeaf />, t: 'Agriculture & biodiversité', d: 'Riz, manioc, variétés locales : analyser les génomes des plantes et des sols pour des cultures plus résistantes et une agriculture plus sûre.' },
+  { icon: <IPulse />, img: '/bioinfo/sequencing.jpg', t: 'Riposte aux épidémies', d: "Lors de l'épidémie d'Ebola de 2014 en Afrique de l'Ouest, c'est le séquençage du génome du virus qui a permis de retracer sa transmission. Former ces compétences ici, c'est répondre plus vite demain." },
+  { icon: <IShield />, img: '/bioinfo/research.jpg', t: 'Santé des populations', d: "Paludisme résistant, drépanocytose très présente en Afrique de l'Ouest : la génomique aide à comprendre, dépister et traiter des maladies qui touchent directement la Guinée." },
+  { icon: <ILeaf />, img: '/bioinfo/agriculture.jpg', t: 'Agriculture & biodiversité', d: 'Riz, manioc, variétés locales : analyser les génomes des plantes et des sols pour des cultures plus résistantes et une agriculture plus sûre.' },
 ]
 
 const SKILLS = [
@@ -270,6 +270,7 @@ export default function Bioinformatique() {
 
       {/* ───────── Hero ───────── */}
       <section className="hero">
+        <div className="hero-photo" aria-hidden="true" />
         <DnaHelix />
         <div className="hero-grad" />
         <div className="hero-inner">
@@ -328,9 +329,14 @@ export default function Bioinformatique() {
           <div className="stakes">
             {STAKES.map((s) => (
               <article key={s.t} className="stake">
-                <span className="s-icon">{s.icon}</span>
-                <h3>{s.t}</h3>
-                <p>{s.d}</p>
+                <div className="s-photo">
+                  <img src={s.img} alt="" loading="lazy" decoding="async" />
+                  <span className="s-icon">{s.icon}</span>
+                </div>
+                <div className="s-body">
+                  <h3>{s.t}</h3>
+                  <p>{s.d}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -344,16 +350,17 @@ export default function Bioinformatique() {
       {/* ───────── Compétences ───────── */}
       <section className="band light">
         <div className="wrap split">
+          <div className="split-media"><img src="/bioinfo/code.jpg" alt="Analyse de données biologiques par le code" loading="lazy" decoding="async" /></div>
           <div className="split-txt">
             <span className="eyebrow dark"><i className="dot" /> À la sortie</span>
             <h2>Ce qu’un diplômé sait faire</h2>
             <p className="sub">La Licence vise des compétences concrètes, utilisables en laboratoire, en recherche ou en entreprise.</p>
+            <ul className="skills">
+              {SKILLS.map((s) => (
+                <li key={s}><span className="chk"><ICheck /></span>{s}</li>
+              ))}
+            </ul>
           </div>
-          <ul className="skills">
-            {SKILLS.map((s) => (
-              <li key={s}><span className="chk"><ICheck /></span>{s}</li>
-            ))}
-          </ul>
         </div>
       </section>
 
@@ -403,13 +410,14 @@ export default function Bioinformatique() {
             <span className="eyebrow dark"><i className="dot" /> Débouchés</span>
             <h2>Où mène la bio-informatique</h2>
             <p className="sub">Un profil rare et recherché, à la frontière de la santé, de la recherche et de la donnée — en Guinée comme à l’international.</p>
+            <ul className="careers">
+              {CAREERS.map((c, i) => (
+                <li key={c}><span className="c-n">{String(i + 1).padStart(2, '0')}</span>{c}</li>
+              ))}
+            </ul>
             <a className="link-arrow" href={CENTER_URL}>Découvrir le Centre Informatique <IArrow /></a>
           </div>
-          <ul className="careers">
-            {CAREERS.map((c, i) => (
-              <li key={c}><span className="c-n">{String(i + 1).padStart(2, '0')}</span>{c}</li>
-            ))}
-          </ul>
+          <div className="split-media tall"><img src="/bioinfo/lab.jpg" alt="Environnement de laboratoire et de recherche" loading="lazy" decoding="async" /></div>
         </div>
       </section>
 
@@ -521,9 +529,12 @@ const CSS = `
 .bioinf .burger span{width:22px; height:2px; background:#eaf3ec; border-radius:2px}
 
 /* ── Hero ── */
-.bioinf .hero{position:relative; background:radial-gradient(120% 90% at 85% 0%, #14331f 0%, var(--deep) 55%, #0a1f12 100%); color:#eaf3ec; overflow:hidden; min-height:min(88vh,760px); display:flex; align-items:center}
-.bioinf .hero .helix{position:absolute; inset:0; width:100%; height:100%; z-index:1}
-.bioinf .hero-grad{position:absolute; inset:0; z-index:2; background:linear-gradient(90deg, var(--deep) 8%, rgba(14,40,23,.72) 42%, rgba(14,40,23,0) 72%)}
+.bioinf .hero{position:relative; background:#071610; color:#eaf3ec; overflow:hidden; min-height:min(90vh,780px); display:flex; align-items:center}
+.bioinf .hero-photo{position:absolute; inset:0; z-index:0; background:url(/bioinfo/hero.jpg) center right/cover no-repeat}
+.bioinf .hero .helix{position:absolute; inset:0; width:100%; height:100%; z-index:1; opacity:.5; mix-blend-mode:screen}
+.bioinf .hero-grad{position:absolute; inset:0; z-index:2; background:
+  linear-gradient(90deg, #071610 6%, rgba(7,22,16,.82) 40%, rgba(7,22,16,.28) 78%, rgba(7,22,16,.5) 100%),
+  linear-gradient(0deg, #071610 2%, rgba(7,22,16,0) 46%)}
 .bioinf .hero-inner{position:relative; z-index:3; max-width:1140px; margin-inline:auto; padding:clamp(56px,9vw,96px) clamp(20px,5vw,40px); width:100%}
 .bioinf .hero h1{font-size:clamp(2.4rem,6vw,4.4rem); margin:18px 0 20px; max-width:16ch; color:#fff}
 .bioinf .hero h1 em{font-style:normal; color:var(--lime); position:relative; white-space:nowrap}
@@ -564,9 +575,14 @@ const CSS = `
 
 /* Enjeux */
 .bioinf .stakes{display:grid; grid-template-columns:repeat(3,1fr); gap:20px}
-.bioinf .stake{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:var(--radius); padding:28px 26px}
-.bioinf .s-icon{display:grid; place-items:center; width:48px; height:48px; border-radius:13px; background:rgba(183,224,23,.14); color:var(--lime); margin-bottom:18px}
-.bioinf .s-icon svg{width:26px; height:26px}
+.bioinf .stake{display:flex; flex-direction:column; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:var(--radius); overflow:hidden}
+.bioinf .s-photo{position:relative; aspect-ratio:16/10; overflow:hidden}
+.bioinf .s-photo img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+.bioinf .stake:hover .s-photo img{transform:scale(1.05)}
+.bioinf .s-photo::after{content:""; position:absolute; inset:0; background:linear-gradient(0deg, rgba(7,22,16,.72), rgba(7,22,16,.05) 62%)}
+.bioinf .s-icon{position:absolute; z-index:2; left:16px; bottom:14px; display:grid; place-items:center; width:46px; height:46px; border-radius:12px; background:var(--lime); color:var(--lime-ink); box-shadow:0 10px 22px -10px rgba(0,0,0,.6)}
+.bioinf .s-icon svg{width:24px; height:24px}
+.bioinf .s-body{padding:24px 24px 26px}
 .bioinf .stake h3{font-size:1.24rem; color:#fff; margin-bottom:10px}
 .bioinf .stake p{color:#b9cdbe; font-size:14.5px}
 .bioinf .stake-foot{margin-top:30px; font-size:clamp(1.05rem,1.8vw,1.3rem); color:#dff0e4; max-width:60ch}
@@ -574,6 +590,9 @@ const CSS = `
 
 /* Split */
 .bioinf .split{display:grid; grid-template-columns:1fr 1.1fr; gap:clamp(32px,5vw,64px); align-items:center}
+.bioinf .split-media{position:relative; border-radius:20px; overflow:hidden; aspect-ratio:4/5; border:1px solid var(--line); box-shadow:0 30px 60px -40px rgba(7,22,16,.5)}
+.bioinf .split-media.tall{aspect-ratio:3/4}
+.bioinf .split-media img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block}
 .bioinf .split-txt h2{font-size:clamp(1.8rem,3.4vw,2.5rem); margin:14px 0 14px}
 .bioinf .split-txt .sub{color:var(--muted); margin-bottom:18px}
 .bioinf .skills{display:grid; gap:12px; list-style:none}
@@ -638,6 +657,7 @@ const CSS = `
   .bioinf .pillars,.bioinf .stakes,.bioinf .years{grid-template-columns:1fr}
   .bioinf .steps{grid-template-columns:repeat(2,1fr)}
   .bioinf .split{grid-template-columns:1fr; gap:28px}
+  .bioinf .split-media,.bioinf .split-media.tall{aspect-ratio:16/10}
 }
 @media (max-width:760px){
   .bioinf .tb-nav{position:fixed; inset:60px 0 auto 0; flex-direction:column; align-items:stretch; gap:4px; background:rgba(14,40,23,.98); backdrop-filter:blur(14px); padding:16px clamp(20px,5vw,40px) 22px; border-bottom:1px solid rgba(255,255,255,.1); transform:translateY(-130%); transition:transform .28s; box-shadow:0 20px 40px -20px rgba(0,0,0,.5)}
